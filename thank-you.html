@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Thank you for contacting Helmick Underground LLC">
+    <title>Thank You | Helmick Underground LLC</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        .thank-you-section {
+            min-height: calc(100vh - 70px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 1rem;
+            background: linear-gradient(180deg, #0f0f0f 0%, var(--dark-bg) 100%);
+        }
+
+        .thank-you-card {
+            max-width: 600px;
+            background: var(--card-dark);
+            padding: 4rem 3rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            text-align: center;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 2rem;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-icon svg {
+            width: 40px;
+            height: 40px;
+            color: var(--white);
+            stroke-width: 3;
+        }
+
+        .thank-you-card h1 {
+            color: var(--white);
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .thank-you-card p {
+            color: var(--gray);
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-info-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 107, 26, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .contact-info-box h3 {
+            color: var(--primary-color);
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+            font-weight: 700;
+        }
+
+        .contact-info-box p {
+            margin-bottom: 0.3rem;
+            font-size: 1rem;
+        }
+
+        .contact-info-box a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .contact-info-box a:hover {
+            color: var(--primary-light);
+        }
+
+        @media (max-width: 768px) {
+            .thank-you-card {
+                padding: 3rem 2rem;
+            }
+
+            .thank-you-card h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-wrapper">
+                <div class="logo"><a href="index.html">Helmick Underground</a></div>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="services.html" class="nav-link">Services</a></li>
+                    <li><a href="about.html" class="nav-link">About</a></li>
+                    <li><a href="contact.html" class="nav-link">Contact</a></li>
+                </ul>
+                <div class="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Thank You Section -->
+    <section class="thank-you-section" style="margin-top: 70px;">
+        <div class="thank-you-card">
+            <div class="success-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+            <h1>Message Sent Successfully!</h1>
+            <p>Thank you for reaching out to Helmick Underground. We've received your quote request and will review it shortly.</p>
+            <p>We typically respond within 24 hours during business days.</p>
+            
+            <div class="contact-info-box">
+                <h3>Need immediate assistance?</h3>
+                <p><strong>Tommy Helmick:</strong> <a href="tel:3197219925">319-721-9925</a></p>
+                <p><strong>Travis Helmick:</strong> <a href="tel:3195514323">319-551-4323</a></p>
+            </div>
+
+            <a href="index.html" class="btn btn-primary" style="display: inline-block;">Return to Home</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Helmick Underground LLC</h4>
+                    <p>Family owned and operated since 1988. Professional underground utility services you can trust.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="services.html">Services</a></li>
+                        <li><a href="about.html">About</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p>Mount Vernon, Iowa 52314</p>
+                    <p>Tommy: 319-721-9925</p>
+                    <p>Travis: 319-551-4323</p>
+                    <p>Email: HelmickUnderground@gmail.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Helmick Underground LLC. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

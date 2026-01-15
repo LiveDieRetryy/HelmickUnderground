@@ -1,0 +1,204 @@
+WEBSITE DEPLOYMENT GUIDE - HELMICK UNDERGROUND
+===============================================
+
+You need to upload all your website files to your hosting service where HelmickUnderground.com is registered.
+
+STEP 1: GATHER YOUR FILES
+--------------------------
+You need to upload these files from C:\Users\Admin\HelmickUnderground:
+
+✓ index.html
+✓ about.html
+✓ services.html
+✓ contact.html
+✓ thank-you.html
+✓ styles.css
+✓ script.js
+✓ logo.png (if you have it)
+✓ images/ folder (with your equipment photos when ready)
+
+DO NOT UPLOAD:
+- EMAIL_SETUP_INSTRUCTIONS.txt
+- DEPLOYMENT_INSTRUCTIONS.txt
+- README files
+
+
+STEP 2: ACCESS YOUR HOSTING
+----------------------------
+Since you own HelmickUnderground.com, you likely have hosting through:
+- GoDaddy (most common)
+- Hostinger
+- Bluehost
+- SiteGround
+- Or another provider
+
+To access your hosting:
+
+FOR GODADDY:
+1. Go to: https://www.godaddy.com/
+2. Click "Sign In" (top right)
+3. Enter your GoDaddy account credentials
+4. Click "My Products"
+5. Find "Web Hosting" and click "Manage"
+6. Click "cPanel" or "File Manager"
+
+FOR OTHER HOSTS:
+1. Check your email for hosting login credentials
+2. Look for "cPanel login" or "hosting dashboard" link
+3. Login with your credentials
+
+
+STEP 3: UPLOAD FILES USING FILE MANAGER
+----------------------------------------
+Once in cPanel or File Manager:
+
+1. Navigate to "public_html" or "www" folder
+   (This is where your website files go)
+
+2. DELETE any existing files in there:
+   - index.html (old one)
+   - Any placeholder pages
+
+3. UPLOAD YOUR FILES:
+   - Click "Upload" button
+   - Select all files from C:\Users\Admin\HelmickUnderground
+   - Wait for upload to complete (should take 1-2 minutes)
+
+4. VERIFY the files are there:
+   - You should see: index.html, about.html, services.html, contact.html, styles.css, script.js
+
+
+STEP 4: UPLOAD USING FTP (ALTERNATIVE METHOD)
+----------------------------------------------
+If you prefer using FTP software (more reliable for multiple files):
+
+SOFTWARE OPTIONS (pick one):
+- FileZilla (free): https://filezilla-project.org/
+- WinSCP (free): https://winscp.net/
+- Cyberduck (free): https://cyberduck.io/
+
+FTP CREDENTIALS (get from your hosting provider):
+- Host/Server: Usually ftp.helmickunderground.com or helmickunderground.com
+- Username: Your hosting username (check hosting email)
+- Password: Your hosting password
+- Port: 21 (standard FTP) or 22 (SFTP/secure)
+
+STEPS:
+1. Install FTP software (FileZilla recommended)
+2. Open FileZilla
+3. Click File > Site Manager > New Site
+4. Enter your FTP details:
+   - Host: ftp.helmickunderground.com
+   - Port: 21
+   - Protocol: FTP or SFTP
+   - Username: (from hosting)
+   - Password: (from hosting)
+5. Click "Connect"
+6. Navigate to "public_html" folder on the right side
+7. Drag and drop all your files from left side (your computer) to right side (server)
+
+
+STEP 5: TEST YOUR WEBSITE
+--------------------------
+After uploading:
+
+1. Open browser
+2. Go to: https://helmickunderground.com
+3. If you see your website - SUCCESS! 🎉
+4. Test all pages:
+   - Click Home, Services, About, Contact
+   - Submit a test form on Contact page
+   - Check mobile view (resize browser or use phone)
+
+If you see "Page Not Found" or old content:
+- Wait 5-10 minutes for DNS to update
+- Clear your browser cache (Ctrl+Shift+Delete)
+- Try in Incognito/Private window
+
+
+STEP 6: ENABLE HTTPS/SSL (IMPORTANT FOR SECURITY)
+--------------------------------------------------
+Your website should use HTTPS (secure).
+
+In cPanel:
+1. Find "SSL/TLS Status" or "Let's Encrypt SSL"
+2. Click "Run AutoSSL" or "Install SSL Certificate"
+3. Select your domain: helmickunderground.com
+4. Click "Install" or "Enable"
+5. Wait 2-5 minutes for installation
+
+Most hosting providers offer FREE SSL certificates (Let's Encrypt).
+
+
+TROUBLESHOOTING
+---------------
+PROBLEM: "I can't find my hosting login"
+SOLUTION: 
+- Check email inbox for "hosting account" or "welcome" from your domain registrar
+- If using GoDaddy, reset password at godaddy.com
+- Contact your hosting provider's support
+
+PROBLEM: "Files uploaded but website doesn't show"
+SOLUTION:
+- Make sure files are in "public_html" not a subfolder
+- Rename index.html exactly (case-sensitive)
+- Clear browser cache
+- Wait 10-15 minutes for DNS propagation
+
+PROBLEM: "Contact form not working on live site"
+SOLUTION:
+- This should work automatically since we use Web3Forms API
+- Test by submitting a form
+- Check HelmickUnderground@gmail.com for test email
+
+PROBLEM: "Images not showing"
+SOLUTION:
+- Make sure "images" folder is uploaded
+- Check file names match exactly (case-sensitive)
+- Upload equipment photos to images/ folder
+
+
+NEED HELP?
+----------
+If you don't know where your website is hosted:
+
+1. Check your domain registrar:
+   - Go to: https://who.is/
+   - Enter: helmickunderground.com
+   - Look for "Registrar" (who you bought domain from)
+
+2. Contact that company's support:
+   - GoDaddy: 480-505-8877
+   - Hostinger: support chat on hostinger.com
+   - Bluehost: 888-401-4678
+
+3. Say: "I need access to my hosting for helmickunderground.com"
+
+
+QUICK CHECKLIST
+---------------
+□ Found hosting login credentials
+□ Logged into cPanel/File Manager
+□ Navigated to public_html folder
+□ Deleted old files
+□ Uploaded all new website files
+□ Verified files are in correct location
+□ Tested https://helmickunderground.com in browser
+□ Tested all 4 pages (Home, Services, About, Contact)
+□ Tested contact form submission
+□ Enabled SSL certificate (HTTPS)
+□ Website is LIVE! 🚀
+
+
+KEEPING YOUR WEBSITE UPDATED
+-----------------------------
+To make changes in the future:
+1. Edit files on your computer (in C:\Users\Admin\HelmickUnderground)
+2. Re-upload the changed files via File Manager or FTP
+3. Files upload in seconds - changes are instant
+4. Always keep a backup copy on your computer!
+
+
+Questions? The most common hosting providers have great tutorials:
+- GoDaddy: godaddy.com/help
+- YouTube: Search "how to upload website to [your host]"
