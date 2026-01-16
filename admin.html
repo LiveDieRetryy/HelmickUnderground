@@ -535,8 +535,37 @@
                 </div>
             </div>
         </div>
+
+        <!-- Edit Modal -->
+        <div id="editModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>✏️ Edit Gallery Item</h2>
+                    <button class="modal-close" onclick="closeEditModal()">&times;</button>
+                </div>
+                <form id="editItemForm">
+                    <input type="hidden" id="editItemId">
+                    <div class="form-group">
+                        <label for="editItemTitle">Title *</label>
+                        <input type="text" id="editItemTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editItemDescription">Description *</label>
+                        <textarea id="editItemDescription" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="editItemDate">Date (optional)</label>
+                        <input type="date" id="editItemDate">
+                    </div>
+                    <div class="form-group" style="display: flex; gap: 1rem;">
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">Save Changes</button>
+                        <button type="button" class="btn btn-logout" onclick="closeEditModal()" style="flex: 1;">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
-    <script src="admin-gallery.js?v=6"></script>
+    <script src="admin-gallery.js?v=7"></script>
 </body>
 </html>

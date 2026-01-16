@@ -96,6 +96,17 @@ export default async function handler(req, res) {
                 galleryData.items.unshift(item);
             } else if (action === 'delete') {
                 galleryData.items = galleryData.items.filter(i => i.id !== item.id);
+            } else if (action === 'edit') {
+                const index = galleryData.items.findIndex(i => i.id === item.id);
+                if (index !== -1) {
+                    // Keep existing image/video/embed data, only update title, description, date
+                    galleryData.items[index] = {
+                        ...galleryData.items[index],
+                        title: item.title,
+                        description: item.description,
+                        date: item.date
+                    };
+                }
             }
             
             // Update file on GitHub

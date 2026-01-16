@@ -517,6 +517,9 @@ async function loadGalleryItems() {
         const data = await response.json();
         const container = document.getElementById('galleryItemsList');
         
+        // Store items globally for edit modal
+        galleryItems = data.items || [];
+        
         if (!data.items || data.items.length === 0) {
             container.innerHTML = '<p style="color: var(--gray); text-align: center; padding: 2rem;">No gallery items yet. Add your first item above!</p>';
             return;
@@ -539,6 +542,7 @@ async function loadGalleryItems() {
                     <p><strong>Type:</strong> ${item.type === 'image' ? '📷 Image' : '🎥 Video'}${item.fileSize ? ` • ${formatFileSize(item.fileSize)}` : ''}</p>
                 </div>
                 <div class="item-actions">
+                    <button class="btn btn-small btn-edit" onclick="openEditModal(${item.id})">Edit</button>
                     <button class="btn btn-small btn-delete" onclick="deleteItem(${item.id})">Delete</button>
                 </div>
             </div>
@@ -651,8 +655,93 @@ function showSuccess(message) {
     }, 5000);
 }
 
-// Make deleteItem available globally
+// Edit item functions
+let galleryItems = [];
+
+function openEditModal(id) {
+    const item = galleryItems.find(i => i.id === id);
+    if (!item) return;
+    
+    document.getElementById('editItemId').value = item.id;
+    document.getElementById('editItemTitle').value = item.title;
+    document.getElementById('editItemDescription').value = item.description;
+    document.getElementById('editItemDate').value = item.date || '';
+    
+    document.getElementById('editModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').classList.remove('active');
+    document.body.style.overflow = '';
+    document.getElementById('editItemForm').reset();
+}
+
+// Handle edit form submission
+document.getElementById('editItemForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const id = parseInt(document.getElementById('editItemId').value);
+    const title = document.getElementById('editItemTitle').value;
+    const description = document.getElementById('editItemDescription').value;
+    const date = document.getElementById('editItemDate').value;
+    
+    try {
+        const response = await fetch('/api/gallery', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'edit',
+                item: {
+                    id: id,
+                    title: title,
+                    description: description,
+                    date: date
+                }
+            })
+        });
+        
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            throw new Error(`Server error: ${text}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showSuccess('Item updated successfully!');
+            closeEditModal();
+            loadGalleryItems();
+        } else {
+            alert('Failed to update item: ' + (result.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error updating item:', error);
+        alert('Error updating item: ' + error.message);
+    }
+});
+
+// Close modal when clicking outside
+document.getElementById('editModal').addEventListener('click', (e) => {
+    if (e.target.id === 'editModal') {
+        closeEditModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('editModal').classList.contains('active')) {
+        closeEditModal();
+    }
+});
+
+// Make functions available globally
 window.deleteItem = deleteItem;
+window.openEditModal = openEditModal;
+window.closeEditModal = closeEditModal;
 
 // Check auth on page load
 checkAuth();
