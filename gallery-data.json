@@ -1,15 +1,6 @@
 {
   "items": [
     {
-      "id": 1768595758647,
-      "title": "Comfortable Workspaces",
-      "description": "At Helmick Underground, we understand that quality splicing requires a comfortable work environment. We take extra care to create spacious, well-supported splice pits that give our technicians room to work efficiently.",
-      "date": null,
-      "type": "image",
-      "image": "images/kM.jpeg",
-      "fileSize": 280375
-    },
-    {
       "id": 1768595501431,
       "title": "Our Dedication To Cleanup",
       "description": "We have pride in how we leave our projects. We aim to leave them in the same, if not better condition than we found them.",
@@ -17,6 +8,15 @@
       "type": "video",
       "videoFile": "https://res.cloudinary.com/dbt9vsoji/video/upload/v1768595504/videos/djhgx0euvpggeckssu8e.mp4",
       "fileSize": 7685685
+    },
+    {
+      "id": 1768595758647,
+      "title": "Comfortable Workspaces",
+      "description": "At Helmick Underground, we understand that quality splicing requires a comfortable work environment. We take extra care to create spacious, well-supported splice pits that give our technicians room to work efficiently.",
+      "date": null,
+      "type": "image",
+      "image": "images/kM.jpeg",
+      "fileSize": 280375
     },
     {
       "id": 1768595417037,
