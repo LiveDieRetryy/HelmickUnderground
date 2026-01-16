@@ -44,9 +44,11 @@ function showDashboard() {
 
 // Type selector
 const typeBtns = document.querySelectorAll('.type-btn');
-const imageUrlGroup = document.getElementById('imageUrlGroup');
+const imageUploadGroup = document.getElementById('imageUploadGroup');
+const videoUploadGroup = document.getElementById('videoUploadGroup');
 const embedCodeGroup = document.getElementById('embedCodeGroup');
-const itemImage = document.getElementById('itemImage');
+const itemImageFile = document.getElementById('itemImageFile');
+const itemVideoFile = document.getElementById('itemVideoFile');
 const itemEmbed = document.getElementById('itemEmbed');
 
 typeBtns.forEach(btn => {
@@ -55,15 +57,28 @@ typeBtns.forEach(btn => {
         this.classList.add('active');
         
         const type = this.dataset.type;
+        
+        // Hide all
+        imageUploadGroup.style.display = 'none';
+        videoUploadGroup.style.display = 'none';
+        embedCodeGroup.style.display = 'none';
+        
+        // Reset required
+        itemImageFile.required = false;
+        itemVideoFile.required = false;
+        itemEmbed.required = false;
+        
+        // Show appropriate input
         if (type === 'image') {
-            imageUrlGroup.style.display = 'block';
-            embedCodeGroup.style.display = 'none';
-            itemImage.required = true;
-            itemEmbed.required = false;
-        } else {
-            imageUrlGroup.style.display = 'none';
+            imageUploadGroup.style.display = 'block';
+            itemImageFile.required = true;
+        } else if (type === 'video') {
+            videoUploadGroup.style.display = 'block';
             embedCodeGroup.style.display = 'block';
-            itemImage.required = false;
+            embedCodeGroup.querySelector('label').textContent = 'Or TikTok Embed Code';
+        } else if (type === 'tiktok') {
+            embedCodeGroup.style.display = 'block';
+            embedCodeGroup.querySelector('label').textContent = 'TikTok Embed Code *';
             itemEmbed.required = true;
         }
     });
@@ -80,37 +95,114 @@ document.getElementById('addItemForm')?.addEventListener('submit', async functio
     
     const newItem = {
         id: Date.now(),
-        type: type,
         title: title,
         description: description,
         date: date || null
     };
     
-    if (type === 'image') {
-        newItem.image = document.getElementById('itemImage').value;
-    } else {
-        const embedCode = document.getElementById('itemEmbed').value;
-        // Validate TikTok embed code
-        if (!embedCode.includes('tiktok-embed') || !embedCode.includes('<blockquote')) {
-            alert('❌ Invalid TikTok embed code!\n\nMake sure you:\n1. Go to your TikTok VIDEO (not music)\n2. Click Share → Embed\n3. Copy the FULL code starting with <blockquote>\n\nThe code should contain "tiktok-embed" and "blockquote"');
-            return;
+    try {
+        // Handle different types
+        if (type === 'image') {
+            const file = document.getElementById('itemImageFile').files[0];
+            if (!file) {
+                alert('Please select an image');
+                return;
+            }
+            
+            // Check size
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Image must be under 5MB');
+                return;
+            }
+            
+            showSuccess('⏳ Uploading image...');
+            const uploadedPath = await uploadFile(file);
+            newItem.type = 'image';
+            newItem.image = uploadedPath;
+            
+        } else if (type === 'video') {
+            const videoFile = document.getElementById('itemVideoFile').files[0];
+            const embedCode = document.getElementById('itemEmbed').value;
+            
+            if (embedCode) {
+                // TikTok embed
+                newItem.type = 'video';
+                newItem.embedCode = embedCode;
+            } else if (videoFile) {
+                // Direct upload
+                if (videoFile.size > 10 * 1024 * 1024) {
+                    alert('Video must be under 10MB. Please use TikTok embed for longer videos!');
+                    return;
+                }
+                
+                showSuccess('⏳ Uploading video... This may take a minute...');
+                const uploadedPath = await uploadFile(videoFile);
+                newItem.type = 'video';
+                newItem.videoFile = uploadedPath;
+            } else {
+                alert('Please either upload a video file or paste a TikTok embed code');
+                return;
+            }
+            
+        } else if (type === 'tiktok') {
+            const embedCode = document.getElementById('itemEmbed').value;
+            if (!embedCode) {
+                alert('Please paste the TikTok embed code');
+                return;
+            }
+            newItem.type = 'video';
+            newItem.embedCode = embedCode;
         }
-        newItem.embedCode = embedCode;
+        
+        // Add to gallery data
+        await addGalleryItem(newItem);
+        
+        // Reset form
+        this.reset();
+        typeBtns[0].click(); // Reset to image type
+        
+        // Reload items list
+        loadGalleryItems();
+        
+    } catch (error) {
+        console.error('Error adding item:', error);
+        alert('Error adding item: ' + error.message);
     }
-    
-    // Add to gallery data
-    await addGalleryItem(newItem);
-    
-    // Reset form
-    this.reset();
-    typeBtns[0].click(); // Reset to image type
-    
-    // Show success message
-    showSuccess('Item added successfully! Remember to upload your changes.');
-    
-    // Reload items list
-    loadGalleryItems();
 });
+
+// Upload file to GitHub
+async function uploadFile(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        fileName: file.name,
+                        fileContent: e.target.result,
+                        fileType: file.type
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Upload failed');
+                }
+                
+                const result = await response.json();
+                resolve(result.path);
+            } catch (error) {
+                reject(error);
+            }
+        };
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsDataURL(file);
+    });
+}
 
 // Load gallery items
 async function loadGalleryItems() {

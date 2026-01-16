@@ -42,9 +42,38 @@ export default async function handler(req, res) {
             return res.status(200).json(galleryData);
         }
         
-        // POST - Update gallery data
+        // POST - Update gallery data or upload image
         if (req.method === 'POST') {
-            const { action, item } = req.body;
+            const { action, item, fileName, fileContent } = req.body;
+            
+            // Handle image upload
+            if (action === 'upload') {
+                try {
+                    const uploadResponse = await fetch(
+                        `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/images/${fileName}`,
+                        {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `token ${GITHUB_TOKEN}`,
+                                'Accept': 'application/vnd.github.v3+json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                message: `Upload image: ${fileName}`,
+                                content: fileContent
+                            })
+                        }
+                    );
+                    
+                    if (!uploadResponse.ok) {
+                        throw new Error('Failed to upload image to GitHub');
+                    }
+                    
+                    return res.status(200).json({ success: true, path: `images/${fileName}` });
+                } catch (error) {
+                    return res.status(500).json({ error: 'Image upload failed: ' + error.message });
+                }
+            }
             
             // First, get current file
             const getResponse = await fetch(

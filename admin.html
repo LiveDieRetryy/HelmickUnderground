@@ -301,8 +301,9 @@
                 <div class="add-item-form">
                     <h3>Add New Item</h3>
                     <div class="type-selector">
-                        <button type="button" class="type-btn active" data-type="image">📷 Image</button>
-                        <button type="button" class="type-btn" data-type="video">🎥 TikTok Video</button>
+                        <button type="button" class="type-btn active" data-type="image">📷 Image Upload</button>
+                        <button type="button" class="type-btn" data-type="video">🎥 Video Upload</button>
+                        <button type="button" class="type-btn" data-type="tiktok">🎵 TikTok Embed</button>
                     </div>
                     <form id="addItemForm">
                         <div class="form-group">
@@ -318,12 +319,18 @@
                                 <label for="itemDate">Date (optional)</label>
                                 <input type="date" id="itemDate">
                             </div>
-                            <div class="form-group" id="imageUrlGroup">
-                                <label for="itemImage">Image Path *</label>
-                                <input type="text" id="itemImage" placeholder="images/project-name.jpg" required>
+                            <div class="form-group" id="imageUploadGroup">
+                                <label for="itemImageFile">Upload Image *</label>
+                                <input type="file" id="itemImageFile" accept="image/*">
+                                <small style="color: var(--gray); display: block; margin-top: 0.5rem;">Max 5MB</small>
+                            </div>
+                            <div class="form-group" id="videoUploadGroup" style="display: none;">
+                                <label for="itemVideoFile">Upload Video *</label>
+                                <input type="file" id="itemVideoFile" accept="video/*">
+                                <small style="color: var(--gray); display: block; margin-top: 0.5rem;">Max 10MB - Keep it short!</small>
                             </div>
                             <div class="form-group" id="embedCodeGroup" style="display: none;">
-                                <label for="itemEmbed">TikTok Video Embed Code *</label>
+                                <label for="itemEmbed">Or TikTok Embed Code</label>
                                 <textarea id="itemEmbed" placeholder="Must start with: <blockquote class=&quot;tiktok-embed&quot;&#10;Get from: TikTok video → Share → Embed&#10;&#10;⚠️ Use VIDEO embed, not music/audio embed!"></textarea>
                             </div>
                         </div>
