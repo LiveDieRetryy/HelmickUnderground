@@ -418,10 +418,10 @@ async function compressVideo(file, targetSizeBytes) {
                 console.log(`Compressed size: ${canvas.width}x${canvas.height}`);
                 
                 // Calculate target bitrate
-                const durationSeconds = video.duration;75); // Use 75% for safety
-                const videoBitrate = Math.min(800000, Math.max(200000, targetBitrate)); // Between 200kbps and 800k
-                const targetBitrate = Math.floor((targetSizeMB * 8 * 1024 * 1024) / durationSeconds * 0.85);
-                const videoBitrate = Math.min(1000000, Math.max(250000, targetBitrate)); // Between 250kbps and 1Mbps
+                const durationSeconds = video.duration;
+                const targetSizeMB = targetSizeBytes / (1024 * 1024);
+                const targetBitrate = Math.floor((targetSizeMB * 8 * 1024 * 1024) / durationSeconds * 0.75); // Use 75% for safety
+                const videoBitrate = Math.min(800000, Math.max(200000, targetBitrate)); // Between 200kbps and 800kbps
                 
                 console.log(`Target bitrate: ${videoBitrate} bps`);
                 
