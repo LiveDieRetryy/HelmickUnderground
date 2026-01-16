@@ -293,7 +293,11 @@ document.getElementById('addItemForm')?.addEventListener('submit', async functio
                 const MAX_SIZE = 6 * 1024 * 1024; // 6MB to account for base64 overhead (~33%)
                 
                 if (videoFile.size > MAX_SIZE) {
-                    showSuccess('⏳ Video is too large. Compressing... This may take a few minutes...');
+                    // Hide success message, show progress
+                    document.getElementById('successMessage').style.display = 'none';
+                    showProgress(0);
+                    document.getElementById('progressLabel').textContent = 'Compressing video... This may take a few minutes';
+                    
                     try {
                         fileToUpload = await compressVideo(videoFile, MAX_SIZE);
                         if (!fileToUpload) {
@@ -470,6 +474,9 @@ async function compressVideo(file, targetSizeBytes) {
                 // Start recording
                 mediaRecorder.start(100); // Collect data every 100ms
                 
+                // Show progress bar
+                showProgress(0);
+                
                 // Play and draw video frames
                 await video.play();
                 
@@ -478,14 +485,21 @@ async function compressVideo(file, targetSizeBytes) {
                     if (!video.paused && !video.ended) {
                         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                         frameCount++;
+                        
+                        // Update progress based on video time
+                        const progress = (video.currentTime / video.duration) * 100;
+                        showProgress(Math.min(progress, 99));
+                        
                         requestAnimationFrame(drawFrame);
                     }
                 };
                 
                 video.addEventListener('ended', () => {
                     console.log(`Processed ${frameCount} frames`);
+                    showProgress(100);
                     setTimeout(() => {
                         mediaRecorder.stop();
+                        hideProgress();
                     }, 500);
                 });
                 
@@ -779,6 +793,23 @@ function showSuccess(message) {
     setTimeout(() => {
         successDiv.style.display = 'none';
     }, 5000);
+}
+
+function showProgress(percent) {
+    const container = document.getElementById('progressContainer');
+    const bar = document.getElementById('progressBar');
+    const percentText = document.getElementById('progressPercent');
+    
+    container.classList.add('active');
+    bar.style.width = percent + '%';
+    percentText.textContent = Math.round(percent) + '%';
+}
+
+function hideProgress() {
+    const container = document.getElementById('progressContainer');
+    container.classList.remove('active');
+    document.getElementById('progressBar').style.width = '0%';
+    document.getElementById('progressPercent').textContent = '0%';
 }
 
 // Edit item functions
