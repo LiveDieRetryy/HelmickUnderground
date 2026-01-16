@@ -1,6 +1,15 @@
 {
   "items": [
     {
+      "id": 1768595577528,
+      "title": "Cutting a Path",
+      "description": "We use brush cutters to clear a path for our plow.",
+      "date": null,
+      "type": "video",
+      "videoFile": "https://res.cloudinary.com/dbt9vsoji/video/upload/v1768595583/videos/ilem0sfomdmgddjg9aqp.mp4",
+      "fileSize": 5826401
+    },
+    {
       "id": 1768595501431,
       "title": "Our Dedication To Cleanup",
       "description": "We have pride in how we leave our projects. We aim to leave them in the same, if not better condition than we found them.",
