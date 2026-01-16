@@ -1,9 +1,4 @@
-// Inbox Script
-
-let currentSubmissionId = null;
-let allSubmissions = [];
-
-// Check authentication
+// Check auth
 function checkAuth() {
     const isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
     if (!isLoggedIn) {
@@ -13,171 +8,181 @@ function checkAuth() {
     return true;
 }
 
-// Logout handler
-document.getElementById('logoutBtn')?.addEventListener('click', function() {
+// Logout
+document.getElementById('logoutBtn').addEventListener('click', () => {
     sessionStorage.removeItem('adminLoggedIn');
     window.location.href = '/admin/';
 });
 
-// Load submissions
-async function loadSubmissions() {
+let allSubmissions = [];
+
+// Load data
+async function loadData() {
     if (!checkAuth()) return;
 
     try {
-        const [submissionsResponse, statsResponse] = await Promise.all([
+        console.log('Fetching submissions...');
+        
+        const [submissionsRes, statsRes] = await Promise.all([
             fetch('/api/contact-submissions?action=all'),
             fetch('/api/contact-submissions?action=stats')
         ]);
 
-        if (!submissionsResponse.ok || !statsResponse.ok) {
-            throw new Error('Failed to load submissions');
+        console.log('Submissions response:', submissionsRes.status);
+        console.log('Stats response:', statsRes.status);
+
+        if (!submissionsRes.ok || !statsRes.ok) {
+            const errorText = await submissionsRes.text();
+            console.error('Error response:', errorText);
+            throw new Error('Failed to load data');
         }
 
-        allSubmissions = await submissionsResponse.json();
-        const stats = await statsResponse.json();
+        allSubmissions = await submissionsRes.json();
+        const stats = await statsRes.json();
+
+        console.log('Loaded submissions:', allSubmissions.length);
+        console.log('Stats:', stats);
 
         // Update stats
-        document.getElementById('totalSubmissions').textContent = stats.total || 0;
-        document.getElementById('unreadSubmissions').textContent = stats.unread || 0;
-        document.getElementById('todaySubmissions').textContent = stats.today || 0;
+        document.getElementById('totalStat').textContent = stats.total || 0;
+        document.getElementById('unreadStat').textContent = stats.unread || 0;
+        document.getElementById('todayStat').textContent = stats.today || 0;
 
-        // Hide loading, show content
-        document.getElementById('loadingMessage').style.display = 'none';
-        document.getElementById('inboxContent').style.display = 'block';
+        // Hide loading
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('submissionsList').style.display = 'block';
 
-        // Render submissions
+        // Render
         renderSubmissions();
 
     } catch (error) {
-        console.error('Error loading submissions:', error);
-        
-        // Try to get more error details
-        let errorDetails = 'Unknown error';
-        try {
-            const errorResponse = await fetch('/api/contact-submissions?action=all');
-            const errorData = await errorResponse.json();
-            errorDetails = errorData.message || errorData.error || errorData.details || 'API error';
-        } catch (e) {
-            errorDetails = error.message;
-        }
-        
-        document.getElementById('loadingMessage').innerHTML = `
-            <p style="color: var(--red);">Error loading submissions</p>
-            <p style="font-size: 0.9rem; color: var(--gray);">${errorDetails}</p>
-            <p style="font-size: 0.85rem; color: var(--gray); margin-top: 1rem;">Please try refreshing the page</p>
+        console.error('Error loading data:', error);
+        document.getElementById('loading').innerHTML = `
+            <div style="color: var(--red);">
+                <div style="font-size: 2rem;">⚠️</div>
+                <p>Error loading submissions</p>
+                <p style="font-size: 0.9rem; color: var(--gray);">${error.message}</p>
+                <p style="font-size: 0.85rem; color: var(--gray); margin-top: 1rem;">Check browser console for details</p>
+            </div>
         `;
     }
 }
 
-// Render submissions list
+// Render submissions
 function renderSubmissions() {
     const container = document.getElementById('submissionsList');
-    
+
     if (allSubmissions.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                 </svg>
-                <h3 style="color: var(--gray); margin-bottom: 0.5rem;">No submissions yet</h3>
+                <h3>No submissions yet</h3>
                 <p>Quote requests will appear here when customers submit the contact form</p>
             </div>
         `;
         return;
     }
 
-    container.innerHTML = allSubmissions.map(submission => {
-        const date = new Date(submission.timestamp);
-        const timeStr = date.toLocaleString('en-US', {
-            month: 'short',
-            day: 'numeric',
+    container.innerHTML = allSubmissions.map(sub => {
+        const date = new Date(sub.timestamp);
+        const dateStr = date.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
             year: 'numeric',
             hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
+            minute: '2-digit'
         });
 
-        const services = submission.services || [];
-        const statusClass = submission.status === 'unread' ? 'unread' : 'read';
-
         return `
-            <div class="submission-card ${statusClass}" onclick="viewSubmission(${submission.id})">
+            <div class="submission-card ${sub.status === 'unread' ? 'unread' : ''}" onclick="viewSubmission(${sub.id})">
                 <div class="submission-header">
-                    <div class="submission-info">
-                        <div class="submission-name">${submission.name}</div>
-                        <div class="submission-contact">
-                            <a href="tel:${submission.phone}" onclick="event.stopPropagation()">${submission.phone}</a> • 
-                            <a href="mailto:${submission.email}" onclick="event.stopPropagation()">${submission.email}</a>
-                        </div>
+                    <div class="submission-name">${sub.name}</div>
+                    <span class="status-badge status-${sub.status}">${sub.status}</span>
+                </div>
+                <div class="submission-info">
+                    <div class="info-item">
+                        <strong>Email:</strong> ${sub.email}
                     </div>
-                    <div class="submission-meta">
-                        <span class="submission-time">${timeStr}</span>
-                        <span class="status-badge ${statusClass}">${submission.status}</span>
+                    <div class="info-item">
+                        <strong>Phone:</strong> ${sub.phone || 'Not provided'}
+                    </div>
+                    <div class="info-item">
+                        <strong>Date:</strong> ${dateStr}
                     </div>
                 </div>
-                ${services.length > 0 ? `
-                    <div class="submission-services">
-                        ${services.map(service => `<span class="service-tag">${service}</span>`).join('')}
+                ${sub.services && sub.services.length > 0 ? `
+                    <div class="services-list">
+                        ${sub.services.map(s => `<span class="service-tag">${s}</span>`).join('')}
                     </div>
                 ` : ''}
-                <div class="submission-message">${submission.message}</div>
+                <div class="message-preview">${sub.message}</div>
             </div>
         `;
     }).join('');
 }
 
-// View submission details
+// View submission
 async function viewSubmission(id) {
-    const submission = allSubmissions.find(s => s.id === id);
-    if (!submission) return;
+    const sub = allSubmissions.find(s => s.id == id);
+    if (!sub) return;
 
-    currentSubmissionId = id;
-
-    // Populate modal
-    document.getElementById('modalName').textContent = submission.name;
-    
-    const date = new Date(submission.timestamp);
-    const timeStr = date.toLocaleString('en-US', {
-        month: 'long',
-        day: 'numeric',
+    const date = new Date(sub.timestamp);
+    const dateStr = date.toLocaleDateString('en-US', { 
+        month: 'long', 
+        day: 'numeric', 
         year: 'numeric',
         hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
+        minute: '2-digit'
     });
-    document.getElementById('modalTime').textContent = timeStr;
 
-    document.getElementById('modalContact').innerHTML = `
-        <strong>Phone:</strong> <a href="tel:${submission.phone}" style="color: var(--primary-color); text-decoration: none;">${submission.phone}</a><br>
-        <strong>Email:</strong> <a href="mailto:${submission.email}" style="color: var(--primary-color); text-decoration: none;">${submission.email}</a>
+    document.getElementById('modalBody').innerHTML = `
+        <div class="detail-section">
+            <div class="detail-label">Name</div>
+            <div class="detail-value">${sub.name}</div>
+        </div>
+        <div class="detail-section">
+            <div class="detail-label">Email</div>
+            <div class="detail-value"><a href="mailto:${sub.email}" style="color: var(--primary-color);">${sub.email}</a></div>
+        </div>
+        <div class="detail-section">
+            <div class="detail-label">Phone</div>
+            <div class="detail-value"><a href="tel:${sub.phone}" style="color: var(--primary-color);">${sub.phone || 'Not provided'}</a></div>
+        </div>
+        <div class="detail-section">
+            <div class="detail-label">Date Submitted</div>
+            <div class="detail-value">${dateStr}</div>
+        </div>
+        ${sub.services && sub.services.length > 0 ? `
+            <div class="detail-section">
+                <div class="detail-label">Services Requested</div>
+                <div class="services-list">
+                    ${sub.services.map(s => `<span class="service-tag">${s}</span>`).join('')}
+                </div>
+            </div>
+        ` : ''}
+        <div class="detail-section">
+            <div class="detail-label">Message</div>
+            <div class="detail-value" style="white-space: pre-wrap;">${sub.message}</div>
+        </div>
+        ${sub.ip ? `
+            <div class="detail-section">
+                <div class="detail-label">IP Address</div>
+                <div class="detail-value" style="color: var(--gray); font-size: 0.9rem;">${sub.ip}</div>
+            </div>
+        ` : ''}
+        <button class="btn-delete" onclick="deleteSubmission(${sub.id})">🗑️ Delete This Submission</button>
     `;
 
-    const services = submission.services || [];
-    if (services.length > 0) {
-        document.getElementById('modalServices').innerHTML = services.map(service => 
-            `<span class="service-tag">${service}</span>`
-        ).join('');
-    } else {
-        document.getElementById('modalServices').innerHTML = '<p style="color: var(--gray);">No services specified</p>';
-    }
-
-    document.getElementById('modalMessage').textContent = submission.message;
-
-    // Show modal
     document.getElementById('detailModal').classList.add('active');
 
-    // Mark as read if unread
-    if (submission.status === 'unread') {
+    // Mark as read
+    if (sub.status === 'unread') {
         try {
             await fetch(`/api/contact-submissions?action=markRead&id=${id}`);
-            submission.status = 'read';
-            
-            // Update stats
-            const unreadCount = parseInt(document.getElementById('unreadSubmissions').textContent);
-            document.getElementById('unreadSubmissions').textContent = Math.max(0, unreadCount - 1);
-            
-            // Re-render to update status
-            renderSubmissions();
+            sub.status = 'read';
+            loadData(); // Refresh
         } catch (error) {
             console.error('Error marking as read:', error);
         }
@@ -187,51 +192,31 @@ async function viewSubmission(id) {
 // Close modal
 function closeModal() {
     document.getElementById('detailModal').classList.remove('active');
-    currentSubmissionId = null;
 }
 
 // Delete submission
-async function deleteSubmission() {
-    if (!currentSubmissionId) return;
-
-    if (!confirm('Are you sure you want to delete this submission? This cannot be undone.')) {
-        return;
-    }
+async function deleteSubmission(id) {
+    if (!confirm('Are you sure you want to delete this submission?')) return;
 
     try {
-        const response = await fetch(`/api/contact-submissions?action=delete&id=${currentSubmissionId}`);
+        const response = await fetch(`/api/contact-submissions?action=delete&id=${id}`);
         if (!response.ok) throw new Error('Delete failed');
 
-        // Remove from local array
-        allSubmissions = allSubmissions.filter(s => s.id !== currentSubmissionId);
-
-        // Update stats
-        const totalCount = parseInt(document.getElementById('totalSubmissions').textContent);
-        document.getElementById('totalSubmissions').textContent = Math.max(0, totalCount - 1);
-
-        // Close modal and re-render
         closeModal();
-        renderSubmissions();
-
+        loadData(); // Refresh
     } catch (error) {
-        console.error('Error deleting submission:', error);
-        alert('Failed to delete submission. Please try again.');
+        console.error('Error deleting:', error);
+        alert('Failed to delete submission');
     }
 }
 
-// Close modal on overlay click
-document.getElementById('detailModal').addEventListener('click', function(e) {
-    if (e.target === this) {
+// Close modal on outside click
+document.getElementById('detailModal').addEventListener('click', (e) => {
+    if (e.target.id === 'detailModal') {
         closeModal();
     }
 });
 
-// Close modal on Escape key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeModal();
-    }
-});
-
-// Load submissions on page load
-loadSubmissions();
+// Load on page load
+checkAuth();
+loadData();

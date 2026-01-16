@@ -1,6 +1,4 @@
-// Analytics Dashboard Script
-
-// Check authentication
+// Check auth
 function checkAuth() {
     const isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
     if (!isLoggedIn) {
@@ -10,99 +8,109 @@ function checkAuth() {
     return true;
 }
 
-// Logout handler
-document.getElementById('logoutBtn')?.addEventListener('click', function() {
+// Logout
+document.getElementById('logoutBtn').addEventListener('click', () => {
     sessionStorage.removeItem('adminLoggedIn');
     window.location.href = '/admin/';
 });
 
-// Load and display analytics
-async function loadAnalytics() {
+let analyticsData = [];
+
+// Load data
+async function loadData() {
     if (!checkAuth()) return;
 
     try {
-        const response = await fetch('/api/analytics?action=all');
-        if (!response.ok) {
-            throw new Error('Failed to load analytics data');
+        console.log('Fetching analytics...');
+        
+        const [dataRes, statsRes] = await Promise.all([
+            fetch('/api/analytics?action=all'),
+            fetch('/api/analytics?action=stats')
+        ]);
+
+        console.log('Analytics response:', dataRes.status);
+        console.log('Stats response:', statsRes.status);
+
+        if (!dataRes.ok || !statsRes.ok) {
+            const errorText = await dataRes.text();
+            console.error('Error response:', errorText);
+            throw new Error('Failed to load analytics');
         }
 
-        const data = await response.json();
-        
-        // Hide loading, show content
-        document.getElementById('loadingMessage').style.display = 'none';
-        document.getElementById('analyticsContent').style.display = 'block';
+        analyticsData = await dataRes.json();
+        const stats = await statsRes.json();
 
-        // Calculate statistics
-        calculateStats(data);
-        
+        console.log('Loaded analytics:', analyticsData.length, 'entries');
+        console.log('Stats:', stats);
+
+        // Calculate average daily
+        const oldest = analyticsData.length > 0 ? new Date(analyticsData[analyticsData.length - 1].timestamp) : new Date();
+        const daysSince = Math.max(1, Math.ceil((new Date() - oldest) / (1000 * 60 * 60 * 24)));
+        const avgDaily = Math.round(analyticsData.length / daysSince);
+
+        // Update stats
+        document.getElementById('totalVisits').textContent = stats.total || 0;
+        document.getElementById('todayVisits').textContent = stats.today || 0;
+        document.getElementById('weekVisits').textContent = stats.week || 0;
+        document.getElementById('avgVisits').textContent = avgDaily;
+
+        // Hide loading
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('content').style.display = 'block';
+
         // Create charts
-        createVisitsChart(data);
-        createPagesChart(data);
-        createDevicesChart(data);
-        createLocationsChart(data);
-        
-        // Populate recent visits table
-        populateRecentVisits(data);
+        createVisitsChart();
+        createPagesChart();
+        createDevicesChart();
+        createBrowsersChart();
+        createLocationsChart();
+        createVisitsTable();
 
     } catch (error) {
         console.error('Error loading analytics:', error);
-        document.getElementById('loadingMessage').innerHTML = `
-            <p style="color: var(--red);">Error loading analytics data</p>
-            <p style="font-size: 0.9rem; color: var(--gray);">Please try refreshing the page</p>
+        document.getElementById('loading').innerHTML = `
+            <div style="color: var(--red);">
+                <div style="font-size: 2rem;">⚠️</div>
+                <p>Error loading analytics</p>
+                <p style="font-size: 0.9rem; color: var(--gray);">${error.message}</p>
+                <p style="font-size: 0.85rem; color: var(--gray); margin-top: 1rem;">Check browser console for details</p>
+            </div>
         `;
     }
 }
 
-// Calculate statistics
-function calculateStats(data) {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const weekAgo = new Date(today);
-    weekAgo.setDate(weekAgo.getDate() - 7);
-
-    const todayVisits = data.filter(entry => new Date(entry.timestamp) >= today).length;
-    const weekVisits = data.filter(entry => new Date(entry.timestamp) >= weekAgo).length;
-    
-    // Calculate average daily visits
-    const oldestEntry = data.length > 0 ? new Date(data[data.length - 1].timestamp) : today;
-    const daysDiff = Math.max(1, Math.ceil((now - oldestEntry) / (1000 * 60 * 60 * 24)));
-    const avgDaily = Math.round(data.length / daysDiff);
-
-    document.getElementById('totalVisits').textContent = data.length;
-    document.getElementById('todayVisits').textContent = todayVisits;
-    document.getElementById('weekVisits').textContent = weekVisits;
-    document.getElementById('avgDaily').textContent = avgDaily;
-}
-
-// Create visits by day chart
-function createVisitsChart(data) {
+// Visits over time chart
+function createVisitsChart() {
     const last30Days = {};
-    const now = new Date();
+    const today = new Date();
     
-    // Initialize last 30 days
     for (let i = 29; i >= 0; i--) {
-        const date = new Date(now);
+        const date = new Date(today);
         date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
-        last30Days[dateStr] = 0;
+        const key = date.toISOString().split('T')[0];
+        last30Days[key] = 0;
     }
-    
-    // Count visits per day
-    data.forEach(entry => {
-        const dateStr = entry.timestamp.split('T')[0];
-        if (last30Days.hasOwnProperty(dateStr)) {
-            last30Days[dateStr]++;
+
+    analyticsData.forEach(entry => {
+        const date = new Date(entry.timestamp).toISOString().split('T')[0];
+        if (last30Days.hasOwnProperty(date)) {
+            last30Days[date]++;
         }
     });
-    
-    const ctx = document.getElementById('visitsChart').getContext('2d');
-    new Chart(ctx, {
+
+    const labels = Object.keys(last30Days).map(date => {
+        const d = new Date(date);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    });
+    const data = Object.values(last30Days);
+
+    new Chart(document.getElementById('visitsChart'), {
         type: 'line',
         data: {
-            labels: Object.keys(last30Days).map(d => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+            labels: labels,
             datasets: [{
                 label: 'Visits',
-                data: Object.values(last30Days),
+                data: data,
                 borderColor: '#ff6b1a',
                 backgroundColor: 'rgba(255, 107, 26, 0.1)',
                 tension: 0.4,
@@ -111,18 +119,17 @@ function createVisitsChart(data) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
             plugins: {
                 legend: { display: false }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    ticks: { color: '#b0b0b0' },
+                    ticks: { color: '#999' },
                     grid: { color: 'rgba(255, 107, 26, 0.1)' }
                 },
                 x: {
-                    ticks: { color: '#b0b0b0' },
+                    ticks: { color: '#999' },
                     grid: { color: 'rgba(255, 107, 26, 0.1)' }
                 }
             }
@@ -130,44 +137,41 @@ function createVisitsChart(data) {
     });
 }
 
-// Create top pages chart
-function createPagesChart(data) {
+// Top pages chart
+function createPagesChart() {
     const pageCounts = {};
-    data.forEach(entry => {
-        const page = entry.page === '/' ? 'Home' : entry.page.replace(/^\//, '').replace(/\.html$/, '') || 'Other';
-        pageCounts[page] = (pageCounts[page] || 0) + 1;
+    analyticsData.forEach(entry => {
+        pageCounts[entry.page] = (pageCounts[entry.page] || 0) + 1;
     });
-    
-    const sortedPages = Object.entries(pageCounts)
+
+    const sorted = Object.entries(pageCounts)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 8);
-    
-    const ctx = document.getElementById('pagesChart').getContext('2d');
-    new Chart(ctx, {
+        .slice(0, 10);
+
+    new Chart(document.getElementById('pagesChart'), {
         type: 'bar',
         data: {
-            labels: sortedPages.map(([page]) => page),
+            labels: sorted.map(([page]) => page.replace(/^\//, '') || 'Home'),
             datasets: [{
                 label: 'Views',
-                data: sortedPages.map(([, count]) => count),
-                backgroundColor: '#ff6b1a'
+                data: sorted.map(([, count]) => count),
+                backgroundColor: 'rgba(255, 107, 26, 0.7)'
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
             indexAxis: 'y',
+            responsive: true,
             plugins: {
                 legend: { display: false }
             },
             scales: {
                 x: {
                     beginAtZero: true,
-                    ticks: { color: '#b0b0b0' },
+                    ticks: { color: '#999' },
                     grid: { color: 'rgba(255, 107, 26, 0.1)' }
                 },
                 y: {
-                    ticks: { color: '#b0b0b0' },
+                    ticks: { color: '#999' },
                     grid: { display: false }
                 }
             }
@@ -175,77 +179,112 @@ function createPagesChart(data) {
     });
 }
 
-// Create device types chart
-function createDevicesChart(data) {
+// Device types chart
+function createDevicesChart() {
     const deviceCounts = {};
-    data.forEach(entry => {
-        const device = entry.deviceType || 'Unknown';
-        deviceCounts[device] = (deviceCounts[device] || 0) + 1;
+    analyticsData.forEach(entry => {
+        deviceCounts[entry.deviceType] = (deviceCounts[entry.deviceType] || 0) + 1;
     });
-    
-    const ctx = document.getElementById('devicesChart').getContext('2d');
-    new Chart(ctx, {
+
+    new Chart(document.getElementById('devicesChart'), {
         type: 'doughnut',
         data: {
             labels: Object.keys(deviceCounts),
             datasets: [{
                 data: Object.values(deviceCounts),
-                backgroundColor: ['#ff6b1a', '#ff8c47', '#e65500', '#b0b0b0']
+                backgroundColor: [
+                    'rgba(255, 107, 26, 0.8)',
+                    'rgba(99, 102, 241, 0.8)',
+                    'rgba(34, 197, 94, 0.8)'
+                ]
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     position: 'bottom',
-                    labels: { color: '#b0b0b0' }
+                    labels: { color: '#999' }
                 }
             }
         }
     });
 }
 
-// Create locations chart
-function createLocationsChart(data) {
-    const locationCounts = {};
-    data.forEach(entry => {
-        const location = entry.city && entry.region && entry.country
-            ? `${entry.city}, ${entry.region}`
-            : entry.country || 'Unknown';
-        locationCounts[location] = (locationCounts[location] || 0) + 1;
+// Browsers chart
+function createBrowsersChart() {
+    const browserCounts = {};
+    analyticsData.forEach(entry => {
+        browserCounts[entry.browser] = (browserCounts[entry.browser] || 0) + 1;
     });
-    
-    const sortedLocations = Object.entries(locationCounts)
+
+    const sorted = Object.entries(browserCounts)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 10);
-    
-    const ctx = document.getElementById('locationsChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
+        .slice(0, 5);
+
+    new Chart(document.getElementById('browsersChart'), {
+        type: 'doughnut',
         data: {
-            labels: sortedLocations.map(([loc]) => loc),
+            labels: sorted.map(([browser]) => browser),
             datasets: [{
-                label: 'Visits',
-                data: sortedLocations.map(([, count]) => count),
-                backgroundColor: '#ff6b1a'
+                data: sorted.map(([, count]) => count),
+                backgroundColor: [
+                    'rgba(255, 107, 26, 0.8)',
+                    'rgba(99, 102, 241, 0.8)',
+                    'rgba(34, 197, 94, 0.8)',
+                    'rgba(234, 179, 8, 0.8)',
+                    'rgba(239, 68, 68, 0.8)'
+                ]
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: '#999' }
+                }
+            }
+        }
+    });
+}
+
+// Top locations chart
+function createLocationsChart() {
+    const locationCounts = {};
+    analyticsData.forEach(entry => {
+        const loc = entry.city && entry.country ? `${entry.city}, ${entry.country}` : entry.country || 'Unknown';
+        locationCounts[loc] = (locationCounts[loc] || 0) + 1;
+    });
+
+    const sorted = Object.entries(locationCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+
+    new Chart(document.getElementById('locationsChart'), {
+        type: 'bar',
+        data: {
+            labels: sorted.map(([loc]) => loc),
+            datasets: [{
+                label: 'Visits',
+                data: sorted.map(([, count]) => count),
+                backgroundColor: 'rgba(99, 102, 241, 0.7)'
+            }]
+        },
+        options: {
             indexAxis: 'y',
+            responsive: true,
             plugins: {
                 legend: { display: false }
             },
             scales: {
                 x: {
                     beginAtZero: true,
-                    ticks: { color: '#b0b0b0' },
+                    ticks: { color: '#999' },
                     grid: { color: 'rgba(255, 107, 26, 0.1)' }
                 },
                 y: {
-                    ticks: { color: '#b0b0b0' },
+                    ticks: { color: '#999' },
                     grid: { display: false }
                 }
             }
@@ -253,39 +292,32 @@ function createLocationsChart(data) {
     });
 }
 
-// Populate recent visits table
-function populateRecentVisits(data) {
-    const tbody = document.getElementById('recentVisits');
-    const recent = data.slice(0, 50); // Show last 50 visits
-    
+// Recent visits table
+function createVisitsTable() {
+    const tbody = document.querySelector('#visitsTable tbody');
+    const recent = analyticsData.slice(0, 50);
+
     tbody.innerHTML = recent.map(entry => {
         const date = new Date(entry.timestamp);
-        const timeStr = date.toLocaleString('en-US', {
-            month: 'short',
+        const dateStr = date.toLocaleString('en-US', { 
+            month: 'short', 
             day: 'numeric',
             hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
+            minute: '2-digit'
         });
-        
-        const page = entry.page || '/';
-        const location = entry.city && entry.country 
-            ? `${entry.city}, ${entry.country}`
-            : entry.country || 'Unknown';
-        const device = `${entry.deviceType || 'Unknown'} / ${entry.browser || 'Unknown'}`;
-        const referrer = entry.referrer === 'direct' ? 'Direct' : new URL(entry.referrer).hostname;
-        
+
         return `
             <tr>
-                <td>${timeStr}</td>
-                <td>${page}</td>
-                <td>${location}</td>
-                <td>${device}</td>
-                <td>${referrer}</td>
+                <td>${dateStr}</td>
+                <td>${entry.page || '/'}</td>
+                <td>${entry.city && entry.country ? `${entry.city}, ${entry.country}` : entry.country || 'Unknown'}</td>
+                <td>${entry.deviceType || 'Unknown'}</td>
+                <td>${entry.browser || 'Unknown'}</td>
             </tr>
         `;
     }).join('');
 }
 
-// Load analytics on page load
-loadAnalytics();
+// Load on page load
+checkAuth();
+loadData();

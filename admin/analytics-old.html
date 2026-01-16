@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Analytics - Helmick Underground</title>
+    <link rel="icon" type="image/png" href="../logo.png">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        .analytics-wrapper {
+            min-height: 100vh;
+            background: var(--dark-bg);
+            padding: 2rem;
+        }
+
+        .analytics-header {
+            background: var(--card-dark);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .analytics-header h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin: 0;
+        }
+
+        .back-link {
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+        }
+
+        .back-link:hover {
+            color: var(--primary-color);
+        }
+
+        .btn-logout {
+            background: var(--red);
+            color: var(--white);
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-logout:hover {
+            background: var(--red-dark);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-dark);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+        }
+
+        .stat-card h3 {
+            color: var(--gray);
+            font-size: 0.9rem;
+            font-weight: 400;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .stat-card .stat-value {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: var(--card-dark);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+        }
+
+        .chart-card h2 {
+            color: var(--white);
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .data-table-card {
+            background: var(--card-dark);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            margin-bottom: 2rem;
+        }
+
+        .data-table-card h2 {
+            color: var(--white);
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow-x: auto;
+            display: block;
+        }
+
+        .data-table thead {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .data-table tbody {
+            display: block;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .data-table tbody tr {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 107, 26, 0.1);
+        }
+
+        .data-table th {
+            color: var(--primary-color);
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            background: var(--card-dark);
+            z-index: 10;
+        }
+
+        .data-table td {
+            color: var(--gray);
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(255, 107, 26, 0.05);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray);
+        }
+
+        .loading-spinner {
+            border: 3px solid rgba(255, 107, 26, 0.3);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .analytics-wrapper {
+                padding: 1rem;
+            }
+
+            .analytics-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .data-table {
+                font-size: 0.85rem;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="analytics-wrapper">
+        <div class="analytics-header">
+            <div>
+                <a href="/admin/" class="back-link">← Back to Dashboard</a>
+                <h1>📈 Analytics Dashboard</h1>
+            </div>
+            <button id="logoutBtn" class="btn-logout">Logout</button>
+        </div>
+
+        <div id="loadingMessage" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading analytics data...</p>
+        </div>
+
+        <div id="analyticsContent" style="display: none;">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Visits</h3>
+                    <div class="stat-value" id="totalVisits">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Today</h3>
+                    <div class="stat-value" id="todayVisits">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>This Week</h3>
+                    <div class="stat-value" id="weekVisits">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Avg Daily</h3>
+                    <div class="stat-value" id="avgDaily">0</div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h2>Visits by Day</h2>
+                    <div class="chart-container">
+                        <canvas id="visitsChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h2>Top Pages</h2>
+                    <div class="chart-container">
+                        <canvas id="pagesChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h2>Device Types</h2>
+                    <div class="chart-container">
+                        <canvas id="devicesChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h2>Top Locations</h2>
+                    <div class="chart-container">
+                        <canvas id="locationsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-table-card">
+                <h2>Recent Visits</h2>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Page</th>
+                            <th>Location</th>
+                            <th>Device</th>
+                            <th>Referrer</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentVisits">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="analytics-dashboard.js"></script>
+</body>
+</html>
