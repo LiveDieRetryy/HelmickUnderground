@@ -165,14 +165,19 @@ async function addGalleryItem(item) {
         });
         
         if (!response.ok) {
-            throw new Error('Failed to add item');
+            const error = await response.json();
+            if (error.error && error.error.includes('GitHub token not configured')) {
+                alert('⚠️ SETUP REQUIRED:\n\nThe gallery admin needs a GitHub token to work.\n\nPlease follow these steps:\n\n1. Read GITHUB_TOKEN_SETUP.txt in your project folder\n2. Create a GitHub Personal Access Token\n3. Add it to Vercel environment variables\n4. Redeploy\n\nThis is a one-time setup that takes 5 minutes.');
+                return;
+            }
+            throw new Error(error.error || 'Failed to add item');
         }
         
         const result = await response.json();
         showSuccess('✅ Item added successfully! It\'s now live for everyone to see!');
     } catch (error) {
         console.error('Error adding item:', error);
-        alert('Error adding item. Please try again.');
+        alert('Error adding item: ' + error.message + '\n\nIf you see "GitHub token not configured", please check GITHUB_TOKEN_SETUP.txt for setup instructions.');
     }
 }
 
