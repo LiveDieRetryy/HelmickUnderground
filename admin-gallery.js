@@ -525,8 +525,13 @@ async function loadGalleryItems() {
             return;
         }
         
-        container.innerHTML = data.items.map(item => `
-            <div class="gallery-item-row" data-id="${item.id}">
+        container.innerHTML = data.items.map((item, index) => `
+            <div class="gallery-item-row" data-id="${item.id}" draggable="true">
+                <div class="drag-handle">
+                    <button class="order-btn" onclick="moveItem(${item.id}, -1)" ${index === 0 ? 'disabled' : ''} title="Move up">▲</button>
+                    <div class="drag-icon">⋮⋮</div>
+                    <button class="order-btn" onclick="moveItem(${item.id}, 1)" ${index === data.items.length - 1 ? 'disabled' : ''} title="Move down">▼</button>
+                </div>
                 ${item.type === 'image' 
                     ? `<img src="${item.image}" alt="${item.title}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Crect fill=\'%23333\' width=\'100\' height=\'100\'/%3E%3Ctext x=\'50\' y=\'50\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23666\' font-family=\'Arial\' font-size=\'12\'%3ENo Image%3C/text%3E%3C/svg%3E'">`
                     : `<div class="video-thumb">
@@ -547,8 +552,129 @@ async function loadGalleryItems() {
                 </div>
             </div>
         `).join('');
+        
+        // Setup drag and drop
+        setupDragAndDropReorder();
     } catch (error) {
         console.error('Error loading gallery items:', error);
+    }
+}
+
+// Setup drag and drop reordering
+function setupDragAndDropReorder() {
+    const rows = document.querySelectorAll('.gallery-item-row');
+    
+    rows.forEach(row => {
+        row.addEventListener('dragstart', handleDragStart);
+        row.addEventListener('dragover', handleDragOver);
+        row.addEventListener('drop', handleDrop);
+        row.addEventListener('dragenter', handleDragEnter);
+        row.addEventListener('dragleave', handleDragLeave);
+        row.addEventListener('dragend', handleDragEnd);
+    });
+}
+
+let draggedElement = null;
+
+function handleDragStart(e) {
+    draggedElement = this;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.innerHTML);
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDragEnter(e) {
+    if (this !== draggedElement) {
+        this.classList.add('drag-over');
+    }
+}
+
+function handleDragLeave(e) {
+    this.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+    
+    if (draggedElement !== this) {
+        const draggedId = parseInt(draggedElement.dataset.id);
+        const targetId = parseInt(this.dataset.id);
+        
+        const draggedIndex = galleryItems.findIndex(item => item.id === draggedId);
+        const targetIndex = galleryItems.findIndex(item => item.id === targetId);
+        
+        // Reorder the items array
+        const [removed] = galleryItems.splice(draggedIndex, 1);
+        galleryItems.splice(targetIndex, 0, removed);
+        
+        // Save the new order
+        saveOrder();
+    }
+    
+    return false;
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    document.querySelectorAll('.gallery-item-row').forEach(row => {
+        row.classList.remove('drag-over');
+    });
+}
+
+// Move item up or down
+async function moveItem(id, direction) {
+    const index = galleryItems.findIndex(item => item.id === id);
+    const newIndex = index + direction;
+    
+    if (newIndex < 0 || newIndex >= galleryItems.length) return;
+    
+    // Swap items
+    [galleryItems[index], galleryItems[newIndex]] = [galleryItems[newIndex], galleryItems[index]];
+    
+    // Save the new order
+    await saveOrder();
+}
+
+// Save the new order to the API
+async function saveOrder() {
+    try {
+        const response = await fetch('/api/gallery', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'reorder',
+                items: galleryItems
+            })
+        });
+        
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            throw new Error(`Server error: ${text}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            loadGalleryItems();
+        } else {
+            alert('Failed to reorder items: ' + (result.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error reordering items:', error);
+        alert('Error reordering items: ' + error.message);
     }
 }
 
@@ -742,6 +868,7 @@ document.addEventListener('keydown', (e) => {
 window.deleteItem = deleteItem;
 window.openEditModal = openEditModal;
 window.closeEditModal = closeEditModal;
+window.moveItem = moveItem;
 
 // Check auth on page load
 checkAuth();

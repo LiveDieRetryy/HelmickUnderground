@@ -107,6 +107,10 @@ export default async function handler(req, res) {
                         date: item.date
                     };
                 }
+            } else if (action === 'reorder') {
+                // Replace entire items array with new order
+                const { items } = req.body;
+                galleryData.items = items;
             }
             
             // Update file on GitHub

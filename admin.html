@@ -226,16 +226,38 @@
             border-radius: 10px;
             border: 1px solid rgba(255, 107, 26, 0.2);
             display: grid;
-            grid-template-columns: 100px 1fr auto;
+            grid-template-columns: 40px 100px 1fr auto;
             gap: 1.5rem;
             align-items: center;
+            cursor: grab;
+            transition: var(--transition);
+        }
+
+        .gallery-item-row.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .gallery-item-row.drag-over {
+            border-color: var(--primary-color);
+            background: rgba(255, 107, 26, 0.2);
         }
 
         @media (max-width: 768px) {
             .gallery-item-row {
-                grid-template-columns: 80px 1fr;
+                grid-template-columns: 35px 80px 1fr;
                 padding: 1rem;
                 gap: 1rem;
+            }
+
+            .drag-handle {
+                gap: 0.2rem;
+            }
+
+            .order-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 1rem;
             }
             
             .gallery-item-row img, .gallery-item-row .video-thumb {
@@ -266,6 +288,50 @@
             align-items: center;
             justify-content: center;
             color: var(--primary-color);
+        }
+
+        .drag-handle {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            align-items: center;
+            cursor: grab;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .order-btn {
+            background: rgba(255, 107, 26, 0.2);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            color: var(--primary-color);
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: var(--transition);
+            padding: 0;
+        }
+
+        .order-btn:hover:not(:disabled) {
+            background: var(--primary-color);
+            color: var(--white);
+        }
+
+        .order-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .drag-icon {
+            color: var(--gray);
+            font-size: 1.2rem;
+            line-height: 1;
         }
 
         .item-info h4 {
@@ -650,6 +716,6 @@
         </div>
     </div>
 
-    <script src="admin-gallery.js?v=7"></script>
+    <script src="admin-gallery.js?v=8"></script>
 </body>
 </html>
