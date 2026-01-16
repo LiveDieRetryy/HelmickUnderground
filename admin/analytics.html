@@ -13,13 +13,19 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         body {
-            background: var(--bg-dark);
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
             min-height: 100vh;
             padding: 2rem;
         }
 
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+        }
+
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
         }
 
@@ -32,6 +38,21 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 8px 32px rgba(255, 107, 26, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .header:hover {
+            box-shadow: 0 12px 48px rgba(255, 107, 26, 0.15);
+            border-color: rgba(255, 107, 26, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1.5rem;
+            }
         }
 
         .header h1 {
@@ -39,67 +60,148 @@
             display: flex;
             align-items: center;
             gap: 1rem;
+            font-size: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
         }
 
         .back-btn {
             background: rgba(255, 107, 26, 0.1);
             color: var(--primary-color);
             padding: 0.75rem 1.5rem;
-            border-radius: 10px;
+            border-radius: 12px;
             text-decoration: none;
             border: 1px solid rgba(255, 107, 26, 0.3);
+            transition: all 0.3s ease;
+            font-weight: 600;
         }
 
         .back-btn:hover {
             background: var(--primary-color);
             color: var(--bg-dark);
+            transform: translateX(-4px);
+            box-shadow: 0 4px 20px rgba(255, 107, 26, 0.3);
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1.5rem;
-            margin-bottom: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
         }
 
         .stat-card {
             background: var(--card-dark);
-            border-radius: 15px;
+            border-radius: 20px;
             padding: 2rem;
             border: 1px solid rgba(255, 107, 26, 0.3);
             text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), #ff8c42);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(255, 107, 26, 0.2);
+            border-color: var(--primary-color);
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        @media (max-width: 768px) {
+            .stat-card {
+                padding: 1.5rem 1rem;
+            }
         }
 
         .stat-label {
             color: var(--gray);
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
             text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
         }
 
         .stat-value {
             color: var(--primary-color);
-            font-size: 2.5rem;
+            font-size: 3rem;
             font-weight: 900;
+            text-shadow: 0 2px 10px rgba(255, 107, 26, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .stat-value {
+                font-size: 2rem;
+            }
         }
 
         .charts-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
             gap: 2rem;
-            margin-bottom: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
         }
 
         .chart-card {
             background: var(--card-dark);
             border-radius: 20px;
-            padding: 2rem;
+            padding: 2.5rem;
             border: 1px solid rgba(255, 107, 26, 0.3);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .chart-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 8px 40px rgba(255, 107, 26, 0.15);
+            transform: translateY(-4px);
+        }
+
+        @media (max-width: 768px) {
+            .chart-card {
+                padding: 1.5rem;
+            }
         }
 
         .chart-card h3 {
             color: var(--primary-color);
             margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+            font-weight: 700;
         }
 
         .chart-card.full-width {
@@ -109,9 +211,17 @@
         .table-container {
             background: var(--card-dark);
             border-radius: 20px;
-            padding: 2rem;
+            padding: 2.5rem;
             border: 1px solid rgba(255, 107, 26, 0.3);
             overflow-x: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .table-container {
+                padding: 1.5rem;
+                border-radius: 15px;
+            }
         }
 
         table {
@@ -122,24 +232,47 @@
         th {
             color: var(--primary-color);
             text-align: left;
-            padding: 1rem;
+            padding: 1.25rem 1rem;
             border-bottom: 2px solid rgba(255, 107, 26, 0.3);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
         }
 
         td {
             color: var(--gray);
-            padding: 1rem;
+            padding: 1.25rem 1rem;
             border-bottom: 1px solid rgba(255, 107, 26, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        tr {
+            transition: all 0.2s ease;
         }
 
         tr:hover {
-            background: rgba(255, 107, 26, 0.05);
+            background: rgba(255, 107, 26, 0.08);
+        }
+
+        tr:hover td {
+            color: var(--white);
         }
 
         .loading {
             text-align: center;
-            padding: 4rem;
+            padding: 6rem 2rem;
             color: var(--primary-color);
+        }
+
+        .loading > div:first-child {
+            font-size: 3rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
         }
 
         .btn-logout {
@@ -147,13 +280,37 @@
             color: var(--red);
             border: 1px solid rgba(220, 20, 60, 0.5);
             padding: 0.75rem 1.5rem;
-            border-radius: 10px;
+            border-radius: 12px;
             cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
         }
 
         .btn-logout:hover {
             background: var(--red);
             color: var(--white);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(220, 20, 60, 0.4);
+        }
+
+        /* Smooth scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 107, 26, 0.5);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
         }
     </style>
 </head>
