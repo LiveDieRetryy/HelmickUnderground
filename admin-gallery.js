@@ -1,0 +1,220 @@
+// Admin credentials (case sensitive)
+const ADMIN_USERNAME = 'admin';
+const ADMIN_PASSWORD = 'HUAdmin';
+
+// Check if user is logged in
+function checkAuth() {
+    const isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
+    if (isLoggedIn) {
+        showDashboard();
+    }
+}
+
+// Login form handler
+document.getElementById('loginForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const errorDiv = document.getElementById('loginError');
+    
+    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+        sessionStorage.setItem('adminLoggedIn', 'true');
+        showDashboard();
+    } else {
+        errorDiv.textContent = 'Invalid username or password. Please try again.';
+        errorDiv.style.display = 'block';
+        setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 3000);
+    }
+});
+
+// Logout handler
+document.getElementById('logoutBtn')?.addEventListener('click', function() {
+    sessionStorage.removeItem('adminLoggedIn');
+    location.reload();
+});
+
+// Show dashboard
+function showDashboard() {
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('adminDashboard').style.display = 'block';
+    loadGalleryItems();
+}
+
+// Type selector
+const typeBtns = document.querySelectorAll('.type-btn');
+const imageUrlGroup = document.getElementById('imageUrlGroup');
+const embedCodeGroup = document.getElementById('embedCodeGroup');
+const itemImage = document.getElementById('itemImage');
+const itemEmbed = document.getElementById('itemEmbed');
+
+typeBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+        typeBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        const type = this.dataset.type;
+        if (type === 'image') {
+            imageUrlGroup.style.display = 'block';
+            embedCodeGroup.style.display = 'none';
+            itemImage.required = true;
+            itemEmbed.required = false;
+        } else {
+            imageUrlGroup.style.display = 'none';
+            embedCodeGroup.style.display = 'block';
+            itemImage.required = false;
+            itemEmbed.required = true;
+        }
+    });
+});
+
+// Add item form handler
+document.getElementById('addItemForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const type = document.querySelector('.type-btn.active').dataset.type;
+    const title = document.getElementById('itemTitle').value;
+    const description = document.getElementById('itemDescription').value;
+    const date = document.getElementById('itemDate').value;
+    
+    const newItem = {
+        id: Date.now(),
+        type: type,
+        title: title,
+        description: description,
+        date: date || null
+    };
+    
+    if (type === 'image') {
+        newItem.image = document.getElementById('itemImage').value;
+    } else {
+        newItem.embedCode = document.getElementById('itemEmbed').value;
+    }
+    
+    // Add to gallery data
+    await addGalleryItem(newItem);
+    
+    // Reset form
+    this.reset();
+    typeBtns[0].click(); // Reset to image type
+    
+    // Show success message
+    showSuccess('Item added successfully! Remember to upload your changes.');
+    
+    // Reload items list
+    loadGalleryItems();
+});
+
+// Load gallery items
+async function loadGalleryItems() {
+    try {
+        const response = await fetch('gallery-data.json?' + Date.now());
+        const data = await response.json();
+        const container = document.getElementById('galleryItemsList');
+        
+        if (!data.items || data.items.length === 0) {
+            container.innerHTML = '<p style="color: var(--gray); text-align: center; padding: 2rem;">No gallery items yet. Add your first item above!</p>';
+            return;
+        }
+        
+        container.innerHTML = data.items.map(item => `
+            <div class="gallery-item-row" data-id="${item.id}">
+                ${item.type === 'image' 
+                    ? `<img src="${item.image}" alt="${item.title}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Crect fill=\'%23333\' width=\'100\' height=\'100\'/%3E%3Ctext x=\'50\' y=\'50\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23666\' font-family=\'Arial\' font-size=\'12\'%3ENo Image%3C/text%3E%3C/svg%3E'">`
+                    : `<div class="video-thumb">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                       </div>`
+                }
+                <div class="item-info">
+                    <h4>${item.title}</h4>
+                    <p>${item.description}</p>
+                    ${item.date ? `<p><strong>Date:</strong> ${item.date}</p>` : ''}
+                    <p><strong>Type:</strong> ${item.type === 'image' ? '📷 Image' : '🎥 Video'}</p>
+                </div>
+                <div class="item-actions">
+                    <button class="btn btn-small btn-delete" onclick="deleteItem(${item.id})">Delete</button>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading gallery items:', error);
+    }
+}
+
+// Add gallery item
+async function addGalleryItem(item) {
+    try {
+        const response = await fetch('gallery-data.json?' + Date.now());
+        const data = await response.json();
+        
+        if (!data.items) {
+            data.items = [];
+        }
+        
+        data.items.unshift(item); // Add to beginning
+        
+        // Download updated JSON
+        downloadJSON(data);
+    } catch (error) {
+        console.error('Error adding item:', error);
+        alert('Error adding item. Please try again.');
+    }
+}
+
+// Delete item
+async function deleteItem(id) {
+    if (!confirm('Are you sure you want to delete this item?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('gallery-data.json?' + Date.now());
+        const data = await response.json();
+        
+        data.items = data.items.filter(item => item.id !== id);
+        
+        // Download updated JSON
+        downloadJSON(data);
+        
+        showSuccess('Item deleted! Remember to upload the updated gallery-data.json file.');
+        loadGalleryItems();
+    } catch (error) {
+        console.error('Error deleting item:', error);
+        alert('Error deleting item. Please try again.');
+    }
+}
+
+// Download JSON file
+function downloadJSON(data) {
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'gallery-data.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    alert('Gallery data downloaded! Replace the gallery-data.json file in your project folder, then run:\n\ngit add .\ngit commit -m "Update gallery"\ngit push');
+}
+
+// Show success message
+function showSuccess(message) {
+    const successDiv = document.getElementById('successMessage');
+    successDiv.textContent = message;
+    successDiv.style.display = 'block';
+    setTimeout(() => {
+        successDiv.style.display = 'none';
+    }, 5000);
+}
+
+// Make deleteItem available globally
+window.deleteItem = deleteItem;
+
+// Check auth on page load
+checkAuth();

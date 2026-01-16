@@ -1,0 +1,77 @@
+HOW TO ADD TIKTOK VIDEOS TO YOUR GALLERY PAGE
+==============================================
+
+STEP 1: GET THE TIKTOK EMBED CODE
+----------------------------------
+1. Go to your TikTok video (on tiktok.com or in the app)
+2. Click the "..." (three dots) or Share button
+3. Click "Embed" option
+4. Copy the entire embed code (it will look like this):
+
+   <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@username/video/123456789">
+   ... (lots of code here)
+   </blockquote>
+
+
+STEP 2: ADD TO YOUR GALLERY PAGE
+---------------------------------
+1. Open gallery.html in a text editor
+2. Find a video placeholder that looks like this:
+
+   <div class="video-card">
+       <div class="video-placeholder">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+               <polygon points="5 3 19 12 5 21 5 3"></polygon>
+           </svg>
+           <p>Add your TikTok video here</p>
+       </div>
+   </div>
+
+3. REPLACE THE ENTIRE <div class="video-card">...</div> section with:
+
+   <div class="video-card">
+       [PASTE YOUR TIKTOK EMBED CODE HERE]
+   </div>
+
+   Example:
+
+   <div class="video-card">
+       <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@helmickunderground/video/123456789">
+           ... (TikTok embed code)
+       </blockquote>
+   </div>
+
+
+STEP 3: ADD MORE VIDEOS (OPTIONAL)
+-----------------------------------
+To add more than 6 videos, copy and paste this code where you want to add another:
+
+<div class="video-card">
+    [PASTE YOUR TIKTOK EMBED CODE HERE]
+</div>
+
+
+STEP 4: SAVE AND DEPLOY
+------------------------
+1. Save gallery.html
+2. Open PowerShell in your project folder
+3. Run these commands:
+   git add .
+   git commit -m "Add TikTok videos to gallery"
+   git push
+4. Wait 30 seconds - your videos will be live!
+
+
+TIPS:
+-----
+- Videos will automatically resize for mobile
+- They will display in a responsive grid
+- On desktop: 3-4 videos per row
+- On mobile: 1 video per row
+- You can add as many videos as you want
+- The grid will automatically adjust
+
+
+NEED HELP?
+----------
+If you get stuck, just let me know which video you want to add and I can do it for you!

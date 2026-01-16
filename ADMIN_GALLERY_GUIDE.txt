@@ -1,0 +1,119 @@
+HOW TO USE THE GALLERY ADMIN SYSTEM
+====================================
+
+ACCESS THE ADMIN PAGE:
+----------------------
+1. Go to: https://helmickunderground.com/admin
+2. Login credentials:
+   Username: admin
+   Password: HUAdmin
+   (CASE SENSITIVE!)
+
+ADDING IMAGES TO GALLERY:
+--------------------------
+1. Click on "📷 Image" button (default)
+2. Fill in:
+   - Title: Name of the project
+   - Description: Brief description of the work
+   - Date: Optional project date
+   - Image Path: Path to your image (e.g., "images/project-fiber-install.jpg")
+3. Click "Add to Gallery"
+4. The system will download a new "gallery-data.json" file
+5. Replace the old gallery-data.json file in your project folder
+6. Commit and push:
+   git add .
+   git commit -m "Update gallery"
+   git push
+
+ADDING TIKTOK VIDEOS:
+---------------------
+1. Click on "🎥 TikTok Video" button
+2. Go to your TikTok video
+3. Click "Share" → "Embed"
+4. Copy the entire embed code (starts with <blockquote>)
+5. Fill in:
+   - Title: Video title
+   - Description: What the video shows
+   - Date: Optional date
+   - Paste the TikTok embed code in the text area
+6. Click "Add to Gallery"
+7. Download the new gallery-data.json file
+8. Replace and commit as above
+
+HOW TO GET TIKTOK EMBED CODE:
+------------------------------
+1. Open TikTok on web browser
+2. Find your video
+3. Click the "Share" arrow button
+4. Select "Embed"
+5. Copy the entire code that appears
+6. It should look like:
+   <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@username/video/1234567890" 
+   data-video-id="1234567890" style="max-width: 605px;min-width: 325px;">
+   ... more code ...
+   </blockquote>
+
+UPLOADING NEW IMAGES:
+---------------------
+Before adding an image to the gallery:
+1. Put your image file in the "images" folder
+2. Name it descriptively: project-fiber-install.jpg, excavation-mount-vernon.jpg
+3. Commit the image:
+   git add images/your-new-image.jpg
+   git commit -m "Add project photo"
+   git push
+4. THEN use the admin to add it to gallery using path: images/your-new-image.jpg
+
+DELETING ITEMS:
+---------------
+1. Click the "Delete" button next to any item
+2. Confirm deletion
+3. Download the updated gallery-data.json
+4. Replace the file and commit/push
+
+ORGANIZING GALLERY:
+-------------------
+Items appear in the order they're added (newest first).
+To reorder:
+1. Delete items you want to move
+2. Re-add them in the desired order
+3. Or manually edit gallery-data.json file
+
+SECURITY NOTE:
+--------------
+- The admin page uses session-based login
+- You stay logged in until you close the browser
+- Always click "Logout" when finished
+- Never share your password
+
+TROUBLESHOOTING:
+----------------
+Q: Image not showing in gallery?
+A: Make sure the image file is uploaded to the images/ folder first
+
+Q: TikTok video not appearing?
+A: Make sure you copied the FULL embed code from TikTok, including <blockquote> tags
+
+Q: Changes not showing on website?
+A: Did you replace gallery-data.json and push to GitHub? Vercel needs 30 seconds to deploy.
+
+Q: Forgot to download gallery-data.json?
+A: No problem! Just re-add your items. The download happens after each change.
+
+WORKFLOW SUMMARY:
+-----------------
+1. Login to admin at /admin
+2. Add items (images or TikTok videos)
+3. Download gallery-data.json after each addition
+4. Replace old gallery-data.json file
+5. git add . && git commit -m "Update gallery" && git push
+6. Wait 30 seconds for Vercel to deploy
+7. Check helmickunderground.com/gallery
+
+TIPS:
+-----
+- Add project photos regularly to show your work
+- Use descriptive titles (e.g., "Fiber Optic Install - Mount Vernon")
+- Keep descriptions concise but informative
+- TikTok videos auto-play when scrolled into view
+- Gallery looks great on mobile!

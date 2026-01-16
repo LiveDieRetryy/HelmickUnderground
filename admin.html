@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Admin - Helmick Underground</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        .admin-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .login-box, .admin-dashboard {
+            background: var(--card-dark);
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 1200px;
+            width: 100%;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .login-box {
+            max-width: 450px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-header p {
+            color: var(--gray);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--white);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            border-radius: 10px;
+            color: var(--white);
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .error-message {
+            background: rgba(220, 20, 60, 0.2);
+            color: var(--red);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(220, 20, 60, 0.5);
+            display: none;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 107, 26, 0.3);
+        }
+
+        .admin-header h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+        }
+
+        .btn-logout {
+            background: rgba(220, 20, 60, 0.2);
+            color: var(--red);
+            border: 1px solid rgba(220, 20, 60, 0.5);
+        }
+
+        .btn-logout:hover {
+            background: var(--red);
+            color: var(--white);
+        }
+
+        .gallery-manager {
+            margin-top: 2rem;
+        }
+
+        .add-item-form {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 107, 26, 0.2);
+        }
+
+        .add-item-form h3 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .type-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .type-btn {
+            flex: 1;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 107, 26, 0.3);
+            border-radius: 10px;
+            color: var(--white);
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+        }
+
+        .type-btn:hover {
+            border-color: var(--primary-color);
+        }
+
+        .type-btn.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            border-radius: 10px;
+            color: var(--white);
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .gallery-items-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .gallery-item-row {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 107, 26, 0.2);
+            display: grid;
+            grid-template-columns: 100px 1fr auto;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .gallery-item-row img, .gallery-item-row .video-thumb {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .video-thumb {
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+        }
+
+        .item-info h4 {
+            color: var(--white);
+            margin-bottom: 0.5rem;
+        }
+
+        .item-info p {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-delete {
+            background: rgba(220, 20, 60, 0.2);
+            color: var(--red);
+            border: 1px solid rgba(220, 20, 60, 0.5);
+        }
+
+        .btn-delete:hover {
+            background: var(--red);
+            color: var(--white);
+        }
+
+        .success-message {
+            background: rgba(0, 200, 100, 0.2);
+            color: #00ff6a;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(0, 200, 100, 0.5);
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .gallery-item-row {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .item-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Login Form -->
+        <div id="loginBox" class="login-box">
+            <div class="login-header">
+                <h1>🔒 Admin Login</h1>
+                <p>Helmick Underground Gallery Manager</p>
+            </div>
+            <div id="loginError" class="error-message"></div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+            </form>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div id="adminDashboard" class="admin-dashboard" style="display: none;">
+            <div class="admin-header">
+                <h1>📸 Gallery Manager</h1>
+                <button id="logoutBtn" class="btn btn-logout">Logout</button>
+            </div>
+
+            <div id="successMessage" class="success-message"></div>
+
+            <div class="gallery-manager">
+                <div class="add-item-form">
+                    <h3>Add New Item</h3>
+                    <div class="type-selector">
+                        <button type="button" class="type-btn active" data-type="image">📷 Image</button>
+                        <button type="button" class="type-btn" data-type="video">🎥 TikTok Video</button>
+                    </div>
+                    <form id="addItemForm">
+                        <div class="form-group">
+                            <label for="itemTitle">Title *</label>
+                            <input type="text" id="itemTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="itemDescription">Description *</label>
+                            <textarea id="itemDescription" required></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="itemDate">Date (optional)</label>
+                                <input type="date" id="itemDate">
+                            </div>
+                            <div class="form-group" id="imageUrlGroup">
+                                <label for="itemImage">Image Path *</label>
+                                <input type="text" id="itemImage" placeholder="images/project-name.jpg" required>
+                            </div>
+                            <div class="form-group" id="embedCodeGroup" style="display: none;">
+                                <label for="itemEmbed">TikTok Embed Code *</label>
+                                <textarea id="itemEmbed" placeholder="Paste full TikTok embed code here"></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add to Gallery</button>
+                    </form>
+                </div>
+
+                <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Current Gallery Items</h3>
+                <div id="galleryItemsList" class="gallery-items-list">
+                    <!-- Gallery items will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin-gallery.js"></script>
+</body>
+</html>
