@@ -57,12 +57,25 @@ async function loadData() {
 
     } catch (error) {
         console.error('Error loading data:', error);
+        
+        // Try to get response text for debugging
+        let errorDetails = error.message;
+        try {
+            const testRes = await fetch('/api/contact-submissions?action=all');
+            const testText = await testRes.text();
+            console.error('API Response:', testText);
+            errorDetails = testText.substring(0, 200);
+        } catch (e) {
+            console.error('Could not fetch error details:', e);
+        }
+        
         document.getElementById('loading').innerHTML = `
             <div style="color: var(--red);">
                 <div style="font-size: 2rem;">⚠️</div>
                 <p>Error loading submissions</p>
                 <p style="font-size: 0.9rem; color: var(--gray);">${error.message}</p>
-                <p style="font-size: 0.85rem; color: var(--gray); margin-top: 1rem;">Check browser console for details</p>
+                <p style="font-size: 0.8rem; color: var(--gray); margin-top: 1rem; max-width: 600px; word-break: break-all;">${errorDetails}</p>
+                <p style="font-size: 0.85rem; color: var(--gray); margin-top: 1rem;">Check browser console for full details</p>
             </div>
         `;
     }
