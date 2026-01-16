@@ -89,15 +89,36 @@ if (contactForm) {
         // Get form data
         const formData = new FormData(contactForm);
         
+        // Prepare data for our API
+        const servicesSelected = Array.from(formData.getAll('services'));
+        const submissionData = {
+            name: formData.get('name'),
+            email: formData.get('email'),
+            phone: formData.get('phone'),
+            services: servicesSelected,
+            message: formData.get('message'),
+            timestamp: new Date().toISOString()
+        };
+        
         try {
-            const response = await fetch('https://api.web3forms.com/submit', {
-                method: 'POST',
-                body: formData
-            });
+            // Send to both Web3Forms (for email) and our API (for admin inbox)
+            const [web3Response, apiResponse] = await Promise.all([
+                fetch('https://api.web3forms.com/submit', {
+                    method: 'POST',
+                    body: formData
+                }),
+                fetch('/api/contact-submissions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(submissionData)
+                })
+            ]);
             
-            const data = await response.json();
+            const web3Data = await web3Response.json();
             
-            if (data.success) {
+            if (web3Data.success) {
                 // Success message
                 formMessage.innerHTML = `
                     <div style="background: rgba(34, 197, 94, 0.2); border: 2px solid #22c55e; color: #22c55e; padding: 1.5rem; border-radius: 12px; margin-top: 1.5rem; text-align: center;">

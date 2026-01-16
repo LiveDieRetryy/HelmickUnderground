@@ -4,14 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <meta http-equiv="refresh" content="0; url=/admin/">
-    <title>Redirecting...</title>
-</head>
-<body>
-    <p>Redirecting to admin dashboard...</p>
-    <script>window.location.href = '/admin/';</script>
-</body>
-</html>
+    <title>Gallery Manager - Helmick Underground</title>
+    <link rel="icon" type="image/png" href="../logo.png">
+    <link rel="stylesheet" href="../styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
@@ -656,30 +651,13 @@
 </head>
 <body>
     <div class="admin-container">
-        <!-- Login Form -->
-        <div id="loginBox" class="login-box">
-            <div class="login-header">
-                <h1>🔒 Admin Login</h1>
-                <p>Helmick Underground Gallery Manager</p>
-            </div>
-            <div id="loginError" class="error-message"></div>
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" required autocomplete="username">
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" required autocomplete="current-password">
-                </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
-            </form>
-        </div>
-
         <!-- Admin Dashboard -->
-        <div id="adminDashboard" class="admin-dashboard" style="display: none;">
+        <div id="adminDashboard" class="admin-dashboard">
             <div class="admin-header">
-                <h1>📸 Gallery Manager</h1>
+                <div>
+                    <a href="index.html" style="color: var(--gray); text-decoration: none; font-size: 0.9rem; display: inline-block; margin-bottom: 0.5rem;">← Back to Dashboard</a>
+                    <h1>📸 Gallery Manager</h1>
+                </div>
                 <button id="logoutBtn" class="btn btn-logout">Logout</button>
             </div>
 
