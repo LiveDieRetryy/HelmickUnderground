@@ -40,6 +40,101 @@ function showDashboard() {
     document.getElementById('loginBox').style.display = 'none';
     document.getElementById('adminDashboard').style.display = 'block';
     loadGalleryItems();
+    setupDragAndDrop();
+}
+
+// Drag and drop functionality
+function setupDragAndDrop() {
+    const imageDropZone = document.getElementById('imageDropZone');
+    const videoDropZone = document.getElementById('videoDropZone');
+    const imageInput = document.getElementById('itemImageFile');
+    const videoInput = document.getElementById('itemVideoFile');
+    const imageFileName = document.getElementById('imageFileName');
+    const videoFileName = document.getElementById('videoFileName');
+
+    // Setup image drop zone
+    if (imageDropZone && imageInput) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            imageDropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            imageDropZone.addEventListener(eventName, () => {
+                imageDropZone.classList.add('drag-over');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            imageDropZone.addEventListener(eventName, () => {
+                imageDropZone.classList.remove('drag-over');
+            }, false);
+        });
+
+        imageDropZone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                imageInput.files = files;
+                imageFileName.textContent = `✓ ${files[0].name}`;
+                imageFileName.style.display = 'block';
+            }
+        });
+
+        imageInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                imageFileName.textContent = `✓ ${e.target.files[0].name}`;
+                imageFileName.style.display = 'block';
+            } else {
+                imageFileName.style.display = 'none';
+            }
+        });
+    }
+
+    // Setup video drop zone
+    if (videoDropZone && videoInput) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            videoDropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            videoDropZone.addEventListener(eventName, () => {
+                videoDropZone.classList.add('drag-over');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            videoDropZone.addEventListener(eventName, () => {
+                videoDropZone.classList.remove('drag-over');
+            }, false);
+        });
+
+        videoDropZone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                videoInput.files = files;
+                videoFileName.textContent = `✓ ${files[0].name}`;
+                videoFileName.style.display = 'block';
+            }
+        });
+
+        videoInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                videoFileName.textContent = `✓ ${e.target.files[0].name}`;
+                videoFileName.style.display = 'block';
+            } else {
+                videoFileName.style.display = 'none';
+            }
+        });
+    }
 }
 
 // Type selector
@@ -83,6 +178,69 @@ typeBtns.forEach(btn => {
         }
     });
 });
+
+// Drag and drop functionality
+function setupDropZone(dropZoneId, fileInputId, fileNameDisplayId) {
+    const dropZone = document.getElementById(dropZoneId);
+    const fileInput = document.getElementById(fileInputId);
+    const fileNameDisplay = document.getElementById(fileNameDisplayId);
+    
+    if (!dropZone || !fileInput) return;
+    
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    // Highlight drop zone when item is dragged over it
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+            dropZone.classList.add('drag-over');
+        }, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+            dropZone.classList.remove('drag-over');
+        }, false);
+    });
+    
+    // Handle dropped files
+    dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        if (files.length > 0) {
+            fileInput.files = files;
+            displayFileName(files[0], fileNameDisplay);
+        }
+    }, false);
+    
+    // Handle file selection via click
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            displayFileName(e.target.files[0], fileNameDisplay);
+        }
+    });
+}
+
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+function displayFileName(file, displayElement) {
+    if (displayElement) {
+        const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+        displayElement.textContent = `✓ ${file.name} (${sizeInMB}MB)`;
+        displayElement.style.display = 'block';
+    }
+}
+
+// Initialize drop zones
+setupDropZone('imageDropZone', 'itemImageFile', 'imageFileName');
+setupDropZone('videoDropZone', 'itemVideoFile', 'videoFileName');
 
 // Add item form handler
 document.getElementById('addItemForm')?.addEventListener('submit', async function(e) {
