@@ -543,7 +543,7 @@ section {
 /* Quick Contact Info Row */
 .contact-quick-info {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
     margin-top: 3rem;
 }
@@ -557,12 +557,31 @@ section {
     align-items: center;
     gap: 1rem;
     transition: var(--transition);
+    position: relative;
 }
 
 .quick-info-card:hover {
     transform: translateY(-3px);
     border-color: var(--primary-color);
     box-shadow: 0 5px 20px rgba(255, 107, 26, 0.3);
+}
+
+.quick-info-card.clickable {
+    cursor: pointer;
+}
+
+.quick-info-card.clickable a {
+    position: static;
+}
+
+.quick-info-card.clickable a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
 }
 
 .quick-icon {
