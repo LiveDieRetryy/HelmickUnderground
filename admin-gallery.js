@@ -586,27 +586,14 @@ async function addGalleryItem(item) {
     }
 }
 
-// Get gallery data from localStorage or JSON file
-function getGalleryData() {
-    const localData = localStorage.getItem('helmick_gallery_data');
-    if (localData) {
-        return JSON.parse(localData);
-    }
-    return { items: [] };
-}
-
-// Save gallery data to localStorage
-function saveGalleryData(data) {
-    localStorage.setItem('helmick_gallery_data', JSON.stringify(data));
-}
-
 // Delete item
 async function deleteItem(id) {
     if (!confirm('Are you sure you want to delete this item?')) {
         return;
     }
     
-    try {response = await fetch('/api/gallery', {
+    try {
+        const response = await fetch('/api/gallery', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -619,8 +606,7 @@ async function deleteItem(id) {
         
         if (!response.ok) {
             throw new Error('Failed to delete item');
-        }e
-        saveGalleryData(data);
+        }
         
         showSuccess('✅ Item deleted successfully!');
         loadGalleryItems();
