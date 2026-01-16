@@ -544,7 +544,7 @@ async function loadGalleryItems() {
                     <h4>${item.title}</h4>
                     <p>${item.description}</p>
                     ${item.date ? `<p><strong>Date:</strong> ${item.date}</p>` : ''}
-                    <p><strong>Type:</strong> ${item.type === 'image' ? '📷 Image' : '🎥 Video'}${item.fileSize ? ` • ${formatFileSize(item.fileSize)}` : ''}</p>
+                    <p><strong>Type:</strong> ${item.type === 'image' ? '📷 Image' : '🎥 Video'}${item.fileSize ? ` • ${formatFileSize(item.fileSize)}` : ' <span style="color: var(--gray); font-size: 0.85em;">(size: unknown - uploaded before tracking)</span>'}</p>
                 </div>
                 <div class="item-actions">
                     <button class="btn btn-small btn-edit" onclick="openEditModal(${item.id})">Edit</button>
