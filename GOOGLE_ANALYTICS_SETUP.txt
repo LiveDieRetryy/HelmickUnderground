@@ -1,0 +1,105 @@
+GOOGLE ANALYTICS SETUP GUIDE
+============================
+
+Google Analytics will help you track:
+- How many people visit your website
+- Which pages they view
+- Where they're located
+- How they found you (Google search, direct, etc.)
+- Contact form submissions
+
+SETUP STEPS:
+------------
+
+1. CREATE GOOGLE ANALYTICS ACCOUNT:
+   - Go to: https://analytics.google.com/
+   - Sign in with your Gmail account (HelmickUnderground@gmail.com recommended)
+   - Click "Start measuring"
+   - Account name: "Helmick Underground"
+   - Click "Next"
+
+2. CREATE PROPERTY:
+   - Property name: "Helmick Underground Website"
+   - Time zone: (UTC-06:00) Central Time
+   - Currency: US Dollar
+   - Click "Next"
+
+3. BUSINESS INFORMATION:
+   - Industry: Construction/Contractors
+   - Business size: Small (1-10 employees)
+   - How you intend to use: "Examine user behavior"
+   - Click "Create"
+   - Accept Terms of Service
+
+4. GET TRACKING CODE:
+   - Select "Web" platform
+   - Website URL: https://helmickunderground.com
+   - Stream name: "Main Website"
+   - Click "Create stream"
+   
+5. COPY YOUR MEASUREMENT ID:
+   - You'll see a Measurement ID like: G-XXXXXXXXXX
+   - Copy this ID
+
+6. ADD TO YOUR WEBSITE:
+   - Open index.html, about.html, services.html, contact.html
+   - Add this code in the <head> section (after the <meta> tags):
+
+   <!-- Google Analytics -->
+   <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+   <script>
+     window.dataLayer = window.dataLayer || [];
+     function gtag(){dataLayer.push(arguments);}
+     gtag('js', new Date());
+     gtag('config', 'G-XXXXXXXXXX');
+   </script>
+
+   Replace G-XXXXXXXXXX with your actual Measurement ID
+
+7. TRACK FORM SUBMISSIONS:
+   - In script.js, add this inside the form success handler:
+   
+   gtag('event', 'form_submission', {
+     'event_category': 'Contact',
+     'event_label': 'Quote Request'
+   });
+
+WHAT YOU'LL SEE IN ANALYTICS:
+------------------------------
+- Real-time visitors on your site right now
+- Daily/weekly/monthly visitor counts
+- Most popular pages
+- Geographic location of visitors
+- Device types (mobile vs desktop)
+- How long people stay on your site
+- Bounce rate (people who leave immediately)
+
+IMPORTANT METRICS FOR YOUR BUSINESS:
+-------------------------------------
+1. **Sessions** - Total visits to your site
+2. **Users** - Unique visitors
+3. **Conversion Rate** - % who submit contact form
+4. **Top Pages** - Which services get most views
+5. **Traffic Sources** - Google search, social media, direct
+
+PRIVACY COMPLIANCE:
+-------------------
+You already have a cookie notice on your site ✓
+Google Analytics is GDPR compliant when configured properly
+Data is anonymized and doesn't collect personally identifiable info
+
+VIEWING YOUR REPORTS:
+---------------------
+After setup, go to: https://analytics.google.com/
+- Click "Helmick Underground Website"
+- View "Reports" → "Realtime" to see live visitors
+- View "Reports" → "Acquisition" to see where traffic comes from
+- View "Reports" → "Engagement" to see popular pages
+
+Check analytics weekly to see:
+- Is traffic increasing?
+- Which services are people interested in?
+- Are people finding you through Google search?
+- Where are most customers located?
+
+Let me know your Measurement ID and I'll add the tracking code to all your pages!
