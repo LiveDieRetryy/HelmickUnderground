@@ -19,15 +19,6 @@
       "fileSize": 280375
     },
     {
-      "id": 1768601804612,
-      "title": "Broken Tile Repair",
-      "description": "Sometimes during excavation, hidden drainage tile can be damaged before anyone knows it’s there. When that happens, we take full responsibility. At Helmick Underground, we don’t cover it up or cut corners—we fix it. Our crew gets down in the trench, locates the damaged tile, and restores proper flow to ensure the system functions exactly as it should. It’s all part of doing the job right and standing behind our work from start to finish.",
-      "date": null,
-      "type": "image",
-      "image": "images/2PM.jpeg",
-      "fileSize": 554794
-    },
-    {
       "id": 1768601395926,
       "title": "Proper Shoring",
       "description": "Deep excavations present increased risks that require careful planning and the use of appropriate protective systems. Proper shoring provides critical support to trench walls, helping to prevent soil movement and collapse. By using the correct shoring equipment, crews can work safely and efficiently while maintaining compliance with industry safety standards and project requirements.",
@@ -44,6 +35,15 @@
       "type": "video",
       "videoFile": "https://res.cloudinary.com/dbt9vsoji/video/upload/v1768595419/videos/dhxvuwyghiehc7hrvqas.mp4",
       "fileSize": 10211346
+    },
+    {
+      "id": 1768601804612,
+      "title": "Broken Tile Repair",
+      "description": "Sometimes during excavation, hidden drainage tile can be damaged before anyone knows it’s there. When that happens, we take full responsibility. At Helmick Underground, we don’t cover it up or cut corners—we fix it. Our crew gets down in the trench, locates the damaged tile, and restores proper flow to ensure the system functions exactly as it should. It’s all part of doing the job right and standing behind our work from start to finish.",
+      "date": null,
+      "type": "image",
+      "image": "images/2PM.jpeg",
+      "fileSize": 554794
     },
     {
       "id": 1768592606565,
