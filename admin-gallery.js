@@ -115,7 +115,8 @@ document.getElementById('addItemForm')?.addEventListener('submit', async functio
 // Load gallery items
 async function loadGalleryItems() {
     try {
-        const data = getGalleryData();
+        const response = await fetch('/api/gallery');
+        const data = await response.json();
         const container = document.getElementById('galleryItemsList');
         
         if (!data.items || data.items.length === 0) {
@@ -152,19 +153,23 @@ async function loadGalleryItems() {
 // Add gallery item
 async function addGalleryItem(item) {
     try {
-        // Get current data from localStorage or file
-        let data = getGalleryData();
+        const response = await fetch('/api/gallery', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'add',
+                item: item
+            })
+        });
         
-        if (!data.items) {
-            data.items = [];
+        if (!response.ok) {
+            throw new Error('Failed to add item');
         }
         
-        data.items.unshift(item); // Add to beginning
-        
-        // Save to localStorage immediately
-        saveGalleryData(data);
-        
-        showSuccess('✅ Item added successfully! It\'s now live on your gallery page.');
+        const result = await response.json();
+        showSuccess('✅ Item added successfully! It\'s now live for everyone to see!');
     } catch (error) {
         console.error('Error adding item:', error);
         alert('Error adding item. Please try again.');
@@ -191,12 +196,20 @@ async function deleteItem(id) {
         return;
     }
     
-    try {
-        const data = getGalleryData();
+    try {response = await fetch('/api/gallery', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'delete',
+                item: { id: id }
+            })
+        });
         
-        data.items = data.items.filter(item => item.id !== id);
-        
-        // Save to localStorage
+        if (!response.ok) {
+            throw new Error('Failed to delete item');
+        }e
         saveGalleryData(data);
         
         showSuccess('✅ Item deleted successfully!');

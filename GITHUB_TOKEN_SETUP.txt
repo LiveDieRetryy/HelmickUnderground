@@ -1,0 +1,70 @@
+GITHUB TOKEN SETUP FOR GALLERY ADMIN
+=====================================
+
+To make the gallery admin work for everyone, you need to create a GitHub Personal Access Token 
+and add it to Vercel. This allows the admin to automatically update the gallery-data.json file.
+
+STEP 1: CREATE GITHUB PERSONAL ACCESS TOKEN
+--------------------------------------------
+1. Go to: https://github.com/settings/tokens
+2. Click "Generate new token" → "Generate new token (classic)"
+3. Give it a name: "Helmick Underground Gallery Admin"
+4. Set expiration: "No expiration" (or 1 year if you prefer)
+5. Select these scopes:
+   ☑ repo (Full control of private repositories)
+     - This gives access to commit files
+6. Scroll down and click "Generate token"
+7. **IMPORTANT**: Copy the token immediately (starts with ghp_...)
+   You won't be able to see it again!
+
+STEP 2: ADD TOKEN TO VERCEL
+----------------------------
+1. Go to: https://vercel.com/livedieretryyy/helmick-underground/settings/environment-variables
+2. Click "Add New" (or "Add Environment Variable")
+3. Fill in:
+   - Key: GITHUB_TOKEN
+   - Value: [Paste your GitHub token here]
+   - Environment: Production, Preview, Development (select all 3)
+4. Click "Save"
+
+STEP 3: REDEPLOY
+----------------
+1. Go to: https://vercel.com/livedieretryyy/helmick-underground/deployments
+2. Find the latest deployment
+3. Click the "..." menu → "Redeploy"
+4. Wait 30 seconds for deployment to complete
+
+STEP 4: TEST IT
+---------------
+1. Go to: https://helmickunderground.com/admin
+2. Login (username: admin, password: HUAdmin)
+3. Add a test item
+4. Check https://helmickunderground.com/gallery
+5. The item should appear for EVERYONE (not just you!)
+
+SECURITY NOTES:
+---------------
+- Never share your GitHub token
+- The token is stored securely in Vercel's environment variables
+- Only the admin page can use it to update the gallery
+- Regular visitors can't access or modify the gallery
+
+TROUBLESHOOTING:
+----------------
+Q: "Failed to add item" error?
+A: Make sure the GITHUB_TOKEN is added to Vercel and you've redeployed
+
+Q: Gallery not updating?
+A: Check that the token has "repo" scope permissions
+
+Q: Token expired?
+A: Create a new token and update it in Vercel environment variables
+
+WHAT THIS DOES:
+---------------
+- When you add an item in the admin, it makes an API call to /api/gallery
+- The API uses your GitHub token to update gallery-data.json on GitHub
+- GitHub automatically triggers Vercel to redeploy
+- Everyone sees the new item within 30 seconds!
+
+NO MORE MANUAL GIT PUSH NEEDED! 🎉

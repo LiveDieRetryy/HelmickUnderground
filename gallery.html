@@ -171,21 +171,11 @@
 
     <script src="script.js"></script>
     <script>
-        // Load gallery items from localStorage or JSON file
+        // Load gallery items from API
         async function loadGallery() {
             try {
-                // First check localStorage
-                const localData = localStorage.getItem('helmick_gallery_data');
-                let data;
-                
-                if (localData) {
-                    data = JSON.parse(localData);
-                } else {
-                    // Fallback to JSON file
-                    const response = await fetch('gallery-data.json');
-                    data = await response.json();
-                }
-                
+                const response = await fetch('/api/gallery');
+                const data = await response.json();
                 const container = document.getElementById('galleryContainer');
                 
                 if (!data.items || data.items.length === 0) {
