@@ -288,46 +288,25 @@ document.getElementById('addItemForm')?.addEventListener('submit', async functio
                 newItem.type = 'video';
                 newItem.embedCode = embedCode;
             } else if (videoFile) {
-                // Direct upload - compress if needed
-                let fileToUpload = videoFile;
-                // Vercel has 4.5MB body limit, base64 adds ~33% overhead
-                // So 3MB raw = ~4MB base64 (safe margin)
-                const MAX_SIZE = 3 * 1024 * 1024; // 3MB raw file size
+                // Direct upload to Cloudinary - supports up to 100MB!
+                const MAX_SIZE = 100 * 1024 * 1024; // 100MB limit
                 
                 if (videoFile.size > MAX_SIZE) {
-                    // Hide success message, show progress
-                    document.getElementById('successMessage').style.display = 'none';
-                    showProgress(0);
-                    document.getElementById('progressLabel').textContent = 'Compressing video... This may take a few minutes';
-                    
-                    try {
-                        fileToUpload = await compressVideo(videoFile, MAX_SIZE);
-                        if (!fileToUpload) {
-                            throw new Error('Compression returned no file');
-                        }
-                        const compressedSizeMB = (fileToUpload.size / (1024 * 1024)).toFixed(2);
-                        showSuccess(`✅ Compressed to ${compressedSizeMB}MB! Uploading...`);
-                    } catch (compressError) {
-                        console.error('Compression error:', compressError);
-                        alert('⚠️ Video too large to compress.\n\nOptions:\n1. Upload a shorter clip (30-45 seconds max)\n2. Use lower quality source video\n3. Use TikTok embed for longer videos');
-                        return;
-                    }
-                } else {
-                    showSuccess('⏳ Uploading video...');
+                    alert('Video must be under 100MB. For larger videos, please use TikTok embed.');
+                    return;
                 }
                 
+                showSuccess('⏳ Uploading video to Cloudinary...');
+                
                 try {
-                    const uploadedPath = await uploadFile(fileToUpload);
+                    const uploadedUrl = await uploadFile(videoFile);
                     newItem.type = 'video';
-                    newItem.videoFile = uploadedPath;
-                    newItem.fileSize = fileToUpload.size;
+                    newItem.videoFile = uploadedUrl;
+                    newItem.fileSize = videoFile.size;
                 } catch (uploadError) {
                     console.error('Upload error:', uploadError);
                     hideProgress();
-                    const errorMsg = uploadError.message.includes('Too Large') || uploadError.message.includes('413') 
-                        ? 'Video file too large even after compression. Please use a shorter clip (20-30 seconds recommended).'
-                        : 'Upload failed: ' + uploadError.message;
-                    alert(errorMsg);
+                    alert('Upload failed: ' + uploadError.message);
                     return;
                 }
             } else {
@@ -361,8 +340,49 @@ document.getElementById('addItemForm')?.addEventListener('submit', async functio
     }
 });
 
-// Upload file to GitHub
+// Upload file to Cloudinary (videos) or GitHub (images)
 async function uploadFile(file) {
+    const isVideo = file.type.startsWith('video/');
+    
+    if (isVideo) {
+        // Upload to Cloudinary
+        return uploadToCloudinary(file);
+    } else {
+        // Upload images to GitHub as before
+        return uploadToGitHub(file);
+    }
+}
+
+// Upload to Cloudinary
+async function uploadToCloudinary(file) {
+    const cloudName = 'dbt9vsoji';
+    const uploadPreset = 'HelmickUnderground';
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', uploadPreset);
+    formData.append('folder', 'videos');
+    
+    try {
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!response.ok) {
+            throw new Error('Cloudinary upload failed');
+        }
+        
+        const data = await response.json();
+        return data.secure_url; // Returns full URL to video
+    } catch (error) {
+        console.error('Cloudinary upload error:', error);
+        throw error;
+    }
+}
+
+// Upload to GitHub (for images)
+async function uploadToGitHub(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = async function(e) {
