@@ -277,6 +277,7 @@ document.getElementById('addItemForm')?.addEventListener('submit', async functio
             const uploadedPath = await uploadFile(file);
             newItem.type = 'image';
             newItem.image = uploadedPath;
+            newItem.fileSize = file.size;
             
         } else if (type === 'video') {
             const videoFile = document.getElementById('itemVideoFile').files[0];
@@ -313,6 +314,7 @@ document.getElementById('addItemForm')?.addEventListener('submit', async functio
                     const uploadedPath = await uploadFile(fileToUpload);
                     newItem.type = 'video';
                     newItem.videoFile = uploadedPath;
+                    newItem.fileSize = fileToUpload.size;
                 } catch (uploadError) {
                     console.error('Upload error:', uploadError);
                     alert('Upload failed: ' + uploadError.message);
@@ -501,6 +503,13 @@ async function compressVideo(file, targetSizeBytes) {
     });
 }
 
+// Format file size for display
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
 // Load gallery items
 async function loadGalleryItems() {
     try {
@@ -527,7 +536,7 @@ async function loadGalleryItems() {
                     <h4>${item.title}</h4>
                     <p>${item.description}</p>
                     ${item.date ? `<p><strong>Date:</strong> ${item.date}</p>` : ''}
-                    <p><strong>Type:</strong> ${item.type === 'image' ? '📷 Image' : '🎥 Video'}</p>
+                    <p><strong>Type:</strong> ${item.type === 'image' ? '📷 Image' : '🎥 Video'}${item.fileSize ? ` • ${formatFileSize(item.fileSize)}` : ''}</p>
                 </div>
                 <div class="item-actions">
                     <button class="btn btn-small btn-delete" onclick="deleteItem(${item.id})">Delete</button>
