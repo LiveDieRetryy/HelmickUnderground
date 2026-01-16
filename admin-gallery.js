@@ -289,7 +289,7 @@ document.getElementById('addItemForm')?.addEventListener('submit', async functio
             } else if (videoFile) {
                 // Direct upload - compress if needed
                 let fileToUpload = videoFile;
-                const MAX_SIZE = 8 * 1024 * 1024; // 8MB to be safe (GitHub API has ~10MB limit)
+                const MAX_SIZE = 6 * 1024 * 1024; // 6MB to account for base64 overhead (~33%)
                 
                 if (videoFile.size > MAX_SIZE) {
                     showSuccess('⏳ Video is too large. Compressing... This may take a few minutes...');
