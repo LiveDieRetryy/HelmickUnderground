@@ -95,14 +95,16 @@ module.exports = async (req, res) => {
                 }
                 
                 // Save back to GitHub
-                await octokit.repos.createOrUpdateFileContents({
+                const analyticsParams = {
                     owner: OWNER,
                     repo: REPO,
                     path: FILE_PATH,
                     message: 'Update analytics data',
-                    content: Buffer.from(JSON.stringify(analyticsData, null, 2)).toString('base64'),
-                    sha
-                });
+                    content: Buffer.from(JSON.stringify(analyticsData, null, 2)).toString('base64')
+                };
+                if (sha) analyticsParams.sha = sha;
+                
+                await octokit.repos.createOrUpdateFileContents(analyticsParams);
                 
                 return res.status(200).json({ success: true });
             }

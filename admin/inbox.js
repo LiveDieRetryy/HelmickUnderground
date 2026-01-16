@@ -50,9 +50,21 @@ async function loadSubmissions() {
 
     } catch (error) {
         console.error('Error loading submissions:', error);
+        
+        // Try to get more error details
+        let errorDetails = 'Unknown error';
+        try {
+            const errorResponse = await fetch('/api/contact-submissions?action=all');
+            const errorData = await errorResponse.json();
+            errorDetails = errorData.message || errorData.error || errorData.details || 'API error';
+        } catch (e) {
+            errorDetails = error.message;
+        }
+        
         document.getElementById('loadingMessage').innerHTML = `
             <p style="color: var(--red);">Error loading submissions</p>
-            <p style="font-size: 0.9rem; color: var(--gray);">Please try refreshing the page</p>
+            <p style="font-size: 0.9rem; color: var(--gray);">${errorDetails}</p>
+            <p style="font-size: 0.85rem; color: var(--gray); margin-top: 1rem;">Please try refreshing the page</p>
         `;
     }
 }

@@ -62,14 +62,20 @@ module.exports = async (req, res) => {
             }
             
             // Save back to GitHub
-            await octokit.repos.createOrUpdateFileContents({
+            const fileParams = {
                 owner: OWNER,
                 repo: REPO,
                 path: FILE_PATH,
                 message: 'Add contact submission',
-                content: Buffer.from(JSON.stringify(submissions, null, 2)).toString('base64'),
-                sha
-            });
+                content: Buffer.from(JSON.stringify(submissions, null, 2)).toString('base64')
+            };
+            
+            // Only include sha if file already exists
+            if (sha) {
+                fileParams.sha = sha;
+            }
+            
+            await octokit.repos.createOrUpdateFileContents(fileParams);
             
             return res.status(200).json({ success: true, id: submission.id });
         }
@@ -110,14 +116,16 @@ module.exports = async (req, res) => {
                 if (submission) {
                     submission.status = 'read';
                     
-                    await octokit.repos.createOrUpdateFileContents({
+                    const markReadParams = {
                         owner: OWNER,
                         repo: REPO,
                         path: FILE_PATH,
                         message: 'Mark submission as read',
-                        content: Buffer.from(JSON.stringify(submissions, null, 2)).toString('base64'),
-                        sha
-                    });
+                        content: Buffer.from(JSON.stringify(submissions, null, 2)).toString('base64')
+                    };
+                    if (sha) markReadParams.sha = sha;
+                    
+                    await octokit.repos.createOrUpdateFileContents(markReadParams);
                     
                     return res.status(200).json({ success: true });
                 }
@@ -127,14 +135,16 @@ module.exports = async (req, res) => {
                 // Delete submission
                 submissions = submissions.filter(s => s.id !== parseInt(id));
                 
-                await octokit.repos.createOrUpdateFileContents({
+                const deleteParams = {
                     owner: OWNER,
                     repo: REPO,
                     path: FILE_PATH,
                     message: 'Delete submission',
-                    content: Buffer.from(JSON.stringify(submissions, null, 2)).toString('base64'),
-                    sha
-                });
+                    content: Buffer.from(JSON.stringify(submissions, null, 2)).toString('base64')
+                };
+                if (sha) deleteParams.sha = sha;
+                
+                await octokit.repos.createOrUpdateFileContents(deleteParams);
                 
                 return res.status(200).json({ success: true });
             }
@@ -144,6 +154,10 @@ module.exports = async (req, res) => {
 
     } catch (error) {
         console.error('Contact submissions API error:', error);
-        return res.status(500).json({ error: 'Internal server error', message: error.message });
+        return res.status(500).json({ 
+            error: 'Internal server error', 
+            message: error.message,
+            details: error.response?.data || error.toString()
+        });
     }
 };
