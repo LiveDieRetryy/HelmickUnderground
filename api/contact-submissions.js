@@ -1,13 +1,6 @@
-const { Octokit } = require('@octokit/rest');
+import { sql } from '@vercel/postgres';
 
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const OWNER = 'LiveDieRetryy';
-const REPO = 'HelmickUnderground';
-const FILE_PATH = 'contact-submissions.json';
-
-const octokit = new Octokit({ auth: GITHUB_TOKEN });
-
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -19,139 +12,87 @@ module.exports = async (req, res) => {
     }
 
     try {
-        // Get existing submissions
-        let submissions = [];
-        let sha = null;
-        
-        try {
-            const { data } = await octokit.repos.getContent({
-                owner: OWNER,
-                repo: REPO,
-                path: FILE_PATH
-            });
-            sha = data.sha;
-            const content = Buffer.from(data.content, 'base64').toString('utf8');
-            submissions = JSON.parse(content);
-        } catch (error) {
-            console.error('Error reading file from GitHub:', error.status, error.message);
-            // File doesn't exist yet, will be created
-            if (error.status !== 404) {
-                console.error('GitHub API error details:', JSON.stringify(error.response?.data || error, null, 2));
-                throw error;
-            }
-        }
+        // Create table if it doesn't exist
+        await sql`
+            CREATE TABLE IF NOT EXISTS contact_submissions (
+                id BIGSERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL,
+                phone VARCHAR(50),
+                services TEXT[],
+                message TEXT,
+                status VARCHAR(50) DEFAULT 'unread',
+                ip VARCHAR(100),
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `;
 
         if (req.method === 'POST') {
             const { name, email, phone, services, message, timestamp } = req.body;
             
-            // Create new submission
-            const submission = {
-                id: Date.now(),
-                name,
-                email,
-                phone,
-                services: services || [],
-                message,
-                timestamp: timestamp || new Date().toISOString(),
-                status: 'unread',
-                ip: req.headers['x-forwarded-for']?.split(',')[0] || req.connection?.remoteAddress || 'unknown'
-            };
+            // Get client IP
+            const ip = req.headers['x-forwarded-for']?.split(',')[0] || 
+                      req.headers['x-real-ip'] || 
+                      'unknown';
             
-            // Add to beginning of array (most recent first)
-            submissions.unshift(submission);
+            // Insert new submission
+            const result = await sql`
+                INSERT INTO contact_submissions (name, email, phone, services, message, ip, timestamp, status)
+                VALUES (${name}, ${email}, ${phone || null}, ${services || []}, ${message}, ${ip}, ${timestamp || new Date().toISOString()}, 'unread')
+                RETURNING id
+            `;
             
-            // Keep only last 1000 submissions
-            if (submissions.length > 1000) {
-                submissions = submissions.slice(0, 1000);
-            }
-            
-            // Save back to GitHub
-            const fileParams = {
-                owner: OWNER,
-                repo: REPO,
-                path: FILE_PATH,
-                message: 'Add contact submission',
-                content: Buffer.from(JSON.stringify(submissions, null, 2)).toString('base64')
-            };
-            
-            // Only include sha if file already exists
-            if (sha) {
-                fileParams.sha = sha;
-            }
-            
-            console.log('Attempting to save to GitHub:', { owner: OWNER, repo: REPO, path: FILE_PATH, hasSha: !!sha });
-            const saveResult = await octokit.repos.createOrUpdateFileContents(fileParams);
-            console.log('GitHub save successful:', saveResult.data.commit.sha);
-            
-            return res.status(200).json({ success: true, id: submission.id });
+            return res.status(200).json({ success: true, id: result.rows[0].id });
         }
 
         if (req.method === 'GET') {
             const { action, id } = req.query;
             
             if (action === 'all') {
-                // Return all submissions (for admin)
-                return res.status(200).json(submissions);
+                // Return all submissions (most recent first)
+                const result = await sql`
+                    SELECT * FROM contact_submissions 
+                    ORDER BY timestamp DESC
+                `;
+                return res.status(200).json(result.rows);
             }
             
             if (action === 'stats') {
                 // Calculate statistics
-                const unread = submissions.filter(s => s.status === 'unread').length;
-                const read = submissions.filter(s => s.status === 'read').length;
-                const archived = submissions.filter(s => s.status === 'archived').length;
-                
-                const now = new Date();
-                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                const todaySubmissions = submissions.filter(s => {
-                    const subDate = new Date(s.timestamp);
-                    return subDate >= today;
-                }).length;
+                const stats = await sql`
+                    SELECT 
+                        COUNT(*) as total,
+                        SUM(CASE WHEN status = 'unread' THEN 1 ELSE 0 END) as unread,
+                        SUM(CASE WHEN status = 'read' THEN 1 ELSE 0 END) as read,
+                        SUM(CASE WHEN DATE(timestamp) = CURRENT_DATE THEN 1 ELSE 0 END) as today
+                    FROM contact_submissions
+                `;
                 
                 return res.status(200).json({
-                    total: submissions.length,
-                    unread,
-                    read,
-                    archived,
-                    today: todaySubmissions
+                    total: parseInt(stats.rows[0].total) || 0,
+                    unread: parseInt(stats.rows[0].unread) || 0,
+                    read: parseInt(stats.rows[0].read) || 0,
+                    archived: 0,
+                    today: parseInt(stats.rows[0].today) || 0
                 });
             }
             
             if (action === 'markRead' && id) {
                 // Mark submission as read
-                const submission = submissions.find(s => s.id === parseInt(id));
-                if (submission) {
-                    submission.status = 'read';
-                    
-                    const markReadParams = {
-                        owner: OWNER,
-                        repo: REPO,
-                        path: FILE_PATH,
-                        message: 'Mark submission as read',
-                        content: Buffer.from(JSON.stringify(submissions, null, 2)).toString('base64')
-                    };
-                    if (sha) markReadParams.sha = sha;
-                    
-                    await octokit.repos.createOrUpdateFileContents(markReadParams);
-                    
-                    return res.status(200).json({ success: true });
-                }
+                await sql`
+                    UPDATE contact_submissions 
+                    SET status = 'read' 
+                    WHERE id = ${id}
+                `;
+                return res.status(200).json({ success: true });
             }
             
             if (action === 'delete' && id) {
                 // Delete submission
-                submissions = submissions.filter(s => s.id !== parseInt(id));
-                
-                const deleteParams = {
-                    owner: OWNER,
-                    repo: REPO,
-                    path: FILE_PATH,
-                    message: 'Delete submission',
-                    content: Buffer.from(JSON.stringify(submissions, null, 2)).toString('base64')
-                };
-                if (sha) deleteParams.sha = sha;
-                
-                await octokit.repos.createOrUpdateFileContents(deleteParams);
-                
+                await sql`
+                    DELETE FROM contact_submissions 
+                    WHERE id = ${id}
+                `;
                 return res.status(200).json({ success: true });
             }
         }
@@ -163,7 +104,7 @@ module.exports = async (req, res) => {
         return res.status(500).json({ 
             error: 'Internal server error', 
             message: error.message,
-            details: error.response?.data || error.toString()
+            details: error.toString()
         });
     }
-};
+}
