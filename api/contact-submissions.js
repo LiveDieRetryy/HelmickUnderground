@@ -33,8 +33,12 @@ module.exports = async (req, res) => {
             const content = Buffer.from(data.content, 'base64').toString('utf8');
             submissions = JSON.parse(content);
         } catch (error) {
+            console.error('Error reading file from GitHub:', error.status, error.message);
             // File doesn't exist yet, will be created
-            if (error.status !== 404) throw error;
+            if (error.status !== 404) {
+                console.error('GitHub API error details:', JSON.stringify(error.response?.data || error, null, 2));
+                throw error;
+            }
         }
 
         if (req.method === 'POST') {
@@ -75,7 +79,9 @@ module.exports = async (req, res) => {
                 fileParams.sha = sha;
             }
             
-            await octokit.repos.createOrUpdateFileContents(fileParams);
+            console.log('Attempting to save to GitHub:', { owner: OWNER, repo: REPO, path: FILE_PATH, hasSha: !!sha });
+            const saveResult = await octokit.repos.createOrUpdateFileContents(fileParams);
+            console.log('GitHub save successful:', saveResult.data.commit.sha);
             
             return res.status(200).json({ success: true, id: submission.id });
         }
