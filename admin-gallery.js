@@ -289,18 +289,20 @@ document.getElementById('addItemForm')?.addEventListener('submit', async functio
             } else if (videoFile) {
                 // Direct upload - compress if needed
                 let fileToUpload = videoFile;
+                const MAX_SIZE = 8 * 1024 * 1024; // 8MB to be safe (GitHub API has ~10MB limit)
                 
-                if (videoFile.size > 10 * 1024 * 1024) {
+                if (videoFile.size > MAX_SIZE) {
                     showSuccess('⏳ Video is too large. Compressing... This may take a few minutes...');
                     try {
-                        fileToUpload = await compressVideo(videoFile, 10 * 1024 * 1024);
+                        fileToUpload = await compressVideo(videoFile, MAX_SIZE);
                         if (!fileToUpload) {
                             throw new Error('Compression returned no file');
                         }
-                        showSuccess('✅ Compression complete! Uploading...');
+                        const compressedSizeMB = (fileToUpload.size / (1024 * 1024)).toFixed(2);
+                        showSuccess(`✅ Compressed to ${compressedSizeMB}MB! Uploading...`);
                     } catch (compressError) {
                         console.error('Compression error:', compressError);
-                        alert('⚠️ Auto-compression failed. Your video is too large.\n\nOptions:\n1. Upload a shorter/smaller video\n2. Use TikTok embed instead\n3. Compress manually before uploading');
+                        alert('⚠️ Video too large to compress.\n\nOptions:\n1. Upload a shorter clip (30-45 seconds max)\n2. Use lower quality source video\n3. Use TikTok embed for longer videos');
                         return;
                     }
                 } else {
@@ -416,8 +418,8 @@ async function compressVideo(file, targetSizeBytes) {
                 console.log(`Compressed size: ${canvas.width}x${canvas.height}`);
                 
                 // Calculate target bitrate
-                const durationSeconds = video.duration;
-                const targetSizeMB = targetSizeBytes / (1024 * 1024);
+                const durationSeconds = video.duration;75); // Use 75% for safety
+                const videoBitrate = Math.min(800000, Math.max(200000, targetBitrate)); // Between 200kbps and 800k
                 const targetBitrate = Math.floor((targetSizeMB * 8 * 1024 * 1024) / durationSeconds * 0.85);
                 const videoBitrate = Math.min(1000000, Math.max(250000, targetBitrate)); // Between 250kbps and 1Mbps
                 
@@ -552,19 +554,35 @@ async function addGalleryItem(item) {
         });
         
         if (!response.ok) {
-            const error = await response.json();
-            if (error.error && error.error.includes('GitHub token not configured')) {
+            let errorMessage = 'Failed to add item';
+            
+            // Try to parse JSON error, fallback to text
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const error = await response.json();
+                errorMessage = error.error || errorMessage;
+            } else {
+                const errorText = await response.text();
+                if (errorText.includes('Request Entity Too Large') || response.status === 413) {
+                    errorMessage = 'File too large for upload. The compressed video is still over the 10MB limit. Please try:\n1. A shorter video clip\n2. Lower quality source video\n3. Use TikTok embed instead';
+                } else {
+                    errorMessage = errorText || `HTTP ${response.status}: ${response.statusText}`;
+                }
+            }
+            
+            if (errorMessage.includes('GitHub token not configured')) {
                 alert('⚠️ SETUP REQUIRED:\n\nThe gallery admin needs a GitHub token to work.\n\nPlease follow these steps:\n\n1. Read GITHUB_TOKEN_SETUP.txt in your project folder\n2. Create a GitHub Personal Access Token\n3. Add it to Vercel environment variables\n4. Redeploy\n\nThis is a one-time setup that takes 5 minutes.');
                 return;
             }
-            throw new Error(error.error || 'Failed to add item');
+            
+            throw new Error(errorMessage);
         }
         
         const result = await response.json();
         showSuccess('✅ Item added successfully! It\'s now live for everyone to see!');
     } catch (error) {
         console.error('Error adding item:', error);
-        alert('Error adding item: ' + error.message + '\n\nIf you see "GitHub token not configured", please check GITHUB_TOKEN_SETUP.txt for setup instructions.');
+        throw error; // Re-throw so the calling function can handle it
     }
 }
 
