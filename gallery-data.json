@@ -1,20 +1,20 @@
 {
   "items": [
     {
-      "id": 1768592606565,
-      "title": "Flooded Road",
-      "description": "Had a project at the end of this road, but when the lake unfroze the road became inaccessible",
-      "date": null,
-      "type": "image",
-      "image": "images/We 2025-01-16 at 12.11.46 PM.jpeg"
-    },
-    {
       "id": 1768592192191,
       "title": "Our Dedication to Cleanup",
       "description": "We have pride in how we leave our projects. We aim to leave them in the same, if not better condition than we found them",
       "date": "",
       "type": "video",
       "videoFile": "videos/WhatsApp Video 2026-01-16 at 1.22.34 PM.webm"
+    },
+    {
+      "id": 1768592606565,
+      "title": "Flooded Road",
+      "description": "Had a project at the end of this road, but when the lake unfroze the road became inaccessible",
+      "date": null,
+      "type": "image",
+      "image": "images/We 2025-01-16 at 12.11.46 PM.jpeg"
     }
   ]
 }
