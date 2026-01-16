@@ -294,18 +294,28 @@ document.getElementById('addItemForm')?.addEventListener('submit', async functio
                     showSuccess('⏳ Video is too large. Compressing... This may take a few minutes...');
                     try {
                         fileToUpload = await compressVideo(videoFile, 10 * 1024 * 1024);
+                        if (!fileToUpload) {
+                            throw new Error('Compression returned no file');
+                        }
                         showSuccess('✅ Compression complete! Uploading...');
                     } catch (compressError) {
-                        alert('Could not compress video enough. Try a shorter clip or use TikTok embed for longer videos.');
+                        console.error('Compression error:', compressError);
+                        alert('⚠️ Auto-compression failed. Your video is too large.\n\nOptions:\n1. Upload a shorter/smaller video\n2. Use TikTok embed instead\n3. Compress manually before uploading');
                         return;
                     }
                 } else {
                     showSuccess('⏳ Uploading video...');
                 }
                 
-                const uploadedPath = await uploadFile(fileToUpload);
-                newItem.type = 'video';
-                newItem.videoFile = uploadedPath;
+                try {
+                    const uploadedPath = await uploadFile(fileToUpload);
+                    newItem.type = 'video';
+                    newItem.videoFile = uploadedPath;
+                } catch (uploadError) {
+                    console.error('Upload error:', uploadError);
+                    alert('Upload failed: ' + uploadError.message);
+                    return;
+                }
             } else {
                 alert('Please either upload a video file or paste a TikTok embed code');
                 return;
@@ -375,74 +385,117 @@ async function uploadFile(file) {
 async function compressVideo(file, targetSizeBytes) {
     return new Promise((resolve, reject) => {
         const video = document.createElement('video');
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+        video.muted = true;
+        video.playsInline = true;
         
-        video.onloadedmetadata = function() {
-            // Set canvas size (compress resolution to 720p max)
-            const scale = Math.min(1, 1280 / video.videoWidth, 720 / video.videoHeight);
-            canvas.width = video.videoWidth * scale;
-            canvas.height = video.videoHeight * scale;
-            
-            const chunks = [];
-            const stream = canvas.captureStream(30); // 30 fps
-            
-            // Try different bitrates until we get under target size
-            let videoBitrate = 1500000; // Start at 1.5 Mbps
-            const targetSizeMB = targetSizeBytes / (1024 * 1024);
-            const durationSeconds = video.duration;
-            
-            // Estimate bitrate needed (with some overhead for audio)
-            const estimatedBitrate = Math.floor((targetSizeMB * 8 * 1024 * 1024) / durationSeconds * 0.8);
-            videoBitrate = Math.min(videoBitrate, estimatedBitrate);
-            
-            const mediaRecorder = new MediaRecorder(stream, {
-                mimeType: 'video/webm;codecs=vp8',
-                videoBitsPerSecond: videoBitrate
-            });
-            
-            mediaRecorder.ondataavailable = (e) => {
-                if (e.data.size > 0) {
-                    chunks.push(e.data);
-                }
-            };
-            
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(chunks, { type: 'video/webm' });
-                
-                if (blob.size > targetSizeBytes) {
-                    reject(new Error('Unable to compress video small enough'));
-                } else {
-                    // Convert to File object
-                    const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, '.webm'), {
-                        type: 'video/webm'
-                    });
-                    resolve(compressedFile);
-                }
-            };
-            
-            // Draw video frames to canvas and record
-            video.play();
-            mediaRecorder.start();
-            
-            const drawFrame = () => {
-                if (!video.paused && !video.ended) {
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    requestAnimationFrame(drawFrame);
-                } else {
-                    mediaRecorder.stop();
-                }
-            };
-            
-            video.addEventListener('ended', () => {
-                mediaRecorder.stop();
-            });
-            
-            drawFrame();
+        video.onerror = (e) => {
+            console.error('Video load error:', e);
+            reject(new Error('Failed to load video file'));
         };
         
-        video.onerror = () => reject(new Error('Failed to load video'));
+        video.onloadedmetadata = async function() {
+            try {
+                console.log(`Original video: ${video.videoWidth}x${video.videoHeight}, duration: ${video.duration}s`);
+                
+                // Create canvas with reduced resolution
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Calculate scale to reduce to 720p max
+                const maxWidth = 1280;
+                const maxHeight = 720;
+                let scale = 1;
+                
+                if (video.videoWidth > maxWidth || video.videoHeight > maxHeight) {
+                    scale = Math.min(maxWidth / video.videoWidth, maxHeight / video.videoHeight);
+                }
+                
+                canvas.width = Math.floor(video.videoWidth * scale);
+                canvas.height = Math.floor(video.videoHeight * scale);
+                
+                console.log(`Compressed size: ${canvas.width}x${canvas.height}`);
+                
+                // Calculate target bitrate
+                const durationSeconds = video.duration;
+                const targetSizeMB = targetSizeBytes / (1024 * 1024);
+                const targetBitrate = Math.floor((targetSizeMB * 8 * 1024 * 1024) / durationSeconds * 0.85);
+                const videoBitrate = Math.min(1000000, Math.max(250000, targetBitrate)); // Between 250kbps and 1Mbps
+                
+                console.log(`Target bitrate: ${videoBitrate} bps`);
+                
+                // Check if MediaRecorder is supported
+                if (!MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
+                    reject(new Error('Video compression not supported in this browser'));
+                    return;
+                }
+                
+                const stream = canvas.captureStream(25); // 25 fps
+                const chunks = [];
+                
+                const mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: 'video/webm;codecs=vp8',
+                    videoBitsPerSecond: videoBitrate
+                });
+                
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data && e.data.size > 0) {
+                        chunks.push(e.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'video/webm' });
+                    console.log(`Compressed video size: ${(blob.size / (1024 * 1024)).toFixed(2)}MB`);
+                    
+                    if (blob.size > targetSizeBytes * 1.1) {
+                        reject(new Error(`Compressed size (${(blob.size / (1024 * 1024)).toFixed(2)}MB) still too large. Try a shorter video.`));
+                    } else {
+                        const compressedFile = new File([blob], 
+                            file.name.replace(/\.[^/.]+$/, '.webm'), 
+                            { type: 'video/webm' }
+                        );
+                        resolve(compressedFile);
+                    }
+                };
+                
+                mediaRecorder.onerror = (e) => {
+                    console.error('MediaRecorder error:', e);
+                    reject(new Error('Compression failed'));
+                };
+                
+                // Start recording
+                mediaRecorder.start(100); // Collect data every 100ms
+                
+                // Play and draw video frames
+                await video.play();
+                
+                let frameCount = 0;
+                const drawFrame = () => {
+                    if (!video.paused && !video.ended) {
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        frameCount++;
+                        requestAnimationFrame(drawFrame);
+                    }
+                };
+                
+                video.addEventListener('ended', () => {
+                    console.log(`Processed ${frameCount} frames`);
+                    setTimeout(() => {
+                        mediaRecorder.stop();
+                    }, 500);
+                });
+                
+                drawFrame();
+                
+            } catch (err) {
+                console.error('Compression error:', err);
+                reject(err);
+            }
+        };
+        
+        // Load video
         video.src = URL.createObjectURL(file);
+        video.load();
     });
 }
 
