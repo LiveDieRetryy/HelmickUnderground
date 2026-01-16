@@ -113,10 +113,21 @@ if (contactForm) {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(submissionData)
+                }).catch(err => {
+                    console.error('API submission error:', err);
+                    return null; // Don't fail the whole form if API fails
                 })
             ]);
             
             const web3Data = await web3Response.json();
+            
+            // Try to parse API response if it succeeded
+            if (apiResponse && apiResponse.ok) {
+                const apiData = await apiResponse.json();
+                console.log('Submission saved to admin inbox:', apiData);
+            } else {
+                console.warn('Admin inbox API failed, but email was sent');
+            }
             
             if (web3Data.success) {
                 // Success message
