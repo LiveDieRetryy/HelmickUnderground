@@ -101,6 +101,129 @@
                 gap: 1.5rem;
             }
         }
+
+        /* Lightbox Modal */
+        .lightbox {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            overflow: auto;
+            animation: fadeIn 0.3s;
+        }
+
+        .lightbox.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .lightbox-content {
+            position: relative;
+            max-width: 95%;
+            max-height: 95%;
+            animation: zoomIn 0.3s;
+        }
+
+        .lightbox-content img,
+        .lightbox-content video {
+            width: 100%;
+            height: auto;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .lightbox-content video {
+            max-width: 90vw;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: #fff;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            line-height: 1;
+            transition: var(--transition);
+        }
+
+        .lightbox-close:hover {
+            color: var(--primary-color);
+        }
+
+        .lightbox-info {
+            background: var(--card-dark);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            max-width: 600px;
+        }
+
+        .lightbox-info h3 {
+            color: var(--white);
+            font-size: 1.5rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .lightbox-info p {
+            color: var(--gray);
+            line-height: 1.6;
+            margin-bottom: 0.5rem;
+        }
+
+        .lightbox-info .gallery-item-date {
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes zoomIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .gallery-item {
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .lightbox-close {
+                top: 10px;
+                right: 10px;
+                background: rgba(0, 0, 0, 0.7);
+                border-radius: 50%;
+                width: 45px;
+                height: 45px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .lightbox-content {
+                max-width: 100%;
+            }
+
+            .lightbox.active {
+                padding: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -139,6 +262,15 @@
             </div>
         </div>
     </section>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox" class="lightbox">
+        <div class="lightbox-content">
+            <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+            <div id="lightboxMedia"></div>
+            <div id="lightboxInfo" class="lightbox-info"></div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">
@@ -197,12 +329,12 @@
                     return;
                 }
                 
-                container.innerHTML = data.items.map(item => {
+                container.innerHTML = data.items.map((item, index) => {
                     if (item.type === 'video') {
                         if (item.embedCode) {
-                            // TikTok embed
+                            // TikTok embed - not clickable for lightbox
                             return `
-                                <div class="gallery-item">
+                                <div class="gallery-item" style="cursor: default;">
                                     <div class="gallery-video">
                                         ${item.embedCode}
                                     </div>
@@ -214,10 +346,10 @@
                                 </div>
                             `;
                         } else if (item.videoFile) {
-                            // Direct video upload
+                            // Direct video upload - clickable for lightbox
                             return `
-                                <div class="gallery-item">
-                                    <video loop muted autoplay playsinline style="width: 100%; max-height: 500px; background: #000;">
+                                <div class="gallery-item" onclick="openLightbox(${index})">
+                                    <video loop muted autoplay playsinline style="width: 100%; max-height: 500px; background: #000;" onclick="event.stopPropagation();">
                                         <source src="${item.videoFile}" type="video/mp4">
                                         Your browser does not support the video tag.
                                     </video>
@@ -231,7 +363,7 @@
                         }
                     } else {
                         return `
-                            <div class="gallery-item">
+                            <div class="gallery-item" onclick="openLightbox(${index})">
                                 <img src="${item.image}" alt="${item.title}" loading="lazy">
                                 <div class="gallery-item-content">
                                     <h3>${item.title}</h3>
@@ -242,6 +374,9 @@
                         `;
                     }
                 }).join('');
+                
+                // Store gallery data for lightbox access
+                window.galleryData = data.items;
                 
                 // Load TikTok embed script if there are videos
                 if (data.items.some(item => item.type === 'video')) {
@@ -267,6 +402,69 @@
         }
         
         loadGallery();
+        
+        // Lightbox functions
+        function openLightbox(index) {
+            const item = window.galleryData[index];
+            const lightbox = document.getElementById('lightbox');
+            const mediaContainer = document.getElementById('lightboxMedia');
+            const infoContainer = document.getElementById('lightboxInfo');
+            
+            // Create media element
+            if (item.type === 'video' && item.videoFile) {
+                mediaContainer.innerHTML = `
+                    <video controls autoplay style="max-width: 90vw; max-height: 80vh; border-radius: 8px;">
+                        <source src="${item.videoFile}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                `;
+            } else if (item.image) {
+                mediaContainer.innerHTML = `<img src="${item.image}" alt="${item.title}">`;
+            }
+            
+            // Add item info
+            infoContainer.innerHTML = `
+                <h3>${item.title}</h3>
+                <p>${item.description}</p>
+                ${item.date ? `<div class="gallery-item-date">${item.date}</div>` : ''}
+            `;
+            
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+        
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            const mediaContainer = document.getElementById('lightboxMedia');
+            
+            // Stop any playing videos
+            const video = mediaContainer.querySelector('video');
+            if (video) {
+                video.pause();
+            }
+            
+            lightbox.classList.remove('active');
+            document.body.style.overflow = ''; // Restore scrolling
+            
+            // Clear content after animation
+            setTimeout(() => {
+                mediaContainer.innerHTML = '';
+            }, 300);
+        }
+        
+        // Close lightbox when clicking outside content
+        document.getElementById('lightbox').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeLightbox();
+            }
+        });
+        
+        // Close lightbox with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            }
+        });
     </script>
 </body>
 </html>
