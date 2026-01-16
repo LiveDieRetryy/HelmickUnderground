@@ -290,7 +290,9 @@ document.getElementById('addItemForm')?.addEventListener('submit', async functio
             } else if (videoFile) {
                 // Direct upload - compress if needed
                 let fileToUpload = videoFile;
-                const MAX_SIZE = 6 * 1024 * 1024; // 6MB to account for base64 overhead (~33%)
+                // Vercel has 4.5MB body limit, base64 adds ~33% overhead
+                // So 3MB raw = ~4MB base64 (safe margin)
+                const MAX_SIZE = 3 * 1024 * 1024; // 3MB raw file size
                 
                 if (videoFile.size > MAX_SIZE) {
                     // Hide success message, show progress
@@ -321,7 +323,11 @@ document.getElementById('addItemForm')?.addEventListener('submit', async functio
                     newItem.fileSize = fileToUpload.size;
                 } catch (uploadError) {
                     console.error('Upload error:', uploadError);
-                    alert('Upload failed: ' + uploadError.message);
+                    hideProgress();
+                    const errorMsg = uploadError.message.includes('Too Large') || uploadError.message.includes('413') 
+                        ? 'Video file too large even after compression. Please use a shorter clip (20-30 seconds recommended).'
+                        : 'Upload failed: ' + uploadError.message;
+                    alert(errorMsg);
                     return;
                 }
             } else {
@@ -374,8 +380,15 @@ async function uploadFile(file) {
                 });
                 
                 if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Upload failed');
+                    // Try to parse as JSON, but handle plain text errors
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Upload failed');
+                    } else {
+                        const text = await response.text();
+                        throw new Error(`Upload failed (${response.status}): ${text.substring(0, 100)}`);
+                    }
                 }
                 
                 const result = await response.json();
@@ -423,11 +436,11 @@ async function compressVideo(file, targetSizeBytes) {
                 
                 console.log(`Compressed size: ${canvas.width}x${canvas.height}`);
                 
-                // Calculate target bitrate
+                // Calculate target bitrate - aim for 2.5MB to leave room for base64 overhead
                 const durationSeconds = video.duration;
-                const targetSizeMB = targetSizeBytes / (1024 * 1024);
-                const targetBitrate = Math.floor((targetSizeMB * 8 * 1024 * 1024) / durationSeconds * 0.75); // Use 75% for safety
-                const videoBitrate = Math.min(800000, Math.max(200000, targetBitrate)); // Between 200kbps and 800kbps
+                const targetSizeMB = 2.5; // Target 2.5MB raw (becomes ~3.3MB base64)
+                const targetBitrate = Math.floor((targetSizeMB * 8 * 1024 * 1024) / durationSeconds * 0.7); // Use 70% for safety
+                const videoBitrate = Math.min(600000, Math.max(150000, targetBitrate)); // Between 150kbps and 600kbps
                 
                 console.log(`Target bitrate: ${videoBitrate} bps`);
                 
