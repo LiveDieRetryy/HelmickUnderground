@@ -141,10 +141,8 @@ function setupDragAndDrop() {
 const typeBtns = document.querySelectorAll('.type-btn');
 const imageUploadGroup = document.getElementById('imageUploadGroup');
 const videoUploadGroup = document.getElementById('videoUploadGroup');
-const embedCodeGroup = document.getElementById('embedCodeGroup');
 const itemImageFile = document.getElementById('itemImageFile');
 const itemVideoFile = document.getElementById('itemVideoFile');
-const itemEmbed = document.getElementById('itemEmbed');
 
 typeBtns.forEach(btn => {
     btn.addEventListener('click', function() {
@@ -156,12 +154,10 @@ typeBtns.forEach(btn => {
         // Hide all
         imageUploadGroup.style.display = 'none';
         videoUploadGroup.style.display = 'none';
-        embedCodeGroup.style.display = 'none';
         
         // Reset required
         itemImageFile.required = false;
         itemVideoFile.required = false;
-        itemEmbed.required = false;
         
         // Show appropriate input
         if (type === 'image') {
@@ -169,12 +165,7 @@ typeBtns.forEach(btn => {
             itemImageFile.required = true;
         } else if (type === 'video') {
             videoUploadGroup.style.display = 'block';
-            embedCodeGroup.style.display = 'block';
-            embedCodeGroup.querySelector('label').textContent = 'Or TikTok Embed Code';
-        } else if (type === 'tiktok') {
-            embedCodeGroup.style.display = 'block';
-            embedCodeGroup.querySelector('label').textContent = 'TikTok Embed Code *';
-            itemEmbed.required = true;
+            itemVideoFile.required = true;
         }
     });
 });
@@ -281,47 +272,33 @@ document.getElementById('addItemForm')?.addEventListener('submit', async functio
             
         } else if (type === 'video') {
             const videoFile = document.getElementById('itemVideoFile').files[0];
-            const embedCode = document.getElementById('itemEmbed').value;
             
-            if (embedCode) {
-                // TikTok embed
+            if (!videoFile) {
+                alert('Please select a video file');
+                return;
+            }
+            
+            // Direct upload to Cloudinary - supports up to 100MB!
+            const MAX_SIZE = 100 * 1024 * 1024; // 100MB limit
+            
+            if (videoFile.size > MAX_SIZE) {
+                alert('Video must be under 100MB');
+                return;
+            }
+            
+            showSuccess('⏳ Uploading video to Cloudinary...');
+            
+            try {
+                const uploadedUrl = await uploadFile(videoFile);
                 newItem.type = 'video';
-                newItem.embedCode = embedCode;
-            } else if (videoFile) {
-                // Direct upload to Cloudinary - supports up to 100MB!
-                const MAX_SIZE = 100 * 1024 * 1024; // 100MB limit
-                
-                if (videoFile.size > MAX_SIZE) {
-                    alert('Video must be under 100MB. For larger videos, please use TikTok embed.');
-                    return;
-                }
-                
-                showSuccess('⏳ Uploading video to Cloudinary...');
-                
-                try {
-                    const uploadedUrl = await uploadFile(videoFile);
-                    newItem.type = 'video';
-                    newItem.videoFile = uploadedUrl;
-                    newItem.fileSize = videoFile.size;
-                } catch (uploadError) {
-                    console.error('Upload error:', uploadError);
-                    hideProgress();
-                    alert('Upload failed: ' + uploadError.message);
-                    return;
-                }
-            } else {
-                alert('Please either upload a video file or paste a TikTok embed code');
+                newItem.videoFile = uploadedUrl;
+                newItem.fileSize = videoFile.size;
+            } catch (uploadError) {
+                console.error('Upload error:', uploadError);
+                hideProgress();
+                alert('Upload failed: ' + uploadError.message);
                 return;
             }
-            
-        } else if (type === 'tiktok') {
-            const embedCode = document.getElementById('itemEmbed').value;
-            if (!embedCode) {
-                alert('Please paste the TikTok embed code');
-                return;
-            }
-            newItem.type = 'video';
-            newItem.embedCode = embedCode;
         }
         
         // Add to gallery data
