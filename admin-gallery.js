@@ -287,14 +287,23 @@ document.getElementById('addItemForm')?.addEventListener('submit', async functio
                 newItem.type = 'video';
                 newItem.embedCode = embedCode;
             } else if (videoFile) {
-                // Direct upload
+                // Direct upload - compress if needed
+                let fileToUpload = videoFile;
+                
                 if (videoFile.size > 10 * 1024 * 1024) {
-                    alert('Video must be under 10MB. Please use TikTok embed for longer videos!');
-                    return;
+                    showSuccess('⏳ Video is too large. Compressing... This may take a few minutes...');
+                    try {
+                        fileToUpload = await compressVideo(videoFile, 10 * 1024 * 1024);
+                        showSuccess('✅ Compression complete! Uploading...');
+                    } catch (compressError) {
+                        alert('Could not compress video enough. Try a shorter clip or use TikTok embed for longer videos.');
+                        return;
+                    }
+                } else {
+                    showSuccess('⏳ Uploading video...');
                 }
                 
-                showSuccess('⏳ Uploading video... This may take a minute...');
-                const uploadedPath = await uploadFile(videoFile);
+                const uploadedPath = await uploadFile(fileToUpload);
                 newItem.type = 'video';
                 newItem.videoFile = uploadedPath;
             } else {
@@ -359,6 +368,81 @@ async function uploadFile(file) {
         };
         reader.onerror = () => reject(new Error('Failed to read file'));
         reader.readAsDataURL(file);
+    });
+}
+
+// Compress video to fit within target size
+async function compressVideo(file, targetSizeBytes) {
+    return new Promise((resolve, reject) => {
+        const video = document.createElement('video');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        video.onloadedmetadata = function() {
+            // Set canvas size (compress resolution to 720p max)
+            const scale = Math.min(1, 1280 / video.videoWidth, 720 / video.videoHeight);
+            canvas.width = video.videoWidth * scale;
+            canvas.height = video.videoHeight * scale;
+            
+            const chunks = [];
+            const stream = canvas.captureStream(30); // 30 fps
+            
+            // Try different bitrates until we get under target size
+            let videoBitrate = 1500000; // Start at 1.5 Mbps
+            const targetSizeMB = targetSizeBytes / (1024 * 1024);
+            const durationSeconds = video.duration;
+            
+            // Estimate bitrate needed (with some overhead for audio)
+            const estimatedBitrate = Math.floor((targetSizeMB * 8 * 1024 * 1024) / durationSeconds * 0.8);
+            videoBitrate = Math.min(videoBitrate, estimatedBitrate);
+            
+            const mediaRecorder = new MediaRecorder(stream, {
+                mimeType: 'video/webm;codecs=vp8',
+                videoBitsPerSecond: videoBitrate
+            });
+            
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) {
+                    chunks.push(e.data);
+                }
+            };
+            
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                
+                if (blob.size > targetSizeBytes) {
+                    reject(new Error('Unable to compress video small enough'));
+                } else {
+                    // Convert to File object
+                    const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, '.webm'), {
+                        type: 'video/webm'
+                    });
+                    resolve(compressedFile);
+                }
+            };
+            
+            // Draw video frames to canvas and record
+            video.play();
+            mediaRecorder.start();
+            
+            const drawFrame = () => {
+                if (!video.paused && !video.ended) {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    requestAnimationFrame(drawFrame);
+                } else {
+                    mediaRecorder.stop();
+                }
+            };
+            
+            video.addEventListener('ended', () => {
+                mediaRecorder.stop();
+            });
+            
+            drawFrame();
+        };
+        
+        video.onerror = () => reject(new Error('Failed to load video'));
+        video.src = URL.createObjectURL(file);
     });
 }
 

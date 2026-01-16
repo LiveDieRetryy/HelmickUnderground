@@ -217,7 +217,7 @@
                             // Direct video upload
                             return `
                                 <div class="gallery-item">
-                                    <video controls style="width: 100%; max-height: 500px; background: #000;">
+                                    <video loop muted autoplay playsinline style="width: 100%; max-height: 500px; background: #000;">
                                         <source src="${item.videoFile}" type="video/mp4">
                                         Your browser does not support the video tag.
                                     </video>
