@@ -7,7 +7,7 @@ let allSubmissions = [];
 function checkAuth() {
     const isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
     if (!isLoggedIn) {
-        window.location.href = 'index.html';
+        window.location.href = '/admin/';
         return false;
     }
     return true;
@@ -16,7 +16,7 @@ function checkAuth() {
 // Logout handler
 document.getElementById('logoutBtn')?.addEventListener('click', function() {
     sessionStorage.removeItem('adminLoggedIn');
-    window.location.href = 'index.html';
+    window.location.href = '/admin/';
 });
 
 // Load submissions
