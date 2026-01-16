@@ -87,7 +87,23 @@ export default async function handler(req, res) {
                     ORDER BY timestamp DESC 
                     LIMIT 1000
                 `;
-                return res.status(200).json(result.rows);
+                
+                // Convert snake_case to camelCase for frontend compatibility
+                const formattedData = result.rows.map(row => ({
+                    timestamp: row.timestamp,
+                    page: row.page,
+                    referrer: row.referrer,
+                    ip: row.ip,
+                    country: row.country,
+                    city: row.city,
+                    region: row.region,
+                    deviceType: row.device_type,
+                    browser: row.browser,
+                    screenResolution: row.screen_resolution,
+                    language: row.language
+                }));
+                
+                return res.status(200).json(formattedData);
             }
             
             if (action === 'stats') {

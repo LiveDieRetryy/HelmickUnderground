@@ -54,7 +54,21 @@ export default async function handler(req, res) {
                     SELECT * FROM contact_submissions 
                     ORDER BY timestamp DESC
                 `;
-                return res.status(200).json(result.rows);
+                
+                // Convert to frontend-compatible format
+                const formattedData = result.rows.map(row => ({
+                    id: row.id,
+                    name: row.name,
+                    email: row.email,
+                    phone: row.phone,
+                    services: row.services,
+                    message: row.message,
+                    status: row.status,
+                    ip: row.ip,
+                    timestamp: row.timestamp
+                }));
+                
+                return res.status(200).json(formattedData);
             }
             
             if (action === 'stats') {
