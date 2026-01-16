@@ -349,7 +349,7 @@
                             // Direct video upload - clickable for lightbox
                             return `
                                 <div class="gallery-item" onclick="openLightbox(${index})">
-                                    <video loop muted autoplay playsinline style="width: 100%; max-height: 500px; background: #000;" onclick="event.stopPropagation();">
+                                    <video loop muted autoplay playsinline style="width: 100%; max-height: 500px; background: #000; pointer-events: none;">
                                         <source src="${item.videoFile}" type="video/mp4">
                                         Your browser does not support the video tag.
                                     </video>
