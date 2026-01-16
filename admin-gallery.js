@@ -89,7 +89,13 @@ document.getElementById('addItemForm')?.addEventListener('submit', async functio
     if (type === 'image') {
         newItem.image = document.getElementById('itemImage').value;
     } else {
-        newItem.embedCode = document.getElementById('itemEmbed').value;
+        const embedCode = document.getElementById('itemEmbed').value;
+        // Validate TikTok embed code
+        if (!embedCode.includes('tiktok-embed') || !embedCode.includes('<blockquote')) {
+            alert('❌ Invalid TikTok embed code!\n\nMake sure you:\n1. Go to your TikTok VIDEO (not music)\n2. Click Share → Embed\n3. Copy the FULL code starting with <blockquote>\n\nThe code should contain "tiktok-embed" and "blockquote"');
+            return;
+        }
+        newItem.embedCode = embedCode;
     }
     
     // Add to gallery data
@@ -109,8 +115,7 @@ document.getElementById('addItemForm')?.addEventListener('submit', async functio
 // Load gallery items
 async function loadGalleryItems() {
     try {
-        const response = await fetch('gallery-data.json?' + Date.now());
-        const data = await response.json();
+        const data = getGalleryData();
         const container = document.getElementById('galleryItemsList');
         
         if (!data.items || data.items.length === 0) {
@@ -147,8 +152,8 @@ async function loadGalleryItems() {
 // Add gallery item
 async function addGalleryItem(item) {
     try {
-        const response = await fetch('gallery-data.json?' + Date.now());
-        const data = await response.json();
+        // Get current data from localStorage or file
+        let data = getGalleryData();
         
         if (!data.items) {
             data.items = [];
@@ -156,12 +161,28 @@ async function addGalleryItem(item) {
         
         data.items.unshift(item); // Add to beginning
         
-        // Download updated JSON
-        downloadJSON(data);
+        // Save to localStorage immediately
+        saveGalleryData(data);
+        
+        showSuccess('✅ Item added successfully! It\'s now live on your gallery page.');
     } catch (error) {
         console.error('Error adding item:', error);
         alert('Error adding item. Please try again.');
     }
+}
+
+// Get gallery data from localStorage or JSON file
+function getGalleryData() {
+    const localData = localStorage.getItem('helmick_gallery_data');
+    if (localData) {
+        return JSON.parse(localData);
+    }
+    return { items: [] };
+}
+
+// Save gallery data to localStorage
+function saveGalleryData(data) {
+    localStorage.setItem('helmick_gallery_data', JSON.stringify(data));
 }
 
 // Delete item
@@ -171,15 +192,14 @@ async function deleteItem(id) {
     }
     
     try {
-        const response = await fetch('gallery-data.json?' + Date.now());
-        const data = await response.json();
+        const data = getGalleryData();
         
         data.items = data.items.filter(item => item.id !== id);
         
-        // Download updated JSON
-        downloadJSON(data);
+        // Save to localStorage
+        saveGalleryData(data);
         
-        showSuccess('Item deleted! Remember to upload the updated gallery-data.json file.');
+        showSuccess('✅ Item deleted successfully!');
         loadGalleryItems();
     } catch (error) {
         console.error('Error deleting item:', error);
@@ -200,7 +220,7 @@ function downloadJSON(data) {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    alert('Gallery data downloaded! Replace the gallery-data.json file in your project folder, then run:\n\ngit add .\ngit commit -m "Update gallery"\ngit push');
+    showSuccess('✅ SUCCESS! File downloaded to your Downloads folder.\n\n📁 NEXT STEPS:\n1. Move gallery-data.json to: C:\\Users\\Admin\\HelmickUnderground\n2. Replace the existing file\n3. Run: git add . && git commit -m "Update gallery" && git push\n4. Wait 30 seconds and check your gallery!');
 }
 
 // Show success message

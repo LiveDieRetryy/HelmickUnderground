@@ -3,15 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="View our project gallery - Watch videos of Helmick Underground's directional drilling, excavating, fiber optic installation, and utility work in Iowa.">
-    <meta name="keywords" content="underground utility videos, directional drilling projects, excavation gallery, Iowa contractor projects">
+    <meta name="description" content="View our recent projects and work - Helmick Underground LLC project gallery featuring directional drilling, excavating, and fiber optic installations across Iowa.">
+    <meta name="keywords" content="underground construction projects, directional drilling projects, excavating gallery, Iowa utility projects">
     <link rel="canonical" href="https://helmickunderground.com/gallery">
-    <title>Project Gallery | Helmick Underground LLC | Our Work</title>
+    <title>Project Gallery | Helmick Underground LLC</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .gallery-item {
+            background: var(--card-dark);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            transition: var(--transition);
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-color);
+            box-shadow: 0 8px 25px rgba(255, 107, 26, 0.3);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+
+        .gallery-item-content {
+            padding: 1.5rem;
+        }
+
+        .gallery-item-content h3 {
+            color: var(--white);
+            font-size: 1.3rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .gallery-item-content p {
+            color: var(--gray);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .gallery-item-date {
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .gallery-video {
+            position: relative;
+            padding-bottom: 177.78%; /* 9:16 aspect ratio for TikTok */
+            height: 0;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .gallery-video iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .empty-gallery {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--gray);
+        }
+
+        .empty-gallery svg {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 1.5rem;
+            opacity: 0.3;
+        }
+
+        @media (max-width: 768px) {
+            .gallery-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
@@ -36,88 +122,17 @@
     </nav>
 
     <!-- Gallery Section -->
-    <section id="gallery" class="gallery-section" style="margin-top: 70px; padding-top: 6rem;">
+    <section class="gallery" style="margin-top: 70px; padding: 6rem 0;">
         <div class="container">
             <div class="section-header">
-                <h2>Project Gallery</h2>
+                <h2>Our Projects</h2>
                 <div class="divider"></div>
-                <p>Watch our team in action on projects across Iowa</p>
+                <p>Recent work from Helmick Underground LLC</p>
             </div>
             
-            <div class="video-grid">
-                <!-- TikTok Video Embed Example -->
-                <!-- To add a TikTok video:
-                     1. Go to your TikTok video
-                     2. Click the "..." share button
-                     3. Click "Embed"
-                     4. Copy the embed code
-                     5. Paste it here replacing this comment
-                -->
-                
-                <!-- Example placeholder - Replace with your TikTok embeds -->
-                <div class="video-card">
-                    <div class="video-placeholder">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                        </svg>
-                        <p>Add your TikTok video here</p>
-                    </div>
-                </div>
-
-                <div class="video-card">
-                    <div class="video-placeholder">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                        </svg>
-                        <p>Add your TikTok video here</p>
-                    </div>
-                </div>
-
-                <div class="video-card">
-                    <div class="video-placeholder">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                        </svg>
-                        <p>Add your TikTok video here</p>
-                    </div>
-                </div>
-
-                <div class="video-card">
-                    <div class="video-placeholder">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                        </svg>
-                        <p>Add your TikTok video here</p>
-                    </div>
-                </div>
-
-                <div class="video-card">
-                    <div class="video-placeholder">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                        </svg>
-                        <p>Add your TikTok video here</p>
-                    </div>
-                </div>
-
-                <div class="video-card">
-                    <div class="video-placeholder">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                        </svg>
-                        <p>Add your TikTok video here</p>
-                    </div>
-                </div>
+            <div id="galleryContainer" class="gallery-grid">
+                <!-- Gallery items will be loaded here -->
             </div>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta-section">
-        <div class="container">
-            <h2>Like What You See?</h2>
-            <p>Contact us today to discuss your project</p>
-            <a href="/contact" class="btn btn-primary">Get In Touch</a>
         </div>
     </section>
 
@@ -155,6 +170,91 @@
     </footer>
 
     <script src="script.js"></script>
-    <script async src="https://www.tiktok.com/embed.js"></script>
+    <script>
+        // Load gallery items from localStorage or JSON file
+        async function loadGallery() {
+            try {
+                // First check localStorage
+                const localData = localStorage.getItem('helmick_gallery_data');
+                let data;
+                
+                if (localData) {
+                    data = JSON.parse(localData);
+                } else {
+                    // Fallback to JSON file
+                    const response = await fetch('gallery-data.json');
+                    data = await response.json();
+                }
+                
+                const container = document.getElementById('galleryContainer');
+                
+                if (!data.items || data.items.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-gallery">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                <polyline points="21 15 16 10 5 21"></polyline>
+                            </svg>
+                            <h3 style="color: var(--white);">Gallery Coming Soon</h3>
+                            <p>Check back soon for photos and videos of our recent projects!</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = data.items.map(item => {
+                    if (item.type === 'video') {
+                        return `
+                            <div class="gallery-item">
+                                <div class="gallery-video">
+                                    ${item.embedCode}
+                                </div>
+                                <div class="gallery-item-content">
+                                    <h3>${item.title}</h3>
+                                    <p>${item.description}</p>
+                                    ${item.date ? `<div class="gallery-item-date">${item.date}</div>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        return `
+                            <div class="gallery-item">
+                                <img src="${item.image}" alt="${item.title}" loading="lazy">
+                                <div class="gallery-item-content">
+                                    <h3>${item.title}</h3>
+                                    <p>${item.description}</p>
+                                    ${item.date ? `<div class="gallery-item-date">${item.date}</div>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }).join('');
+                
+                // Load TikTok embed script if there are videos
+                if (data.items.some(item => item.type === 'video')) {
+                    const script = document.createElement('script');
+                    script.src = 'https://www.tiktok.com/embed.js';
+                    script.async = true;
+                    document.body.appendChild(script);
+                }
+            } catch (error) {
+                console.error('Error loading gallery:', error);
+                document.getElementById('galleryContainer').innerHTML = `
+                    <div class="empty-gallery">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        <h3 style="color: var(--white);">Gallery Coming Soon</h3>
+                        <p>Check back soon for photos and videos of our recent projects!</p>
+                    </div>
+                `;
+            }
+        }
+        
+        loadGallery();
+    </script>
 </body>
 </html>
