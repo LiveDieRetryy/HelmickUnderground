@@ -45,7 +45,9 @@ module.exports = async function handler(req, res) {
         `;
 
         if (req.method === 'POST') {
-            const { action, page, referrer, userAgent, screenWidth, screenHeight, language, timestamp } = req.body;
+            // Get action from query params or body
+            const action = req.query.action || req.body?.action;
+            const { page, referrer, userAgent, screenWidth, screenHeight, language, timestamp } = req.body || {};
             
             if (action === 'clear') {
                 // Delete all analytics data
