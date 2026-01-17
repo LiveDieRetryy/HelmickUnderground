@@ -46,6 +46,9 @@ async function loadData() {
         // Update stats
         document.getElementById('totalStat').textContent = stats.total || 0;
         document.getElementById('unreadStat').textContent = stats.unread || 0;
+        document.getElementById('contactedStat').textContent = stats.contacted || 0;
+        document.getElementById('scheduledStat').textContent = stats.scheduled || 0;
+        document.getElementById('completedStat').textContent = stats.completed || 0;
         document.getElementById('todayStat').textContent = stats.today || 0;
 
         // Hide loading
@@ -152,6 +155,16 @@ async function viewSubmission(id) {
 
     document.getElementById('modalBody').innerHTML = `
         <div class="detail-section">
+            <div class="detail-label">Status</div>
+            <select id="statusSelect" class="status-select" onchange="updateStatus(${id}, this.value)">
+                <option value="unread" ${sub.status === 'unread' ? 'selected' : ''}>📬 Unread</option>
+                <option value="contacted" ${sub.status === 'contacted' ? 'selected' : ''}>📞 Contacted</option>
+                <option value="scheduled" ${sub.status === 'scheduled' ? 'selected' : ''}>📅 Scheduled</option>
+                <option value="completed" ${sub.status === 'completed' ? 'selected' : ''}>✅ Completed</option>
+                <option value="declined" ${sub.status === 'declined' ? 'selected' : ''}>❌ Declined</option>
+            </select>
+        </div>
+        <div class="detail-section">
             <div class="detail-label">Name</div>
             <div class="detail-value">${sub.name}</div>
         </div>
@@ -189,17 +202,6 @@ async function viewSubmission(id) {
     `;
 
     document.getElementById('detailModal').classList.add('active');
-
-    // Mark as read
-    if (sub.status === 'unread') {
-        try {
-            await fetch(`/api/contact-submissions?action=markRead&id=${id}`);
-            sub.status = 'read';
-            loadData(); // Refresh
-        } catch (error) {
-            console.error('Error marking as read:', error);
-        }
-    }
 }
 
 // Close modal
@@ -220,6 +222,26 @@ async function deleteSubmission(id) {
     } catch (error) {
         console.error('Error deleting:', error);
         alert('Failed to delete submission');
+    }
+}
+
+// Update status
+async function updateStatus(id, newStatus) {
+    try {
+        const response = await fetch(`/api/contact-submissions?action=updateStatus&id=${id}&status=${newStatus}`);
+        if (!response.ok) throw new Error('Update failed');
+        
+        // Update local data
+        const sub = allSubmissions.find(s => s.id == id);
+        if (sub) sub.status = newStatus;
+        
+        // Refresh display
+        loadData();
+        
+        console.log(`Updated submission ${id} to status: ${newStatus}`);
+    } catch (error) {
+        console.error('Error updating status:', error);
+        alert('Failed to update status');
     }
 }
 
