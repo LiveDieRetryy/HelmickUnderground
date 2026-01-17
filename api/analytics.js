@@ -75,6 +75,25 @@ module.exports = async function handler(req, res) {
                 const city = decodeURIComponent(req.headers['x-vercel-ip-city'] || 'Unknown');
                 const region = decodeURIComponent(req.headers['x-vercel-ip-country-region'] || 'Unknown');
                 
+                // Filter out bots and crawlers
+                const botPatterns = [
+                    /bot/i, /crawler/i, /spider/i, /googlebot/i, /bingbot/i, 
+                    /slurp/i, /duckduckbot/i, /baiduspider/i, /yandexbot/i,
+                    /facebookexternalhit/i, /twitterbot/i, /linkedinbot/i,
+                    /whatsapp/i, /lighthouse/i, /headless/i, /phantom/i
+                ];
+                
+                const isBot = botPatterns.some(pattern => pattern.test(userAgent || ''));
+                
+                // Filter out Vercel infrastructure locations
+                const vercelCities = ['Santa Clara', 'San Jose', 'Omaha', 'Ashburn', 'Frankfurt'];
+                const isVercelInfra = vercelCities.includes(city);
+                
+                // Skip logging if bot or Vercel infrastructure
+                if (isBot || isVercelInfra) {
+                    return res.status(200).json({ success: true, filtered: true });
+                }
+                
                 // Parse user agent
                 const deviceInfo = parseUserAgent(userAgent);
                 
