@@ -1413,4 +1413,24 @@ section {
         width: 100%;
         margin: 0.5rem 0;
     }
+} 
+ 
+/* Floating Click-to-Call Button */
+.floating-call-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 998;
+    box-shadow: 0 8px 24px rgba(255, 107, 26, 0.4);
+    transition: all 0.3s ease;
+    animation: pulse 2s infinite;
 }
+

@@ -82,6 +82,18 @@ if (contactForm) {
         const submitBtn = contactForm.querySelector('button[type="submit"]');
         const originalBtnText = submitBtn.textContent;
         
+        // Check CAPTCHA
+        const turnstileResponse = turnstile?.getResponse();
+        if (!turnstileResponse) {
+            formMessage.innerHTML = `
+                <div style="background: rgba(220, 38, 38, 0.2); border: 2px solid #dc2626; color: #ff6b6b; padding: 1.5rem; border-radius: 12px; margin-top: 1.5rem; text-align: center;">
+                    <strong>✗ Please complete the CAPTCHA verification</strong>
+                </div>
+            `;
+            setTimeout(() => { formMessage.innerHTML = ''; }, 5000);
+            return;
+        }
+        
         // Disable button and show loading state
         submitBtn.disabled = true;
         submitBtn.textContent = 'Sending...';
@@ -213,3 +225,28 @@ phoneInputs.forEach(input => {
         e.target.value = value;
     });
 });
+
+// Floating Click-to-Call Button
+const floatingCallBtn = document.getElementById('floatingCallBtn');
+const callModal = document.getElementById('callModal');
+
+if (floatingCallBtn) {
+    floatingCallBtn.addEventListener('click', () => {
+        callModal.classList.add('active');
+    });
+}
+
+function closeCallModal() {
+    if (callModal) {
+        callModal.classList.remove('active');
+    }
+}
+
+// Close modal when clicking outside
+if (callModal) {
+    callModal.addEventListener('click', (e) => {
+        if (e.target === callModal) {
+            closeCallModal();
+        }
+    });
+}
