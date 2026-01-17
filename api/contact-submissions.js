@@ -80,6 +80,7 @@ module.exports = async function handler(req, res) {
                         SUM(CASE WHEN status = 'contacted' THEN 1 ELSE 0 END) as contacted,
                         SUM(CASE WHEN status = 'scheduled' THEN 1 ELSE 0 END) as scheduled,
                         SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+                        SUM(CASE WHEN status = 'declined' THEN 1 ELSE 0 END) as declined,
                         SUM(CASE WHEN DATE(timestamp) = CURRENT_DATE THEN 1 ELSE 0 END) as today
                     FROM contact_submissions
                 `;
@@ -90,6 +91,7 @@ module.exports = async function handler(req, res) {
                     contacted: parseInt(stats.rows[0].contacted) || 0,
                     scheduled: parseInt(stats.rows[0].scheduled) || 0,
                     completed: parseInt(stats.rows[0].completed) || 0,
+                    declined: parseInt(stats.rows[0].declined) || 0,
                     today: parseInt(stats.rows[0].today) || 0
                 });
             }

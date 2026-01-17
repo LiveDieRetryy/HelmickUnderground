@@ -15,6 +15,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 });
 
 let allSubmissions = [];
+let currentFilter = 'all';
 
 // Load data
 async function loadData() {
@@ -43,13 +44,8 @@ async function loadData() {
         console.log('Loaded submissions:', allSubmissions.length);
         console.log('Stats:', stats);
 
-        // Update stats
-        document.getElementById('totalStat').textContent = stats.total || 0;
-        document.getElementById('unreadStat').textContent = stats.unread || 0;
-        document.getElementById('contactedStat').textContent = stats.contacted || 0;
-        document.getElementById('scheduledStat').textContent = stats.scheduled || 0;
-        document.getElementById('completedStat').textContent = stats.completed || 0;
-        document.getElementById('todayStat').textContent = stats.today || 0;
+        // Update filter dropdown counts
+        updateFilterCounts(stats);
 
         // Hide loading
         document.getElementById('loading').style.display = 'none';
@@ -84,24 +80,62 @@ async function loadData() {
     }
 }
 
+// Update filter dropdown counts
+function updateFilterCounts(stats) {
+    const totalCount = stats.total || 0;
+    const unreadCount = stats.unread || 0;
+    const contactedCount = stats.contacted || 0;
+    const scheduledCount = stats.scheduled || 0;
+    const completedCount = stats.completed || 0;
+    const declinedCount = (stats.declined || 0);
+    const todayCount = stats.today || 0;
+    
+    // Update select options with counts
+    const select = document.getElementById('statusFilter');
+    select.options[0].text = `All (${totalCount})`;
+    select.options[1].text = `📬 Unread (${unreadCount})`;
+    select.options[2].text = `📞 Contacted (${contactedCount})`;
+    select.options[3].text = `📅 Scheduled (${scheduledCount})`;
+    select.options[4].text = `✅ Completed (${completedCount})`;
+    select.options[5].text = `❌ Declined (${declinedCount})`;
+    
+    // Update today count
+    document.getElementById('todayCount').innerHTML = `Today: <strong style="color: var(--primary-color);">${todayCount}</strong>`;
+}
+
+// Filter submissions
+function filterSubmissions() {
+    currentFilter = document.getElementById('statusFilter').value;
+    renderSubmissions();
+}
+
 // Render submissions
 function renderSubmissions() {
     const container = document.getElementById('submissionsList');
+    
+    // Filter submissions based on current filter
+    const filteredSubmissions = currentFilter === 'all' 
+        ? allSubmissions 
+        : allSubmissions.filter(sub => sub.status === currentFilter);
 
-    if (allSubmissions.length === 0) {
+    if (filteredSubmissions.length === 0) {
+        const message = currentFilter === 'all' 
+            ? 'Quote requests will appear here when customers submit the contact form'
+            : `No submissions with status: ${currentFilter}`;
+        
         container.innerHTML = `
             <div class="empty-state">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                 </svg>
                 <h3>No submissions yet</h3>
-                <p>Quote requests will appear here when customers submit the contact form</p>
+                <p>${message}</p>
             </div>
         `;
         return;
     }
 
-    container.innerHTML = allSubmissions.map(sub => {
+    container.innerHTML = filteredSubmissions.map(sub => {
         const date = new Date(sub.timestamp);
         const dateStr = date.toLocaleDateString('en-US', { 
             month: 'short', 
