@@ -14,6 +14,28 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
     window.location.href = '/admin/';
 });
 
+// Clear analytics
+document.getElementById('clearBtn').addEventListener('click', async () => {
+    if (!confirm('⚠️ Are you sure you want to delete ALL analytics data? This cannot be undone!')) {
+        return;
+    }
+    
+    if (!confirm('🚨 FINAL WARNING: This will permanently delete all visit history. Continue?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/analytics?action=clear', { method: 'POST' });
+        if (!response.ok) throw new Error('Failed to clear analytics');
+        
+        alert('✅ Analytics cleared successfully!');
+        window.location.reload();
+    } catch (error) {
+        console.error('Error clearing analytics:', error);
+        alert('❌ Failed to clear analytics: ' + error.message);
+    }
+});
+
 let analyticsData = [];
 
 // Load data

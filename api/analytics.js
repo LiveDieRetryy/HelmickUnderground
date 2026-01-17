@@ -47,6 +47,12 @@ module.exports = async function handler(req, res) {
         if (req.method === 'POST') {
             const { action, page, referrer, userAgent, screenWidth, screenHeight, language, timestamp } = req.body;
             
+            if (action === 'clear') {
+                // Delete all analytics data
+                await sql`DELETE FROM analytics`;
+                return res.status(200).json({ success: true, message: 'Analytics cleared' });
+            }
+            
             if (action === 'log') {
                 // Get client info from Vercel headers
                 const ip = req.headers['x-forwarded-for']?.split(',')[0] || 
