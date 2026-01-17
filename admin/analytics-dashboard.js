@@ -36,6 +36,25 @@ document.getElementById('clearBtn').addEventListener('click', async () => {
     }
 });
 
+// Cleanup encoded location names
+document.getElementById('cleanupBtn').addEventListener('click', async () => {
+    if (!confirm('🔧 Fix URL-encoded city names (e.g., "San%20Jose" → "San Jose")?\n\nThis will update existing records in the database.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/analytics?action=cleanup', { method: 'POST' });
+        if (!response.ok) throw new Error('Failed to cleanup analytics');
+        
+        const result = await response.json();
+        alert('✅ ' + result.message);
+        window.location.reload();
+    } catch (error) {
+        console.error('Error cleaning up analytics:', error);
+        alert('❌ Failed to cleanup analytics: ' + error.message);
+    }
+});
+
 let analyticsData = [];
 
 // Load data

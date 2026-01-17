@@ -53,6 +53,19 @@ module.exports = async function handler(req, res) {
                 return res.status(200).json({ success: true, message: 'Analytics cleared' });
             }
             
+            if (action === 'cleanup') {
+                // Fix URL-encoded location data in existing records
+                await sql`
+                    UPDATE analytics 
+                    SET 
+                        city = REPLACE(city, '%20', ' '),
+                        region = REPLACE(region, '%20', ' '),
+                        country = REPLACE(country, '%20', ' ')
+                    WHERE city LIKE '%\%%' OR region LIKE '%\%%' OR country LIKE '%\%%'
+                `;
+                return res.status(200).json({ success: true, message: 'Location data cleaned' });
+            }
+            
             if (action === 'log') {
                 // Get client info from Vercel headers
                 const ip = req.headers['x-forwarded-for']?.split(',')[0] || 
