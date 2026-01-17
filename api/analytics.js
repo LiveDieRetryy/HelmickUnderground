@@ -52,9 +52,9 @@ module.exports = async function handler(req, res) {
                 const ip = req.headers['x-forwarded-for']?.split(',')[0] || 
                           req.headers['x-real-ip'] || 
                           'unknown';
-                const country = req.headers['x-vercel-ip-country'] || 'Unknown';
-                const city = req.headers['x-vercel-ip-city'] || 'Unknown';
-                const region = req.headers['x-vercel-ip-country-region'] || 'Unknown';
+                const country = decodeURIComponent(req.headers['x-vercel-ip-country'] || 'Unknown');
+                const city = decodeURIComponent(req.headers['x-vercel-ip-city'] || 'Unknown');
+                const region = decodeURIComponent(req.headers['x-vercel-ip-country-region'] || 'Unknown');
                 
                 // Parse user agent
                 const deviceInfo = parseUserAgent(userAgent);
