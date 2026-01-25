@@ -333,8 +333,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
             border-bottom: 3px solid var(--primary-color);
             text-align: center;
             page-break-after: avoid;
@@ -395,7 +395,7 @@
         .preview-content h2 {
             color: #333;
             font-size: 1.8rem;
-            margin: 2rem 0 1rem 0;
+            margin: 1rem 0 0.75rem 0;
             padding-bottom: 0.5rem;
             border-bottom: 2px solid var(--primary-color);
             text-align: center;
@@ -406,7 +406,7 @@
 
         .preview-content .company-info {
             color: #666;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
             text-align: center;
             font-size: 1.1rem;
         }
@@ -414,7 +414,7 @@
         .preview-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
             page-break-inside: avoid;
         }
 
@@ -428,7 +428,7 @@
 
         .preview-table th,
         .preview-table td {
-            padding: 0.75rem;
+            padding: 0.5rem;
             text-align: left;
             border-bottom: 1px solid #ddd;
         }
@@ -444,12 +444,12 @@
         }
 
         .preview-footer {
-            margin-top: 3rem;
-            padding-top: 1rem;
+            margin-top: 1.5rem;
+            padding-top: 0.75rem;
             border-top: 2px solid #ddd;
             text-align: center;
             color: #666;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         @media screen {
@@ -519,12 +519,14 @@
             h2 {
                 page-break-after: avoid;
                 page-break-inside: avoid;
-                margin-top: 1.5rem;
+                margin-top: 0.75rem !important;
+                margin-bottom: 0.5rem !important;
             }
 
             .preview-table {
                 page-break-inside: auto;
                 background: white !important;
+                margin-bottom: 0.75rem !important;
             }
 
             .preview-table thead {
@@ -533,6 +535,11 @@
 
             .preview-table tbody {
                 display: table-row-group;
+            }
+
+            .preview-table th,
+            .preview-table td {
+                padding: 0.4rem !important;
             }
 
             .preview-table tr {
@@ -546,11 +553,8 @@
 
             .preview-footer {
                 page-break-inside: avoid;
-                position: absolute;
-                bottom: 0.75in;
-                left: 0.5in;
-                right: 0.5in;
-                margin-top: 2rem;
+                margin-top: 1rem !important;
+                padding-top: 0.5rem !important;
             }
         }
 
