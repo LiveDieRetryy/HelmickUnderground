@@ -48,6 +48,11 @@ module.exports = async function handler(req, res) {
             text-align: center;
         }
         .logo {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+        .logo-text {
             color: #ffffff;
             font-size: 32px;
             font-weight: 900;
@@ -68,31 +73,6 @@ module.exports = async function handler(req, res) {
         .message {
             font-size: 16px;
             margin-bottom: 25px;
-        }
-        .info-box {
-            background-color: #f8f9fa;
-            border-left: 4px solid #ff6b1a;
-            padding: 20px;
-            margin: 30px 0;
-            border-radius: 4px;
-        }
-        .info-box h3 {
-            color: #ff6b1a;
-            margin: 0 0 15px 0;
-            font-size: 18px;
-        }
-        .contact-info {
-            margin: 10px 0;
-            font-size: 15px;
-        }
-        .contact-info strong {
-            color: #ff6b1a;
-            display: inline-block;
-            width: 80px;
-        }
-        .contact-info a {
-            color: #ff6b1a;
-            text-decoration: none;
         }
         .emergency-note {
             background-color: #fff3cd;
@@ -126,7 +106,8 @@ module.exports = async function handler(req, res) {
 <body>
     <div class="email-container">
         <div class="header">
-            <h1 class="logo">HELMICK UNDERGROUND</h1>
+            <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground Logo" class="logo">
+            <h1 class="logo-text">HELMICK UNDERGROUND</h1>
         </div>
         
         <div class="content">
@@ -140,22 +121,9 @@ module.exports = async function handler(req, res) {
                 Our team is currently reviewing your submission and will be in contact with you within the next 2-3 business days to discuss your project requirements and provide you with a detailed quote.
             </p>
             
-            <div class="info-box">
-                <h3>Contact Information</h3>
-                <p class="contact-info">
-                    <strong>Phone:</strong> <a href="tel:319-551-4323">319-551-4323</a>
-                </p>
-                <p class="contact-info">
-                    <strong>Email:</strong> <a href="mailto:HelmickUnderground@gmail.com">HelmickUnderground@gmail.com</a>
-                </p>
-                <p class="contact-info">
-                    <strong>Website:</strong> <a href="https://helmickunderground.com">helmickunderground.com</a>
-                </p>
-            </div>
-            
             <div class="emergency-note">
                 <strong>⚠️ Need Immediate Assistance?</strong><br>
-                If your situation requires urgent attention or you have an emergency, please don't hesitate to call us directly at <a href="tel:319-551-4323" style="color: #856404; font-weight: 700;">319-551-4323</a>. We're here to help!
+                If your situation requires urgent attention or you have an emergency, please don't hesitate to call us directly at <a href="tel:319-721-9925" style="color: #856404; font-weight: 700;">319-721-9925</a>. We're here to help!
             </div>
             
             <p class="message">
