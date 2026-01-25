@@ -13,7 +13,12 @@ async function loadRates() {
         if (!response.ok) throw new Error('Failed to load rates');
         
         const data = await response.json();
-        ratesData = data.rates || [];
+        // Combine all rate categories
+        ratesData = [
+            ...(data.baseRates || []),
+            ...(data.customWork || []),
+            ...(data.additionalItems || [])
+        ];
         
         displayRateButtons();
     } catch (error) {
@@ -32,14 +37,14 @@ function displayRateButtons() {
     }
     
     container.innerHTML = ratesData.map(rate => `
-        <button type="button" class="rate-btn" onclick="addRateAsLineItem('${rate.service.replace(/'/g, "\\'")}', '${rate.unit}', ${rate.rate})">
-            ${rate.service} - $${rate.rate}/${rate.unit}
+        <button type="button" class="rate-btn" onclick="addRateAsLineItem('${rate.name.replace(/'/g, "\\'")}', ${rate.rate})">
+            ${rate.name} - $${rate.rate}
         </button>
     `).join('');
 }
 
 // Add rate as line item
-function addRateAsLineItem(service, unit, rate) {
+function addRateAsLineItem(service, rate) {
     addLineItem(service, 1, rate);
 }
 
