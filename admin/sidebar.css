@@ -59,6 +59,30 @@
     position: relative;
 }
 
+.notification-badge {
+    position: absolute;
+    right: 1.5rem;
+    background: linear-gradient(135deg, #dc143c 0%, #ff4444 100%);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    min-width: 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(220, 20, 60, 0.4);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 2px 8px rgba(220, 20, 60, 0.4);
+    }
+    50% {
+        box-shadow: 0 2px 12px rgba(220, 20, 60, 0.8), 0 0 20px rgba(220, 20, 60, 0.3);
+    }
+}
+
 .sidebar-nav-item::before {
     content: '';
     position: absolute;
