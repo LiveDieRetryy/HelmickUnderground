@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Create Invoice - Helmick Underground</title>
+    <link rel="icon" type="image/png" href="../logo.png">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="sidebar.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            padding: 3rem;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 5rem 1rem 2rem;
+            }
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, rgba(255, 107, 26, 0.15) 0%, rgba(255, 107, 26, 0.08) 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 2px solid rgba(255, 107, 26, 0.3);
+            box-shadow: 0 8px 32px rgba(255, 107, 26, 0.1);
+        }
+
+        .page-header h1 {
+            color: var(--primary-color);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 2rem;
+        }
+
+        .invoice-form {
+            background: var(--card-dark);
+            border-radius: 20px;
+            padding: 2.5rem;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            margin-bottom: 2rem;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(255, 107, 26, 0.2);
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .form-section h2 {
+            color: var(--primary-color);
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            color: var(--gray);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            background: rgba(255, 107, 26, 0.05);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            color: var(--white);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: rgba(255, 107, 26, 0.1);
+            box-shadow: 0 0 0 3px rgba(255, 107, 26, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .rate-selector {
+            background: rgba(255, 107, 26, 0.1);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .rate-selector h3 {
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            margin: 0 0 1rem 0;
+        }
+
+        .rate-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .rate-btn {
+            background: rgba(255, 107, 26, 0.2);
+            border: 1px solid rgba(255, 107, 26, 0.5);
+            color: var(--primary-color);
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .rate-btn:hover {
+            background: var(--primary-color);
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        .line-items-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .line-item {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 1rem;
+            align-items: end;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(255, 107, 26, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 107, 26, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .line-item {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .line-item .form-group {
+            margin-bottom: 0;
+        }
+
+        .btn-remove-item {
+            background: rgba(220, 20, 60, 0.2);
+            border: 1px solid rgba(220, 20, 60, 0.5);
+            color: var(--red);
+            padding: 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-remove-item:hover {
+            background: var(--red);
+            color: var(--white);
+        }
+
+        .btn-add-item {
+            background: rgba(255, 107, 26, 0.2);
+            border: 1px solid rgba(255, 107, 26, 0.5);
+            color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: fit-content;
+        }
+
+        .btn-add-item:hover {
+            background: var(--primary-color);
+            color: var(--white);
+        }
+
+        .totals-section {
+            background: rgba(255, 107, 26, 0.05);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 107, 26, 0.2);
+        }
+
+        .total-row:last-child {
+            border-bottom: none;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            padding-top: 1rem;
+            margin-top: 0.5rem;
+            border-top: 2px solid rgba(255, 107, 26, 0.5);
+        }
+
+        .total-label {
+            color: var(--gray);
+            font-weight: 600;
+        }
+
+        .total-value {
+            color: var(--white);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #ff8c42 100%);
+            color: var(--white);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 26, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .btn-secondary:hover {
+            background: #3b82f6;
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        .btn-back {
+            background: rgba(100, 100, 100, 0.2);
+            color: var(--gray);
+            border: 1px solid rgba(100, 100, 100, 0.5);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            text-decoration: none;
+        }
+
+        .btn-back:hover {
+            background: rgba(100, 100, 100, 0.4);
+            color: var(--white);
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <div class="mobile-menu-toggle" id="mobileMenuToggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <h2>Admin Panel</h2>
+        </div>
+        <div class="sidebar-nav">
+            <a href="/admin/" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📊</span>
+                <span class="sidebar-nav-item-text">Dashboard</span>
+            </a>
+            <a href="/admin/inbox.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📬</span>
+                <span class="sidebar-nav-item-text">Quote Requests</span>
+            </a>
+            <a href="/admin/analytics.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📈</span>
+                <span class="sidebar-nav-item-text">Analytics</span>
+            </a>
+            <a href="/admin/gallery-manager.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">🖼️</span>
+                <span class="sidebar-nav-item-text">Gallery</span>
+            </a>
+            <a href="/admin/rates.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">💰</span>
+                <span class="sidebar-nav-item-text">Rates Management</span>
+            </a>
+            <a href="/admin/invoices.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">🧾</span>
+                <span class="sidebar-nav-item-text">Invoices</span>
+            </a>
+            <a href="/admin/rate-recipients.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📧</span>
+                <span class="sidebar-nav-item-text">Email Recipients</span>
+            </a>
+            <a href="../" class="sidebar-nav-item" style="margin-top: 1.5rem; border-top: 2px solid rgba(255, 107, 26, 0.2); padding-top: 1.5rem;">
+                <span class="sidebar-nav-item-icon">🌐</span>
+                <span class="sidebar-nav-item-text">View Website</span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1>🧾 Create New Invoice</h1>
+        </div>
+
+        <div class="invoice-form">
+            <form id="invoiceForm">
+                <!-- Invoice Details -->
+                <div class="form-section">
+                    <h2>📋 Invoice Details</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="invoiceNumber">Invoice Number *</label>
+                            <input type="text" id="invoiceNumber" required placeholder="INV-001">
+                        </div>
+                        <div class="form-group">
+                            <label for="invoiceDate">Invoice Date *</label>
+                            <input type="date" id="invoiceDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="dueDate">Due Date *</label>
+                            <input type="date" id="dueDate" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Information -->
+                <div class="form-section">
+                    <h2>👤 Customer Information</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="customerName">Customer Name *</label>
+                            <input type="text" id="customerName" required placeholder="John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label for="customerEmail">Email</label>
+                            <input type="email" id="customerEmail" placeholder="customer@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="customerPhone">Phone</label>
+                            <input type="tel" id="customerPhone" placeholder="319-555-0123">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label for="customerAddress">Address</label>
+                        <textarea id="customerAddress" placeholder="123 Main St&#10;City, State ZIP"></textarea>
+                    </div>
+                </div>
+
+                <!-- Line Items -->
+                <div class="form-section">
+                    <h2>📝 Line Items</h2>
+                    
+                    <div class="rate-selector">
+                        <h3>💰 Quick Add from Current Rates:</h3>
+                        <div class="rate-buttons" id="rateButtons">
+                            <div style="color: var(--gray);">Loading rates...</div>
+                        </div>
+                    </div>
+
+                    <div class="line-items-container" id="lineItemsContainer">
+                        <!-- Line items will be added here -->
+                    </div>
+
+                    <button type="button" class="btn-add-item" onclick="addLineItem()">
+                        <span>➕</span>
+                        <span>Add Custom Line Item</span>
+                    </button>
+                </div>
+
+                <!-- Totals -->
+                <div class="form-section">
+                    <h2>💵 Totals</h2>
+                    <div class="totals-section">
+                        <div class="total-row">
+                            <span class="total-label">Subtotal:</span>
+                            <span class="total-value" id="subtotalDisplay">$0.00</span>
+                        </div>
+                        <div class="total-row">
+                            <div class="form-group" style="margin: 0;">
+                                <label for="taxRate">Tax Rate (%)</label>
+                                <input type="number" id="taxRate" value="7" step="0.01" min="0" max="100" style="width: 120px;" onchange="calculateTotals()">
+                            </div>
+                            <span class="total-value" id="taxDisplay">$0.00</span>
+                        </div>
+                        <div class="total-row">
+                            <span class="total-label">TOTAL:</span>
+                            <span class="total-value" id="totalDisplay">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <a href="/admin/invoices.html" class="btn-back">
+                        <span>←</span>
+                        <span>Back to Invoices</span>
+                    </a>
+                    <button type="submit" class="btn-primary">
+                        <span>💾</span>
+                        <span>Save Invoice</span>
+                    </button>
+                    <button type="button" class="btn-secondary" onclick="previewPDF()">
+                        <span>👁️</span>
+                        <span>Preview PDF</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="sidebar.js"></script>
+    <script src="create-invoice.js"></script>
+</body>
+</html>
