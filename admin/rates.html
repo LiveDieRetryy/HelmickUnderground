@@ -150,6 +150,7 @@
         .rates-table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
 
         .rates-table thead {
@@ -162,6 +163,18 @@
             text-align: left;
             font-weight: 700;
             border-bottom: 2px solid rgba(255, 107, 26, 0.3);
+        }
+
+        .rates-table th:first-child {
+            width: 60%;
+        }
+
+        .rates-table th:nth-child(2) {
+            width: 25%;
+        }
+
+        .rates-table th:nth-child(3) {
+            width: 15%;
         }
 
         .rates-table td {
@@ -207,7 +220,8 @@
             padding: 0.5rem 0.75rem;
             color: var(--white);
             font-size: 1rem;
-            width: 120px;
+            width: 100%;
+            max-width: 150px;
             font-weight: 600;
             transition: all 0.3s ease;
         }
@@ -263,18 +277,39 @@
 
         @media (max-width: 768px) {
             .rates-table {
-                font-size: 0.9rem;
+                font-size: 0.85rem;
+            }
+
+            .rates-table th:first-child {
+                width: 50%;
+            }
+
+            .rates-table th:nth-child(2) {
+                width: 30%;
+            }
+
+            .rates-table th:nth-child(3) {
+                width: 20%;
             }
 
             .rates-table th,
             .rates-table td {
-                padding: 0.75rem 0.5rem;
+                padding: 0.5rem 0.25rem;
+            }
+
+            .name-input,
+            .rate-input {
+                padding: 0.4rem 0.5rem;
+                font-size: 0.85rem;
             }
 
             .rate-input {
-                width: 100px;
-                padding: 0.4rem 0.5rem;
-                font-size: 0.9rem;
+                max-width: 100px;
+            }
+
+            .delete-btn {
+                padding: 0.3rem 0.5rem;
+                font-size: 0.8rem;
             }
         }
 
@@ -361,7 +396,7 @@
                         <tr>
                             <th>Service</th>
                             <th>Rate ($)</th>
-                            <th style="width: 80px;">Action</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="baseRatesTable"></tbody>
@@ -375,14 +410,14 @@
                 <table class="rates-table">
                     <thead>
                         <tr>
-                            <th style="width: 80px;">Action</th>
+                            <th>Service</th>
+                            <th>Rate ($)</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="customWorkTable"></tbody>
                 </table>
-                <button class="add-item-btn" onclick="addNewItem('customWork')">➕ Add New Custom Work Rate</buttonhead>
-                    <tbody id="customWorkTable"></tbody>
-                </table>
+                <button class="add-item-btn" onclick="addNewItem('customWork')">➕ Add New Custom Work Rate</button>
             </div>
 
             <!-- Additional Items Section -->
@@ -391,17 +426,14 @@
                 <table class="rates-table">
                     <thead>
                         <tr>
-                            <th style="width: 80px;">Action</th>
+                            <th>Service</th>
+                            <th>Rate ($)</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="additionalItemsTable"></tbody>
                 </table>
-                <button class="add-item-btn" onclick="addNewItem('additionalItems')">➕ Add New Additional Item</buttonhead>
-                    <tbody id="additionalItemsTable"></tbody>
-                </table>
-                <div class="last-updated">
-                    Last updated: <span id="lastUpdated">--</span>
-                </div>
+                <button class="add-item-btn" onclick="addNewItem('additionalItems')">➕ Add New Additional Item</button>
             </div>
         </div>
     </div>
