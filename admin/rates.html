@@ -467,7 +467,13 @@
                 overflow: visible !important;
             }
 
+            /* Hide everything except the preview */
+            body > *:not(#previewOverlay) {
+                display: none !important;
+            }
+
             .preview-overlay {
+                display: block !important;
                 position: static !important;
                 background: white !important;
                 padding: 0 !important;
