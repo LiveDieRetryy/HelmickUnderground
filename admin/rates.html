@@ -445,7 +445,16 @@
 
         .preview-footer {
             margin-top: 3rem;
-            padding-top: 175in 0.5in;
+            padding-top: 1rem;
+            border-top: 2px solid #ddd;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        @media print {
+            @page {
+                margin: 0.75in 0.5in;
                 size: letter;
             }
 
@@ -506,12 +515,13 @@
                 page-break-inside: avoid;
             }
 
-            .preview-footer {
-                page-break-before: avoid;
-                page-break-inside: avoid;
+            body {
+                margin: 0;
+                padding: 0;
             }
+        }
 
-            .preview-table {
+        @media (max-width: 768px) {            .preview-table {
                 page-break-inside: avoid;
             }
 
