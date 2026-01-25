@@ -552,14 +552,6 @@
                     </td>
                 </tr>
             `).join('');
-
-            // Update last updated time
-            if (currentRates.lastUpdated) {
-                const date = new Date(currentRates.lastUpdated);
-                document.getElementById('lastUpdated').textContent = date.toLocaleString();
-            } else {
-                document.getElementById('lastUpdated').textContent = 'Never';
-            }
         }
 
         async function saveRates() {
