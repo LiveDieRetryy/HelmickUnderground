@@ -1055,44 +1055,94 @@
                 day: 'numeric' 
             });
 
-            // Build plain text email body
-            let emailBody = `HELMICK UNDERGROUND LLC\nService Rates & Pricing\nMount Vernon, Iowa\nEffective: ${today}\n\n`;
-            
-            emailBody += `BASE RATES:\n`;
-            emailBody += `${'─'.repeat(50)}\n`;
-            currentRates.baseRates.forEach(item => {
-                emailBody += `${item.name.padEnd(40)} $${item.rate.toFixed(2)}\n`;
-            });
-            
-            emailBody += `\nCUSTOM WORK PER HOUR:\n`;
-            emailBody += `${'─'.repeat(50)}\n`;
-            currentRates.customWork.forEach(item => {
-                emailBody += `${item.name.padEnd(40)} $${item.rate.toFixed(2)}\n`;
-            });
-            
-            emailBody += `\nADDITIONAL ITEMS:\n`;
-            emailBody += `${'─'.repeat(50)}\n`;
-            currentRates.additionalItems.forEach(item => {
-                emailBody += `${item.name.padEnd(40)} $${item.rate.toFixed(2)}\n`;
-            });
-            
-            emailBody += `\n${'─'.repeat(50)}\n`;
-            emailBody += `CONTACT INFORMATION\n`;
-            emailBody += `Tommy Helmick: 319-721-9925\n`;
-            emailBody += `Travis Helmick: 319-551-4323\n`;
-            emailBody += `Email: HelmickUnderground@gmail.com\n`;
-            emailBody += `Website: www.helmickunderground.com\n\n`;
-            emailBody += `Rates subject to change. Contact us for current pricing and free estimates.`;
+            // Build HTML email with inline styles
+            let emailHTML = `
+<div style="max-width: 800px; margin: 0 auto; font-family: Arial, sans-serif; background: white; padding: 30px;">
+    <div style="text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid #ff6b1a;">
+        <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground LLC" style="max-width: 300px; margin-bottom: 20px;">
+        <div style="color: #666; font-size: 16px;">
+            <strong style="display: block; font-size: 20px; color: #333; margin-bottom: 8px;">Service Rates & Pricing</strong>
+            Mount Vernon, Iowa<br>
+            Effective: ${today}
+        </div>
+    </div>
 
-            // Copy to clipboard
-            navigator.clipboard.writeText(emailBody).then(() => {
+    <h2 style="color: #333; font-size: 24px; margin: 25px 0 15px 0; padding-bottom: 8px; border-bottom: 2px solid #ff6b1a; text-align: center;">Base Rates</h2>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+        <thead>
+            <tr>
+                <th style="background: #ff6b1a; color: white; padding: 12px; text-align: left; font-weight: 700;">Service</th>
+                <th style="background: #ff6b1a; color: white; padding: 12px; text-align: right; font-weight: 700;">Rate</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${currentRates.baseRates.map((item, index) => `
+            <tr style="background: ${index % 2 === 0 ? '#ffffff' : '#f9f9f9'};">
+                <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.name}</td>
+                <td style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">$${item.rate.toFixed(2)}</td>
+            </tr>
+            `).join('')}
+        </tbody>
+    </table>
+
+    <h2 style="color: #333; font-size: 24px; margin: 25px 0 15px 0; padding-bottom: 8px; border-bottom: 2px solid #ff6b1a; text-align: center;">Custom Work Per Hour</h2>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+        <thead>
+            <tr>
+                <th style="background: #ff6b1a; color: white; padding: 12px; text-align: left; font-weight: 700;">Service</th>
+                <th style="background: #ff6b1a; color: white; padding: 12px; text-align: right; font-weight: 700;">Rate</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${currentRates.customWork.map((item, index) => `
+            <tr style="background: ${index % 2 === 0 ? '#ffffff' : '#f9f9f9'};">
+                <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.name}</td>
+                <td style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">$${item.rate.toFixed(2)}</td>
+            </tr>
+            `).join('')}
+        </tbody>
+    </table>
+
+    <h2 style="color: #333; font-size: 24px; margin: 25px 0 15px 0; padding-bottom: 8px; border-bottom: 2px solid #ff6b1a; text-align: center;">Additional Items</h2>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+        <thead>
+            <tr>
+                <th style="background: #ff6b1a; color: white; padding: 12px; text-align: left; font-weight: 700;">Service</th>
+                <th style="background: #ff6b1a; color: white; padding: 12px; text-align: right; font-weight: 700;">Rate</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${currentRates.additionalItems.map((item, index) => `
+            <tr style="background: ${index % 2 === 0 ? '#ffffff' : '#f9f9f9'};">
+                <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.name}</td>
+                <td style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">$${item.rate.toFixed(2)}</td>
+            </tr>
+            `).join('')}
+        </tbody>
+    </table>
+
+    <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd; text-align: center; color: #666; font-size: 15px;">
+        <p style="margin: 8px 0;"><strong>Contact Information</strong></p>
+        <p style="margin: 8px 0;">Tommy Helmick: 319-721-9925 | Travis Helmick: 319-551-4323</p>
+        <p style="margin: 8px 0;">Email: HelmickUnderground@gmail.com | www.helmickunderground.com</p>
+        <p style="margin-top: 15px; font-size: 14px;">Rates subject to change. Contact us for current pricing and free estimates.</p>
+    </div>
+</div>`;
+
+            // Copy HTML to clipboard
+            const textItem = new ClipboardItem({
+                'text/html': new Blob([emailHTML], { type: 'text/html' }),
+                'text/plain': new Blob([emailHTML], { type: 'text/plain' })
+            });
+
+            navigator.clipboard.write([textItem]).then(() => {
                 // Open Gmail compose
                 const subject = encodeURIComponent('Helmick Underground - Service Rates & Pricing');
                 const gmailLink = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}`;
                 window.open(gmailLink, '_blank');
                 
                 // Show success message
-                showSuccess('Rate sheet copied to clipboard! Paste it into the email body (Ctrl+V)');
+                showSuccess('Formatted rate sheet copied! Paste it into the email body (Ctrl+V)');
             }).catch(err => {
                 showError('Failed to copy to clipboard. Please try again.');
                 console.error('Clipboard error:', err);
