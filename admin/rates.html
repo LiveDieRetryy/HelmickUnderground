@@ -323,6 +323,7 @@
             padding-bottom: 1rem;
             border-bottom: 3px solid var(--primary-color);
             text-align: center;
+            page-break-after: avoid;
         }
 
         .preview-header > div {
@@ -421,6 +422,10 @@
         }
 
         @media print {
+            @page {
+                margin: 0.5in;
+            }
+
             .preview-overlay {
                 background: white;
                 padding: 0;
@@ -434,6 +439,29 @@
                 max-width: 100%;
                 box-shadow: none;
                 padding: 1rem;
+            }
+
+            .preview-header img {
+                max-width: 250px !important;
+            }
+
+            h2 {
+                page-break-before: auto;
+                page-break-after: avoid;
+            }
+
+            .preview-table {
+                page-break-inside: avoid;
+            }
+
+            .preview-table tr {
+                page-break-inside: avoid;
+            }
+
+            /* Hide browser print headers */
+            body {
+                margin: 0;
+                padding: 0;
             }
         }
 
