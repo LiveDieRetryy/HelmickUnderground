@@ -125,18 +125,42 @@
             overflow-y: auto;
             backdrop-filter: blur(10px);
             box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1001;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #ffb366 100%);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(255, 107, 26, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 25px rgba(255, 107, 26, 0.6);
         }
 
         .sidebar-logo {
-            padding: 0 1.5rem 2rem;
+            padding: 1.5rem 1.5rem 2rem;
             text-align: center;
             border-bottom: 2px solid rgba(255, 107, 26, 0.2);
             margin-bottom: 2rem;
-        }
-
-        .sidebar-logo img {
-            max-width: 180px;
-            filter: drop-shadow(0 4px 12px rgba(255, 107, 26, 0.3));
         }
 
         .sidebar-logo h2 {
@@ -224,7 +248,7 @@
             border: 2px solid transparent;
             background-clip: padding-box;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             box-shadow: 
                 0 20px 60px rgba(0, 0, 0, 0.5),
@@ -377,41 +401,38 @@
             line-height: 1;
             animation: shimmer 3s linear infinite;
         }
+-toggle {
+                display: block;
+            }
 
-        @keyframes shimmer {
-            0% { background-position: 200% center; }
-            100% { background-position: -200% center; }
-        }
+            .sidebar {
+                width: 280px;
+                transform: translateX(-100%);
+            }
 
-        .btn-logout {
-            background: linear-gradient(135deg, #dc143c 0%, #a01028 100%);
-            color: var(--white);
-            border: 2px solid rgba(220, 20, 60, 0.5);
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1rem;
-            box-shadow: 0 4px 15px rgba(220, 20, 60, 0.3);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+            .sidebar.active {
+                transform: translateX(0);
+            }
 
-        .btn-logout:hover {
-            background: linear-gradient(135deg, #a01028 0%, #dc143c 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(220, 20, 60, 0.5);
-            border-color: #dc143c;
-        }
+            .sidebar.collapsed {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 5rem 1rem 2rem;
+            }
+
+            .dashboard-header {
+                padding: 1.5rem;
+            }
+
+            .dashboard-header h1 {
+                font-size: 1.75
 
         @media (max-width: 768px) {
             .sidebar {
                 width: 70px;
-            }
-
-            .sidebar-logo img {
-                max-width: 40px;
             }
 
             .sidebar-logo h2,
@@ -469,11 +490,13 @@
         </div>
 
         <!-- Dashboard -->
-        <div id="dashboard" class="dashboard-wrapper" style="display: none;">
+        <div id="Mobile Toggle Button -->
+            <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+            
             <!-- Sidebar -->
+            <aside class="sidebar" id -->
             <aside class="sidebar">
                 <div class="sidebar-logo">
-                    <img src="/images/logo.png" alt="Helmick Underground">
                     <h2>Admin Panel</h2>
                 </div>
 
@@ -511,6 +534,10 @@
 
             <!-- Main Content -->
             <main class="main-content">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <img src="../logo.png" alt="Helmick Underground" style="max-width: 300px; filter: drop-shadow(0 4px 20px rgba(255, 107, 26, 0.4));">
+                </div>
+                
                 <div class="dashboard-header">
                     <h1>Dashboard Overview</h1>
                 </div>
@@ -616,7 +643,22 @@
                 document.getElementById('unreadQuotes').textContent = '0';
             }
         }
+        // Toggle sidebar for mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
 
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            if (window.innerWidth <= 768) {
+                const sidebar = document.getElementById('sidebar');
+                const toggle = document.querySelector('.sidebar-toggle');
+                if (sidebar && !sidebar.contains(event.target) && !toggle.contains(event.target)) {
+                    sidebar.classList.remove('active');
+                }
+            }
+        });
         // Check auth on load
         checkAuth();
     </script>
