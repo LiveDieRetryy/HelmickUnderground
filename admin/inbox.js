@@ -257,6 +257,10 @@ async function viewSubmission(id) {
                 <div class="detail-value" style="color: var(--gray); font-size: 0.9rem;">${sub.ip}</div>
             </div>
         ` : ''}
+        <button class="btn-send-ack" id="sendAckBtn-${sub.id}" onclick="sendAcknowledgmentEmail(${sub.id})">
+            <span>📧</span>
+            <span>Send Acknowledgment Email</span>
+        </button>
         <button class="btn-delete" onclick="deleteSubmission(${sub.id})">🗑️ Delete This Submission</button>
     `;
 
@@ -323,6 +327,73 @@ async function updateStatusFromCard(id, newStatus) {
     } catch (error) {
         console.error('Error updating status:', error);
         alert('Failed to update status');
+    }
+}
+
+// Send acknowledgment email
+async function sendAcknowledgmentEmail(id) {
+    const sub = allSubmissions.find(s => s.id == id);
+    if (!sub) return;
+
+    const btn = document.getElementById(`sendAckBtn-${id}`);
+    if (!btn) return;
+
+    // Disable button
+    btn.disabled = true;
+    btn.innerHTML = '<span>📧</span><span>Sending...</span>';
+
+    try {
+        const response = await fetch('/api/send-acknowledgment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: sub.name,
+                email: sub.email,
+                services: sub.services
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to send email');
+        }
+
+        // Success
+        btn.innerHTML = '<span>✅</span><span>Email Sent!</span>';
+        btn.style.background = 'rgba(16, 185, 129, 0.2)';
+        btn.style.color = '#10b981';
+        btn.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+
+        // Reset button after 3 seconds
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<span>📧</span><span>Send Acknowledgment Email</span>';
+            btn.style.background = '';
+            btn.style.color = '';
+            btn.style.borderColor = '';
+        }, 3000);
+
+    } catch (error) {
+        console.error('Error sending acknowledgment email:', error);
+        
+        // Error state
+        btn.innerHTML = '<span>❌</span><span>Failed to Send</span>';
+        btn.style.background = 'rgba(239, 68, 68, 0.2)';
+        btn.style.color = '#ef4444';
+        btn.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+
+        // Reset button after 3 seconds
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<span>📧</span><span>Send Acknowledgment Email</span>';
+            btn.style.background = '';
+            btn.style.color = '';
+            btn.style.borderColor = '';
+        }, 3000);
+        
+        alert('Failed to send acknowledgment email: ' + error.message);
     }
 }
 
