@@ -348,9 +348,11 @@
         async function loadDashboardStats() {
             try {
                 // Load gallery count
-                const galleryResponse = await fetch('../gallery-data.json');
-                const galleryData = await galleryResponse.json();
-                document.getElementById('galleryCount').textContent = galleryData.length;
+                const galleryResponse = await fetch('/api/gallery');
+                if (galleryResponse.ok) {
+                    const galleryData = await galleryResponse.json();
+                    document.getElementById('galleryCount').textContent = galleryData.length || 0;
+                }
 
                 // Load analytics stats
                 const analyticsResponse = await fetch('/api/analytics?action=stats');
