@@ -1055,41 +1055,48 @@
                 day: 'numeric' 
             });
 
-            // Build email body with formatted rate information
-            let emailBody = `HELMICK UNDERGROUND LLC%0D%0AService Rates & Pricing%0D%0AMount Vernon, Iowa%0D%0AEffective: ${encodeURIComponent(today)}%0D%0A%0D%0A`;
+            // Build plain text email body
+            let emailBody = `HELMICK UNDERGROUND LLC\nService Rates & Pricing\nMount Vernon, Iowa\nEffective: ${today}\n\n`;
             
-            emailBody += `BASE RATES:%0D%0A`;
-            emailBody += `----------------------------------------%0D%0A`;
+            emailBody += `BASE RATES:\n`;
+            emailBody += `${'─'.repeat(50)}\n`;
             currentRates.baseRates.forEach(item => {
-                emailBody += `${encodeURIComponent(item.name)}: $${item.rate.toFixed(2)}%0D%0A`;
+                emailBody += `${item.name.padEnd(40)} $${item.rate.toFixed(2)}\n`;
             });
             
-            emailBody += `%0D%0ACUSTOM WORK PER HOUR:%0D%0A`;
-            emailBody += `----------------------------------------%0D%0A`;
+            emailBody += `\nCUSTOM WORK PER HOUR:\n`;
+            emailBody += `${'─'.repeat(50)}\n`;
             currentRates.customWork.forEach(item => {
-                emailBody += `${encodeURIComponent(item.name)}: $${item.rate.toFixed(2)}%0D%0A`;
+                emailBody += `${item.name.padEnd(40)} $${item.rate.toFixed(2)}\n`;
             });
             
-            emailBody += `%0D%0AADDITIONAL ITEMS:%0D%0A`;
-            emailBody += `----------------------------------------%0D%0A`;
+            emailBody += `\nADDITIONAL ITEMS:\n`;
+            emailBody += `${'─'.repeat(50)}\n`;
             currentRates.additionalItems.forEach(item => {
-                emailBody += `${encodeURIComponent(item.name)}: $${item.rate.toFixed(2)}%0D%0A`;
+                emailBody += `${item.name.padEnd(40)} $${item.rate.toFixed(2)}\n`;
             });
             
-            emailBody += `%0D%0A----------------------------------------%0D%0A`;
-            emailBody += `CONTACT INFORMATION%0D%0A`;
-            emailBody += `Tommy Helmick: 319-721-9925%0D%0A`;
-            emailBody += `Travis Helmick: 319-551-4323%0D%0A`;
-            emailBody += `Email: HelmickUnderground@gmail.com%0D%0A`;
-            emailBody += `Website: www.helmickunderground.com%0D%0A%0D%0A`;
+            emailBody += `\n${'─'.repeat(50)}\n`;
+            emailBody += `CONTACT INFORMATION\n`;
+            emailBody += `Tommy Helmick: 319-721-9925\n`;
+            emailBody += `Travis Helmick: 319-551-4323\n`;
+            emailBody += `Email: HelmickUnderground@gmail.com\n`;
+            emailBody += `Website: www.helmickunderground.com\n\n`;
             emailBody += `Rates subject to change. Contact us for current pricing and free estimates.`;
 
-            // Create Gmail compose link (opens in new window, will use HelmickUnderground@gmail.com if logged in)
-            const subject = encodeURIComponent('Helmick Underground - Service Rates & Pricing');
-            const gmailLink = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${emailBody}`;
-            
-            // Open Gmail compose in new window
-            window.open(gmailLink, '_blank');
+            // Copy to clipboard
+            navigator.clipboard.writeText(emailBody).then(() => {
+                // Open Gmail compose
+                const subject = encodeURIComponent('Helmick Underground - Service Rates & Pricing');
+                const gmailLink = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}`;
+                window.open(gmailLink, '_blank');
+                
+                // Show success message
+                showSuccess('Rate sheet copied to clipboard! Paste it into the email body (Ctrl+V)');
+            }).catch(err => {
+                showError('Failed to copy to clipboard. Please try again.');
+                console.error('Clipboard error:', err);
+            });
         }
     </script>
 </body>
