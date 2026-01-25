@@ -380,6 +380,9 @@
             padding-bottom: 0.5rem;
             border-bottom: 2px solid var(--primary-color);
             text-align: center;
+            page-break-before: auto;
+            page-break-after: avoid;
+            page-break-inside: avoid;
         }
 
         .preview-content .company-info {
@@ -393,6 +396,15 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 2rem;
+            page-break-inside: avoid;
+        }
+
+        .preview-table thead {
+            display: table-header-group;
+        }
+
+        .preview-table tbody {
+            display: table-row-group;
         }
 
         .preview-table th,
@@ -414,16 +426,13 @@
 
         .preview-footer {
             margin-top: 3rem;
-            padding-top: 1rem;
-            border-top: 2px solid #ddd;
-            text-align: center;
-            color: #666;
-            font-size: 0.9rem;
-        }
+            padding-top: 175in 0.5in;
+                size: letter;
+            }
 
-        @media print {
-            @page {
-                margin: 0.5in;
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
 
             .preview-overlay {
@@ -438,16 +447,49 @@
             .preview-container {
                 max-width: 100%;
                 box-shadow: none;
-                padding: 1rem;
+                padding: 0;
+            }
+
+            .preview-header {
+                page-break-after: avoid;
+                page-break-inside: avoid;
             }
 
             .preview-header img {
                 max-width: 250px !important;
+                page-break-after: avoid;
             }
 
-            h2 {
+            .preview-content h2 {
                 page-break-before: auto;
                 page-break-after: avoid;
+                page-break-inside: avoid;
+                margin-top: 1.5rem;
+            }
+
+            .preview-table {
+                page-break-before: avoid;
+                page-break-inside: auto;
+                page-break-after: auto;
+            }
+
+            .preview-table thead {
+                display: table-header-group;
+            }
+
+            .preview-table tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+
+            .preview-table th,
+            .preview-table td {
+                page-break-inside: avoid;
+            }
+
+            .preview-footer {
+                page-break-before: avoid;
+                page-break-inside: avoid;
             }
 
             .preview-table {
