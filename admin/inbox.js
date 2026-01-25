@@ -85,6 +85,7 @@ function updateFilterCounts(stats) {
     const totalCount = stats.total || 0;
     const unreadCount = stats.unread || 0;
     const readCount = stats.read || 0;
+    const acknowledgedCount = stats.acknowledged || 0;
     const contactedCount = stats.contacted || 0;
     const scheduledCount = stats.scheduled || 0;
     const completedCount = stats.completed || 0;
@@ -96,10 +97,11 @@ function updateFilterCounts(stats) {
     select.options[0].text = `All (${totalCount})`;
     select.options[1].text = `📬 Unread (${unreadCount})`;
     select.options[2].text = `📖 Read (${readCount})`;
-    select.options[3].text = `📞 Contacted (${contactedCount})`;
-    select.options[4].text = `📅 Scheduled (${scheduledCount})`;
-    select.options[5].text = `✅ Completed (${completedCount})`;
-    select.options[6].text = `❌ Declined (${declinedCount})`;
+    select.options[3].text = `✉️ Acknowledged (${acknowledgedCount})`;
+    select.options[4].text = `📞 Contacted (${contactedCount})`;
+    select.options[5].text = `📅 Scheduled (${scheduledCount})`;
+    select.options[6].text = `✅ Completed (${completedCount})`;
+    select.options[7].text = `❌ Declined (${declinedCount})`;
     
     // Update today count
     document.getElementById('todayCount').innerHTML = `Today: <strong style="color: var(--primary-color);">${todayCount}</strong>`;
@@ -154,6 +156,7 @@ function renderSubmissions() {
                     <select class="card-status-dropdown status-${sub.status}" onchange="updateStatusFromCard(${sub.id}, this.value)" onclick="event.stopPropagation()">
                         <option value="unread" ${sub.status === 'unread' ? 'selected' : ''}>📬 Unread</option>
                         <option value="read" ${sub.status === 'read' ? 'selected' : ''}>📖 Read</option>
+                        <option value="acknowledged" ${sub.status === 'acknowledged' ? 'selected' : ''}>✉️ Acknowledged</option>
                         <option value="contacted" ${sub.status === 'contacted' ? 'selected' : ''}>📞 Contacted</option>
                         <option value="scheduled" ${sub.status === 'scheduled' ? 'selected' : ''}>📅 Scheduled</option>
                         <option value="completed" ${sub.status === 'completed' ? 'selected' : ''}>✅ Completed</option>
@@ -217,6 +220,7 @@ async function viewSubmission(id) {
             <select id="statusSelect" class="status-select" onchange="updateStatus(${id}, this.value)">
                 <option value="unread" ${sub.status === 'unread' ? 'selected' : ''}>📬 Unread</option>
                 <option value="read" ${sub.status === 'read' ? 'selected' : ''}>📖 Read</option>
+                <option value="acknowledged" ${sub.status === 'acknowledged' ? 'selected' : ''}>✉️ Acknowledged</option>
                 <option value="contacted" ${sub.status === 'contacted' ? 'selected' : ''}>📞 Contacted</option>
                 <option value="scheduled" ${sub.status === 'scheduled' ? 'selected' : ''}>📅 Scheduled</option>
                 <option value="completed" ${sub.status === 'completed' ? 'selected' : ''}>✅ Completed</option>
@@ -365,6 +369,18 @@ async function sendAcknowledgmentEmail(id) {
         btn.style.background = 'rgba(16, 185, 129, 0.2)';
         btn.style.color = '#10b981';
         btn.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+
+        // Update status to acknowledged
+        await fetch(`/api/contact-submissions?action=updateStatus&id=${id}&status=acknowledged`);
+        sub.status = 'acknowledged';
+        
+        // Refresh display
+        loadData();
+        
+        // Close modal and refresh
+        setTimeout(() => {
+            closeModal();
+        }, 2000);
 
         // Reset button after 3 seconds
         setTimeout(() => {

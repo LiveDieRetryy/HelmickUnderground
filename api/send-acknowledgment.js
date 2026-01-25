@@ -43,21 +43,21 @@ module.exports = async function handler(req, res) {
             background-color: #ffffff;
         }
         .header {
-            background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%);
+            background: #ffffff;
             padding: 40px 30px;
             text-align: center;
+            border-bottom: 3px solid #ff6b1a;
         }
         .logo {
-            max-width: 200px;
+            max-width: 250px;
             height: auto;
             margin-bottom: 15px;
         }
         .logo-text {
-            color: #ffffff;
+            color: #ff6b1a;
             font-size: 32px;
             font-weight: 900;
             margin: 0;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         .content {
             padding: 40px 30px;
