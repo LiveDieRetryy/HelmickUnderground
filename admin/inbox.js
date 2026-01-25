@@ -151,7 +151,14 @@ function renderSubmissions() {
             <div class="submission-card ${sub.status === 'unread' ? 'unread' : ''}" onclick="viewSubmission(${sub.id})">
                 <div class="submission-header">
                     <div class="submission-name">${sub.name}</div>
-                    <span class="status-badge status-${sub.status}">${sub.status}</span>
+                    <select class="card-status-dropdown status-${sub.status}" onchange="updateStatusFromCard(${sub.id}, this.value)" onclick="event.stopPropagation()">
+                        <option value="unread" ${sub.status === 'unread' ? 'selected' : ''}>📬 Unread</option>
+                        <option value="read" ${sub.status === 'read' ? 'selected' : ''}>📖 Read</option>
+                        <option value="contacted" ${sub.status === 'contacted' ? 'selected' : ''}>📞 Contacted</option>
+                        <option value="scheduled" ${sub.status === 'scheduled' ? 'selected' : ''}>📅 Scheduled</option>
+                        <option value="completed" ${sub.status === 'completed' ? 'selected' : ''}>✅ Completed</option>
+                        <option value="declined" ${sub.status === 'declined' ? 'selected' : ''}>❌ Declined</option>
+                    </select>
                 </div>
                 <div class="submission-info">
                     <div class="info-item">
@@ -170,17 +177,6 @@ function renderSubmissions() {
                     </div>
                 ` : ''}
                 <div class="message-preview">${sub.message}</div>
-                <div class="submission-actions">
-                    <select class="card-status-dropdown" onchange="updateStatusFromCard(${sub.id}, this.value)" onclick="event.stopPropagation()">
-                        <option value="">Change Status...</option>
-                        <option value="unread" ${sub.status === 'unread' ? 'selected' : ''}>📬 Unread</option>
-                        <option value="read" ${sub.status === 'read' ? 'selected' : ''}>📖 Read</option>
-                        <option value="contacted" ${sub.status === 'contacted' ? 'selected' : ''}>📞 Contacted</option>
-                        <option value="scheduled" ${sub.status === 'scheduled' ? 'selected' : ''}>📅 Scheduled</option>
-                        <option value="completed" ${sub.status === 'completed' ? 'selected' : ''}>✅ Completed</option>
-                        <option value="declined" ${sub.status === 'declined' ? 'selected' : ''}>❌ Declined</option>
-                    </select>
-                </div>
             </div>
         `;
     }).join('');
