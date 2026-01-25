@@ -140,6 +140,66 @@ export default async function handler(req, res) {
             throw new Error(data.message || 'Failed to send email');
         }
 
+        // Log the recipient to our tracking file
+        try {
+            const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+            const REPO_OWNER = 'LiveDieRetryy';
+            const REPO_NAME = 'HelmickUnderground';
+            const FILE_PATH = 'rate-recipients.json';
+
+            // Get current recipients file
+            const getFileResponse = await fetch(
+                `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`,
+                {
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                }
+            );
+
+            let recipients = [];
+            let sha = null;
+
+            if (getFileResponse.ok) {
+                const fileData = await getFileResponse.json();
+                sha = fileData.sha;
+                const content = Buffer.from(fileData.content, 'base64').toString('utf-8');
+                const parsed = JSON.parse(content);
+                recipients = parsed.recipients || [];
+            }
+
+            // Add new recipient
+            recipients.push({
+                email: recipientEmail,
+                sentAt: new Date().toISOString(),
+                ratesVersion: ratesData.lastUpdated || new Date().toISOString()
+            });
+
+            // Update file in GitHub
+            const updatedContent = Buffer.from(JSON.stringify({ recipients }, null, 2)).toString('base64');
+            
+            await fetch(
+                `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `Add rate recipient: ${recipientEmail}`,
+                        content: updatedContent,
+                        sha: sha
+                    })
+                }
+            );
+        } catch (logError) {
+            console.error('Failed to log recipient:', logError);
+            // Don't fail the whole request if logging fails
+        }
+
         return res.status(200).json({ 
             success: true, 
             message: 'Email sent successfully!',

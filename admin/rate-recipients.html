@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Rate Recipients - Helmick Underground</title>
+    <link rel="icon" type="image/png" href="../logo.png">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: var(--card-dark);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(255, 107, 26, 0.1);
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .back-btn {
+            background: rgba(255, 107, 26, 0.2);
+            color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 107, 26, 0.5);
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 107, 26, 0.3);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-dark);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .stat-label {
+            color: var(--gray);
+            margin-top: 0.5rem;
+        }
+
+        .recipients-card {
+            background: var(--card-dark);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            box-shadow: 0 8px 32px rgba(255, 107, 26, 0.1);
+        }
+
+        .recipients-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+
+        .recipients-table thead {
+            background: rgba(255, 107, 26, 0.1);
+        }
+
+        .recipients-table th {
+            padding: 1rem;
+            text-align: left;
+            color: var(--primary-color);
+            font-weight: 700;
+            border-bottom: 2px solid rgba(255, 107, 26, 0.3);
+        }
+
+        .recipients-table td {
+            padding: 1rem;
+            color: var(--text-light);
+            border-bottom: 1px solid rgba(255, 107, 26, 0.1);
+        }
+
+        .recipients-table tr:hover {
+            background: rgba(255, 107, 26, 0.05);
+        }
+
+        .loading {
+            text-align: center;
+            color: var(--gray);
+            padding: 3rem;
+            font-size: 1.2rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .recipients-table {
+                font-size: 0.85rem;
+            }
+
+            .recipients-table th,
+            .recipients-table td {
+                padding: 0.75rem 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📧 Rate Recipients</h1>
+            <a href="/admin" class="back-btn">← Back to Dashboard</a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalRecipients">0</div>
+                <div class="stat-label">Total Recipients</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="uniqueRecipients">0</div>
+                <div class="stat-label">Unique Recipients</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="thisMonth">0</div>
+                <div class="stat-label">This Month</div>
+            </div>
+        </div>
+
+        <div class="recipients-card">
+            <h2 style="color: var(--primary-color); margin-top: 0;">All Recipients</h2>
+            <div id="loadingMessage" class="loading">Loading recipients...</div>
+            <div id="recipientsContent"></div>
+        </div>
+    </div>
+
+    <script>
+        async function loadRecipients() {
+            try {
+                const response = await fetch('/api/rate-recipients');
+                const data = await response.json();
+                
+                document.getElementById('loadingMessage').style.display = 'none';
+                
+                if (!data.recipients || data.recipients.length === 0) {
+                    document.getElementById('recipientsContent').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <h3>No recipients yet</h3>
+                            <p>When you send rate sheets via email, recipients will appear here.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Calculate stats
+                const recipients = data.recipients;
+                const uniqueEmails = new Set(recipients.map(r => r.email)).size;
+                const now = new Date();
+                const thisMonth = recipients.filter(r => {
+                    const sentDate = new Date(r.sentAt);
+                    return sentDate.getMonth() === now.getMonth() && 
+                           sentDate.getFullYear() === now.getFullYear();
+                }).length;
+
+                document.getElementById('totalRecipients').textContent = recipients.length;
+                document.getElementById('uniqueRecipients').textContent = uniqueEmails;
+                document.getElementById('thisMonth').textContent = thisMonth;
+
+                // Sort by most recent first
+                recipients.sort((a, b) => new Date(b.sentAt) - new Date(a.sentAt));
+
+                // Build table
+                let html = `
+                    <table class="recipients-table">
+                        <thead>
+                            <tr>
+                                <th>Email Address</th>
+                                <th>Sent Date</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                recipients.forEach(recipient => {
+                    const date = new Date(recipient.sentAt);
+                    const dateStr = date.toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'short', 
+                        day: 'numeric' 
+                    });
+                    const timeStr = date.toLocaleTimeString('en-US', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    });
+
+                    html += `
+                        <tr>
+                            <td>${recipient.email}</td>
+                            <td>${dateStr}</td>
+                            <td>${timeStr}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                        </tbody>
+                    </table>
+                `;
+
+                document.getElementById('recipientsContent').innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading recipients:', error);
+                document.getElementById('loadingMessage').style.display = 'none';
+                document.getElementById('recipientsContent').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <h3>Error loading recipients</h3>
+                        <p>Please try again later.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Load recipients on page load
+        document.addEventListener('DOMContentLoaded', loadRecipients);
+    </script>
+</body>
+</html>
