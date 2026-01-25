@@ -616,45 +616,6 @@
                 showSuccess('Item deleted! Don\'t forget to save changes.');
             }
         }
-                // Save to server
-                const response = await fetch('/api/rates', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(currentRates)
-                });
-
-                if (!response.ok) throw new Error('Failed to save rates');
-
-                showSuccess('Rates saved successfully!');
-                displayRates(); // Refresh display with updated timestamp
-            } catch (error) {
-                console.error('Error saving rates:', error);
-                showError('Failed to save rates. Please try again.');
-            } finally {
-                saveBtn.disabled = false;
-                saveBtn.textContent = '💾 Save Changes';
-            }
-        }
-
-        function showSuccess(message) {
-            const successMsg = document.getElementById('successMessage');
-            successMsg.textContent = message;
-            successMsg.style.display = 'block';
-            setTimeout(() => {
-                successMsg.style.display = 'none';
-            }, 3000);
-        }
-
-        function showError(message) {
-            const errorMsg = document.getElementById('errorMessage');
-            errorMsg.textContent = message;
-            errorMsg.style.display = 'block';
-            setTimeout(() => {
-                errorMsg.style.display = 'none';
-            }, 5000);
-        }
     </script>
 </body>
 </html>
