@@ -1,32 +1,129 @@
 {
   "baseRates": [
-    { "id": "plowing", "name": "Plowing per foot", "rate": 2.27 },
-    { "id": "boring", "name": "Boring per foot", "rate": 12.60 },
-    { "id": "dropBore", "name": "Drop Bore per foot", "rate": 11.75 },
-    { "id": "additionalPipe", "name": "Each additional pipe", "rate": 2.75 },
-    { "id": "pullCable", "name": "Pull cable in pipe per foot per cable", "rate": 1.25 },
-    { "id": "setPedestal", "name": "Set pedestal", "rate": 104.50 },
-    { "id": "setVault", "name": "Set vault", "rate": 159.50 }
+    {
+      "id": "plowing",
+      "name": "Plowing per foot",
+      "rate": 2.27
+    },
+    {
+      "id": "boring",
+      "name": "Boring per foot",
+      "rate": 12.6
+    },
+    {
+      "id": "dropBore",
+      "name": "Drop Bore per foot",
+      "rate": 11.75
+    },
+    {
+      "id": "additionalPipe",
+      "name": "Each additional pipe",
+      "rate": 2.75
+    },
+    {
+      "id": "pullCable",
+      "name": "Pull cable in pipe per foot per cable",
+      "rate": 1.25
+    },
+    {
+      "id": "setPedestal",
+      "name": "Set pedestal",
+      "rate": 104.5
+    },
+    {
+      "id": "setVault",
+      "name": "Set vault",
+      "rate": 159.5
+    }
   ],
   "customWork": [
-    { "id": "laborer", "name": "1 man laborer only", "rate": 94.00 },
-    { "id": "te1man", "name": "T & E 1 man with equipment", "rate": 126.50 },
-    { "id": "te2man", "name": "T & E 2 man crew", "rate": 161.70 },
-    { "id": "te3man", "name": "T & E 3 man crew", "rate": 203.50 },
-    { "id": "te4man", "name": "T & E 4 man crew", "rate": 242.00 }
+    {
+      "id": "laborer",
+      "name": "1 man laborer only",
+      "rate": 94
+    },
+    {
+      "id": "te1man",
+      "name": "T & E 1 man with equipment",
+      "rate": 126.5
+    },
+    {
+      "id": "te2man",
+      "name": "T & E 2 man crew",
+      "rate": 161.7
+    },
+    {
+      "id": "te3man",
+      "name": "T & E 3 man crew",
+      "rate": 203.5
+    },
+    {
+      "id": "te4man",
+      "name": "T & E 4 man crew",
+      "rate": 242
+    }
   ],
   "additionalItems": [
-    { "id": "setHH30", "name": "Set HH 30x48x36", "rate": 440.00 },
-    { "id": "setHH24", "name": "Set HH 24x36x24", "rate": 385.00 },
-    { "id": "reenterPed", "name": "Re-enter existing ped", "rate": 55.00 },
-    { "id": "reenterHH", "name": "Re-enter existing HH", "rate": 104.50 },
-    { "id": "trenchCable", "name": "Trench cable/pipe per foot", "rate": 4.79 },
-    { "id": "trenchRock", "name": "Trench rock/cobble per foot", "rate": 18.70 },
-    { "id": "boreRock", "name": "Bore rock/cobble per foot", "rate": 30.25 },
-    { "id": "rodVacant", "name": "Rod install pull line vacant duct", "rate": 0.77 },
-    { "id": "rodOccupied", "name": "Rod install pull line occupied duct", "rate": 1.10 },
-    { "id": "markerPost", "name": "Set Marker post", "rate": 60.50 },
-    { "id": "rock", "name": "Rock cubic foot", "rate": 1078.00 },
-    { "id": "frost", "name": "Frost cubic yard", "rate": 71.50 }
-  ]
+    {
+      "id": "setHH30",
+      "name": "Set HH 30x48x36",
+      "rate": 440
+    },
+    {
+      "id": "setHH24",
+      "name": "Set HH 24x36x24",
+      "rate": 385
+    },
+    {
+      "id": "reenterPed",
+      "name": "Re-enter existing ped",
+      "rate": 55
+    },
+    {
+      "id": "reenterHH",
+      "name": "Re-enter existing HH",
+      "rate": 104.5
+    },
+    {
+      "id": "trenchCable",
+      "name": "Trench cable/pipe per foot",
+      "rate": 4.79
+    },
+    {
+      "id": "trenchRock",
+      "name": "Trench rock/cobble per foot",
+      "rate": 18.7
+    },
+    {
+      "id": "boreRock",
+      "name": "Bore rock/cobble per foot",
+      "rate": 30.25
+    },
+    {
+      "id": "rodVacant",
+      "name": "Rod install pull line vacant duct",
+      "rate": 0.77
+    },
+    {
+      "id": "rodOccupied",
+      "name": "Rod install pull line occupied duct",
+      "rate": 1.1
+    },
+    {
+      "id": "markerPost",
+      "name": "Set Marker post",
+      "rate": 60.5
+    },
+    {
+      "id": "rock",
+      "name": "Rock cubic foot",
+      "rate": 10.78
+    },
+    {
+      "id": "frost",
+      "name": "Frost cubic yard",
+      "rate": 71.5
+    }
+  ],
+  "lastUpdated": "2026-01-25T18:39:19.934Z"
 }
