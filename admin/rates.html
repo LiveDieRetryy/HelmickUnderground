@@ -414,8 +414,18 @@
 
         async function loadRates() {
             try {
-                const response = await fetch('/api/rates');
-                if (!response.ok) throw new Error('Failed to load rates');
+                // Try API first
+                let response = await fetch('/api/rates');
+                
+                // If API fails, try direct GitHub raw URL as fallback
+                if (!response.ok) {
+                    console.log('API failed, trying direct GitHub URL...');
+                    response = await fetch('https://raw.githubusercontent.com/LiveDieRetryy/HelmickUnderground/main/rates-data.json');
+                }
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load rates from all sources');
+                }
                 
                 currentRates = await response.json();
                 displayRates();
@@ -424,8 +434,8 @@
                 document.getElementById('ratesContent').style.display = 'block';
             } catch (error) {
                 console.error('Error loading rates:', error);
-                showError('Failed to load rates. Please refresh the page.');
-                document.getElementById('loadingMessage').textContent = 'Error loading rates';
+                showError('Failed to load rates: ' + error.message);
+                document.getElementById('loadingMessage').textContent = 'Error loading rates. Check console for details.';
             }
         }
 
