@@ -649,6 +649,17 @@
             document.getElementById('loginBox').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
             await loadDashboardStats();
+            
+            // Initialize sidebar functionality after dashboard is shown
+            if (typeof initMobileMenu === 'function') {
+                initMobileMenu();
+            }
+            if (typeof highlightActivePage === 'function') {
+                highlightActivePage();
+            }
+            if (typeof updateQuoteNotification === 'function') {
+                updateQuoteNotification();
+            }
         }
 
         // Load dashboard statistics
