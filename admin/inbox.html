@@ -330,6 +330,41 @@
             letter-spacing: 0.5px;
         }
 
+        .submission-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .card-status-dropdown {
+            background: rgba(255, 107, 26, 0.1);
+            color: var(--white);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .card-status-dropdown:hover {
+            background: rgba(255, 107, 26, 0.2);
+            border-color: var(--primary-color);
+        }
+
+        .card-status-dropdown:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 107, 26, 0.1);
+        }
+
+        .card-status-dropdown option {
+            background: var(--card-dark);
+            color: var(--white);
+        }
+
         .status-unread {
             background: rgba(34, 197, 94, 0.2);
             color: #22c55e;
@@ -668,6 +703,7 @@
                 <select id="statusFilter" class="status-filter" onchange="filterSubmissions()">
                     <option value="all">All (<span id="totalCount">0</span>)</option>
                     <option value="unread">📬 Unread (<span id="unreadCount">0</span>)</option>
+                    <option value="read">📖 Read (<span id="readCount">0</span>)</option>
                     <option value="contacted">📞 Contacted (<span id="contactedCount">0</span>)</option>
                     <option value="scheduled">📅 Scheduled (<span id="scheduledCount">0</span>)</option>
                     <option value="completed">✅ Completed (<span id="completedCount">0</span>)</option>

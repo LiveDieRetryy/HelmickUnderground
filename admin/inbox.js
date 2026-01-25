@@ -84,6 +84,7 @@ async function loadData() {
 function updateFilterCounts(stats) {
     const totalCount = stats.total || 0;
     const unreadCount = stats.unread || 0;
+    const readCount = stats.read || 0;
     const contactedCount = stats.contacted || 0;
     const scheduledCount = stats.scheduled || 0;
     const completedCount = stats.completed || 0;
@@ -94,10 +95,11 @@ function updateFilterCounts(stats) {
     const select = document.getElementById('statusFilter');
     select.options[0].text = `All (${totalCount})`;
     select.options[1].text = `📬 Unread (${unreadCount})`;
-    select.options[2].text = `📞 Contacted (${contactedCount})`;
-    select.options[3].text = `📅 Scheduled (${scheduledCount})`;
-    select.options[4].text = `✅ Completed (${completedCount})`;
-    select.options[5].text = `❌ Declined (${declinedCount})`;
+    select.options[2].text = `📖 Read (${readCount})`;
+    select.options[3].text = `📞 Contacted (${contactedCount})`;
+    select.options[4].text = `📅 Scheduled (${scheduledCount})`;
+    select.options[5].text = `✅ Completed (${completedCount})`;
+    select.options[6].text = `❌ Declined (${declinedCount})`;
     
     // Update today count
     document.getElementById('todayCount').innerHTML = `Today: <strong style="color: var(--primary-color);">${todayCount}</strong>`;
@@ -168,6 +170,17 @@ function renderSubmissions() {
                     </div>
                 ` : ''}
                 <div class="message-preview">${sub.message}</div>
+                <div class="submission-actions">
+                    <select class="card-status-dropdown" onchange="updateStatusFromCard(${sub.id}, this.value)" onclick="event.stopPropagation()">
+                        <option value="">Change Status...</option>
+                        <option value="unread" ${sub.status === 'unread' ? 'selected' : ''}>📬 Unread</option>
+                        <option value="read" ${sub.status === 'read' ? 'selected' : ''}>📖 Read</option>
+                        <option value="contacted" ${sub.status === 'contacted' ? 'selected' : ''}>📞 Contacted</option>
+                        <option value="scheduled" ${sub.status === 'scheduled' ? 'selected' : ''}>📅 Scheduled</option>
+                        <option value="completed" ${sub.status === 'completed' ? 'selected' : ''}>✅ Completed</option>
+                        <option value="declined" ${sub.status === 'declined' ? 'selected' : ''}>❌ Declined</option>
+                    </select>
+                </div>
             </div>
         `;
     }).join('');
@@ -177,6 +190,21 @@ function renderSubmissions() {
 async function viewSubmission(id) {
     const sub = allSubmissions.find(s => s.id == id);
     if (!sub) return;
+
+    // Auto-mark as read if it's unread
+    if (sub.status === 'unread') {
+        try {
+            const response = await fetch(`/api/contact-submissions?action=updateStatus&id=${id}&status=read`);
+            if (response.ok) {
+                sub.status = 'read';
+                renderSubmissions();
+                // Update counts
+                loadData();
+            }
+        } catch (error) {
+            console.error('Error auto-marking as read:', error);
+        }
+    }
 
     const date = new Date(sub.timestamp);
     const dateStr = date.toLocaleDateString('en-US', { 
@@ -192,6 +220,7 @@ async function viewSubmission(id) {
             <div class="detail-label">Status</div>
             <select id="statusSelect" class="status-select" onchange="updateStatus(${id}, this.value)">
                 <option value="unread" ${sub.status === 'unread' ? 'selected' : ''}>📬 Unread</option>
+                <option value="read" ${sub.status === 'read' ? 'selected' : ''}>📖 Read</option>
                 <option value="contacted" ${sub.status === 'contacted' ? 'selected' : ''}>📞 Contacted</option>
                 <option value="scheduled" ${sub.status === 'scheduled' ? 'selected' : ''}>📅 Scheduled</option>
                 <option value="completed" ${sub.status === 'completed' ? 'selected' : ''}>✅ Completed</option>
@@ -261,6 +290,28 @@ async function deleteSubmission(id) {
 
 // Update status
 async function updateStatus(id, newStatus) {
+    try {
+        const response = await fetch(`/api/contact-submissions?action=updateStatus&id=${id}&status=${newStatus}`);
+        if (!response.ok) throw new Error('Update failed');
+        
+        // Update local data
+        const sub = allSubmissions.find(s => s.id == id);
+        if (sub) sub.status = newStatus;
+        
+        // Refresh display
+        loadData();
+        
+        console.log(`Updated submission ${id} to status: ${newStatus}`);
+    } catch (error) {
+        console.error('Error updating status:', error);
+        alert('Failed to update status');
+    }
+}
+
+// Update status from card dropdown
+async function updateStatusFromCard(id, newStatus) {
+    if (!newStatus) return; // Ignore if "Change Status..." is selected
+    
     try {
         const response = await fetch(`/api/contact-submissions?action=updateStatus&id=${id}&status=${newStatus}`);
         if (!response.ok) throw new Error('Update failed');

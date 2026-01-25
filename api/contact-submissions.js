@@ -77,6 +77,7 @@ module.exports = async function handler(req, res) {
                     SELECT 
                         COUNT(*) as total,
                         SUM(CASE WHEN status = 'unread' THEN 1 ELSE 0 END) as unread,
+                        SUM(CASE WHEN status = 'read' THEN 1 ELSE 0 END) as read,
                         SUM(CASE WHEN status = 'contacted' THEN 1 ELSE 0 END) as contacted,
                         SUM(CASE WHEN status = 'scheduled' THEN 1 ELSE 0 END) as scheduled,
                         SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
@@ -88,6 +89,7 @@ module.exports = async function handler(req, res) {
                 return res.status(200).json({
                     total: parseInt(stats.rows[0].total) || 0,
                     unread: parseInt(stats.rows[0].unread) || 0,
+                    read: parseInt(stats.rows[0].read) || 0,
                     contacted: parseInt(stats.rows[0].contacted) || 0,
                     scheduled: parseInt(stats.rows[0].scheduled) || 0,
                     completed: parseInt(stats.rows[0].completed) || 0,
@@ -108,7 +110,7 @@ module.exports = async function handler(req, res) {
             
             if (action === 'updateStatus' && id) {
                 const { status } = req.query;
-                const validStatuses = ['unread', 'contacted', 'scheduled', 'completed', 'declined'];
+                const validStatuses = ['unread', 'read', 'contacted', 'scheduled', 'completed', 'declined'];
                 
                 if (!validStatuses.includes(status)) {
                     return res.status(400).json({ error: 'Invalid status' });
