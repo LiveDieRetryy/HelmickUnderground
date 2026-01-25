@@ -275,6 +275,161 @@
             text-align: center;
         }
 
+        .preview-btn {
+            background: rgba(33, 150, 243, 0.2);
+            color: #2196f3;
+            padding: 0.75rem 2rem;
+            border-radius: 12px;
+            border: 1px solid rgba(33, 150, 243, 0.5);
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .preview-btn:hover {
+            background: rgba(33, 150, 243, 0.3);
+            border-color: #2196f3;
+            transform: translateY(-2px);
+        }
+
+        .preview-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .preview-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 3rem;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .preview-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .preview-close-btn,
+        .preview-print-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .preview-close-btn {
+            background: #dc143c;
+            color: white;
+        }
+
+        .preview-close-btn:hover {
+            background: #b01030;
+        }
+
+        .preview-print-btn {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .preview-print-btn:hover {
+            background: #ff8040;
+        }
+
+        .preview-content {
+            color: #333;
+        }
+
+        .preview-content h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .preview-content h2 {
+            color: #333;
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .preview-content .company-info {
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+
+        .preview-table th,
+        .preview-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .preview-table th {
+            background: var(--primary-color);
+            color: white;
+            font-weight: 700;
+        }
+
+        .preview-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .preview-footer {
+            margin-top: 3rem;
+            padding-top: 1rem;
+            border-top: 2px solid #ddd;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        @media print {
+            .preview-overlay {
+                background: white;
+                padding: 0;
+            }
+
+            .preview-actions {
+                display: none !important;
+            }
+
+            .preview-container {
+                max-width: 100%;
+                box-shadow: none;
+                padding: 1rem;
+            }
+        }
+
         @media (max-width: 768px) {
             .rates-table {
                 font-size: 0.85rem;
@@ -378,6 +533,7 @@
         <div class="header">
             <h1>💰 Rates Management</h1>
             <div class="header-actions">
+                <button class="preview-btn" onclick="showPreview()">📄 Preview</button>
                 <button class="save-btn" onclick="saveRates()">💾 Save Changes</button>
                 <a href="/admin" class="back-btn">← Back to Dashboard</a>
             </div>
@@ -435,6 +591,17 @@
                 </table>
                 <button class="add-item-btn" onclick="addNewItem('additionalItems')">➕ Add New Additional Item</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Preview Overlay -->
+    <div id="previewOverlay" class="preview-overlay">
+        <div class="preview-container">
+            <div class="preview-actions">
+                <button class="preview-print-btn" onclick="window.print()">🖨️ Print</button>
+                <button class="preview-close-btn" onclick="closePreview()">✖ Close</button>
+            </div>
+            <div id="previewContent" class="preview-content"></div>
         </div>
     </div>
 
@@ -639,6 +806,102 @@
                 displayRates();
                 showSuccess('Item deleted! Don\'t forget to save changes.');
             }
+        }
+
+        function showPreview() {
+            if (!currentRates) {
+                showError('Please wait for rates to load first.');
+                return;
+            }
+
+            const today = new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+
+            let html = `
+                <div class="preview-header">
+                    <div>
+                        <h1>Helmick Underground LLC</h1>
+                        <div class="company-info">
+                            Service Rates & Pricing<br>
+                            Mount Vernon, Iowa<br>
+                            Effective: ${today}
+                        </div>
+                    </div>
+                </div>
+
+                <h2>Base Rates</h2>
+                <table class="preview-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th style="text-align: right;">Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${currentRates.baseRates.map(item => `
+                            <tr>
+                                <td>${item.name}</td>
+                                <td style="text-align: right;">$${item.rate.toFixed(2)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+
+                <h2>Custom Work Per Hour</h2>
+                <table class="preview-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th style="text-align: right;">Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${currentRates.customWork.map(item => `
+                            <tr>
+                                <td>${item.name}</td>
+                                <td style="text-align: right;">$${item.rate.toFixed(2)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+
+                <h2>Additional Items</h2>
+                <table class="preview-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th style="text-align: right;">Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${currentRates.additionalItems.map(item => `
+                            <tr>
+                                <td>${item.name}</td>
+                                <td style="text-align: right;">$${item.rate.toFixed(2)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+
+                <div class="preview-footer">
+                    <p><strong>Contact Information</strong></p>
+                    <p>Tommy Helmick: 319-721-9925 | Travis Helmick: 319-551-4323</p>
+                    <p>Email: HelmickUnderground@gmail.com | www.helmickunderground.com</p>
+                    <p style="margin-top: 1rem; font-size: 0.85rem;">Rates subject to change. Contact us for current pricing and free estimates.</p>
+                </div>
+            `;
+
+            document.getElementById('previewContent').innerHTML = html;
+            document.getElementById('previewOverlay').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePreview() {
+            document.getElementById('previewOverlay').style.display = 'none';
+            document.body.style.overflow = 'auto';
         }
     </script>
 </body>
