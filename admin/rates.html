@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Rates Management - Helmick Underground</title>
+    <link rel="icon" type="image/png" href="../logo.png">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: var(--card-dark);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(255, 107, 26, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .header:hover {
+            box-shadow: 0 12px 48px rgba(255, 107, 26, 0.15);
+            border-color: rgba(255, 107, 26, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1.5rem;
+            }
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .header-actions {
+                width: 100%;
+                flex-direction: column;
+            }
+        }
+
+        .back-btn {
+            background: rgba(255, 107, 26, 0.1);
+            color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            background: var(--primary-color);
+            color: var(--bg-dark);
+            transform: translateX(-4px);
+            box-shadow: 0 4px 20px rgba(255, 107, 26, 0.3);
+        }
+
+        .save-btn {
+            background: var(--primary-color);
+            color: var(--bg-dark);
+            padding: 0.75rem 2rem;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(255, 107, 26, 0.3);
+        }
+
+        .save-btn:hover {
+            background: #ff8040;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(255, 107, 26, 0.4);
+        }
+
+        .save-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            .save-btn {
+                width: 100%;
+            }
+        }
+
+        .rates-section {
+            background: var(--card-dark);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .rates-section h2 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .rates-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .rates-table thead {
+            background: rgba(255, 107, 26, 0.1);
+        }
+
+        .rates-table th {
+            color: var(--white);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 700;
+            border-bottom: 2px solid rgba(255, 107, 26, 0.3);
+        }
+
+        .rates-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 107, 26, 0.1);
+        }
+
+        .rates-table tr:hover {
+            background: rgba(255, 107, 26, 0.05);
+        }
+
+        .rate-name {
+            color: var(--white);
+            font-weight: 500;
+        }
+
+        .rate-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            color: var(--white);
+            font-size: 1rem;
+            width: 120px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .rate-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(255, 107, 26, 0.3);
+        }
+
+        .rate-input:hover {
+            border-color: rgba(255, 107, 26, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .rates-table {
+                font-size: 0.9rem;
+            }
+
+            .rates-table th,
+            .rates-table td {
+                padding: 0.75rem 0.5rem;
+            }
+
+            .rate-input {
+                width: 100px;
+                padding: 0.4rem 0.5rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        .success-message {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(76, 175, 80, 0.5);
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        .error-message {
+            background: rgba(220, 20, 60, 0.2);
+            color: #dc143c;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(220, 20, 60, 0.5);
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .last-updated {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 107, 26, 0.1);
+        }
+
+        .loading {
+            text-align: center;
+            color: var(--gray);
+            padding: 3rem;
+            font-size: 1.2rem;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Rates Management</h1>
+            <div class="header-actions">
+                <button class="save-btn" onclick="saveRates()">💾 Save Changes</button>
+                <a href="/admin" class="back-btn">← Back to Dashboard</a>
+            </div>
+        </div>
+
+        <div id="successMessage" class="success-message"></div>
+        <div id="errorMessage" class="error-message"></div>
+        <div id="loadingMessage" class="loading">Loading rates</div>
+
+        <div id="ratesContent" style="display: none;">
+            <!-- Base Rates Section -->
+            <div class="rates-section">
+                <h2>📏 Base Rates</h2>
+                <table class="rates-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Rate ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="baseRatesTable"></tbody>
+                </table>
+            </div>
+
+            <!-- Custom Work Per Hour Section -->
+            <div class="rates-section">
+                <h2>👷 Custom Work Per Hour</h2>
+                <table class="rates-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Rate ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customWorkTable"></tbody>
+                </table>
+            </div>
+
+            <!-- Additional Items Section -->
+            <div class="rates-section">
+                <h2>🔧 Additional Items</h2>
+                <table class="rates-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Rate ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="additionalItemsTable"></tbody>
+                </table>
+                <div class="last-updated">
+                    Last updated: <span id="lastUpdated">--</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentRates = null;
+
+        // Load rates on page load
+        document.addEventListener('DOMContentLoaded', loadRates);
+
+        async function loadRates() {
+            try {
+                const response = await fetch('/api/rates');
+                if (!response.ok) throw new Error('Failed to load rates');
+                
+                currentRates = await response.json();
+                displayRates();
+                
+                document.getElementById('loadingMessage').style.display = 'none';
+                document.getElementById('ratesContent').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading rates:', error);
+                showError('Failed to load rates. Please refresh the page.');
+                document.getElementById('loadingMessage').textContent = 'Error loading rates';
+            }
+        }
+
+        function displayRates() {
+            // Display base rates
+            const baseRatesTable = document.getElementById('baseRatesTable');
+            baseRatesTable.innerHTML = currentRates.baseRates.map(item => `
+                <tr>
+                    <td class="rate-name">${item.name}</td>
+                    <td>
+                        <input type="number" 
+                               class="rate-input" 
+                               value="${item.rate.toFixed(2)}" 
+                               step="0.01" 
+                               data-section="baseRates" 
+                               data-id="${item.id}">
+                    </td>
+                </tr>
+            `).join('');
+
+            // Display custom work
+            const customWorkTable = document.getElementById('customWorkTable');
+            customWorkTable.innerHTML = currentRates.customWork.map(item => `
+                <tr>
+                    <td class="rate-name">${item.name}</td>
+                    <td>
+                        <input type="number" 
+                               class="rate-input" 
+                               value="${item.rate.toFixed(2)}" 
+                               step="0.01" 
+                               data-section="customWork" 
+                               data-id="${item.id}">
+                    </td>
+                </tr>
+            `).join('');
+
+            // Display additional items
+            const additionalItemsTable = document.getElementById('additionalItemsTable');
+            additionalItemsTable.innerHTML = currentRates.additionalItems.map(item => `
+                <tr>
+                    <td class="rate-name">${item.name}</td>
+                    <td>
+                        <input type="number" 
+                               class="rate-input" 
+                               value="${item.rate.toFixed(2)}" 
+                               step="0.01" 
+                               data-section="additionalItems" 
+                               data-id="${item.id}">
+                    </td>
+                </tr>
+            `).join('');
+
+            // Update last updated time
+            if (currentRates.lastUpdated) {
+                const date = new Date(currentRates.lastUpdated);
+                document.getElementById('lastUpdated').textContent = date.toLocaleString();
+            } else {
+                document.getElementById('lastUpdated').textContent = 'Never';
+            }
+        }
+
+        async function saveRates() {
+            const saveBtn = document.querySelector('.save-btn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = '💾 Saving...';
+
+            try {
+                // Collect all input values
+                const inputs = document.querySelectorAll('.rate-input');
+                inputs.forEach(input => {
+                    const section = input.dataset.section;
+                    const id = input.dataset.id;
+                    const value = parseFloat(input.value);
+                    
+                    const item = currentRates[section].find(i => i.id === id);
+                    if (item) {
+                        item.rate = value;
+                    }
+                });
+
+                // Add timestamp
+                currentRates.lastUpdated = new Date().toISOString();
+
+                // Save to server
+                const response = await fetch('/api/rates', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(currentRates)
+                });
+
+                if (!response.ok) throw new Error('Failed to save rates');
+
+                showSuccess('Rates saved successfully!');
+                displayRates(); // Refresh display with updated timestamp
+            } catch (error) {
+                console.error('Error saving rates:', error);
+                showError('Failed to save rates. Please try again.');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = '💾 Save Changes';
+            }
+        }
+
+        function showSuccess(message) {
+            const successMsg = document.getElementById('successMessage');
+            successMsg.textContent = message;
+            successMsg.style.display = 'block';
+            setTimeout(() => {
+                successMsg.style.display = 'none';
+            }, 3000);
+        }
+
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMessage');
+            errorMsg.textContent = message;
+            errorMsg.style.display = 'block';
+            setTimeout(() => {
+                errorMsg.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
