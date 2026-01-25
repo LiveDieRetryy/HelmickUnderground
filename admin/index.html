@@ -649,6 +649,13 @@
             document.getElementById('loginContainer').style.display = 'none';
             document.getElementById('dashboardContent').style.display = 'block';
             await loadDashboardStats();
+            
+            // Manually trigger notification update after dashboard is visible
+            if (typeof updateQuoteNotification === 'function') {
+                setTimeout(() => {
+                    updateQuoteNotification();
+                }, 100);
+            }
         }
 
         // Load dashboard statistics
