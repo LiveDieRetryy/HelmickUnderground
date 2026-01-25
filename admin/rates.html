@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body {
             background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
@@ -726,6 +727,7 @@
     <div id="previewOverlay" class="preview-overlay">
         <div class="preview-actions">
             <button class="preview-print-btn" onclick="window.print()">🖨️ Print</button>
+            <button class="preview-print-btn" onclick="downloadPDF()">📥 Download PDF</button>
             <button class="preview-close-btn" onclick="closePreview()">✖ Close</button>
         </div>
         <div class="preview-container">
@@ -1030,6 +1032,38 @@
         function closePreview() {
             document.getElementById('previewOverlay').style.display = 'none';
             document.body.style.overflow = 'auto';
+        }
+
+        async function downloadPDF() {
+            const element = document.getElementById('previewContent');
+            const today = new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit' 
+            }).replace(/\//g, '-');
+            
+            const opt = {
+                margin: [0.75, 0.5, 0.75, 0.5],
+                filename: `Helmick-Underground-Rates-${today}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2,
+                    useCORS: true,
+                    logging: false
+                },
+                jsPDF: { 
+                    unit: 'in', 
+                    format: 'letter', 
+                    orientation: 'portrait' 
+                }
+            };
+
+            try {
+                await html2pdf().set(opt).from(element).save();
+            } catch (error) {
+                console.error('PDF generation error:', error);
+                alert('Error generating PDF. Please try using the Print button instead.');
+            }
         }
     </script>
 </body>
