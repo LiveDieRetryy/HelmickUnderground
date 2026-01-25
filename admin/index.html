@@ -105,9 +105,112 @@
         .dashboard-wrapper {
             min-height: 100vh;
             background: transparent;
-            padding: 3rem 2rem;
+            padding: 0;
             position: relative;
             z-index: 1;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, 
+                rgba(20, 20, 20, 0.95) 0%, 
+                rgba(10, 10, 10, 0.95) 100%);
+            border-right: 2px solid rgba(255, 107, 26, 0.2);
+            padding: 2rem 0;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar-logo {
+            padding: 0 1.5rem 2rem;
+            text-align: center;
+            border-bottom: 2px solid rgba(255, 107, 26, 0.2);
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-logo img {
+            max-width: 180px;
+            filter: drop-shadow(0 4px 12px rgba(255, 107, 26, 0.3));
+        }
+
+        .sidebar-logo h2 {
+            color: transparent;
+            background: linear-gradient(135deg, #ff6b1a 0%, #ffb366 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .sidebar-nav {
+            padding: 0;
+        }
+
+        .sidebar-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            color: #999;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            position: relative;
+        }
+
+        .sidebar-nav-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, var(--primary-color) 0%, #ffb366 100%);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-nav-item:hover {
+            background: rgba(255, 107, 26, 0.1);
+            color: var(--white);
+        }
+
+        .sidebar-nav-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-nav-item-icon {
+            font-size: 1.5rem;
+            width: 30px;
+            text-align: center;
+        }
+
+        .sidebar-nav-item-text {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 2rem;
+            left: 1.5rem;
+            right: 1.5rem;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 3rem;
+            min-height: 100vh;
         }
 
         .dashboard-header {
@@ -116,7 +219,7 @@
                 rgba(255, 107, 26, 0.08) 50%,
                 rgba(255, 107, 26, 0.15) 100%);
             border-radius: 30px;
-            padding: 3rem;
+            padding: 2.5rem 3rem;
             margin-bottom: 3rem;
             border: 2px solid transparent;
             background-clip: padding-box;
@@ -157,129 +260,19 @@
             background: linear-gradient(135deg, #ff6b1a 0%, #ffb366 100%);
             background-clip: text;
             -webkit-background-clip: text;
-            font-size: 3rem;
+            font-size: 2.5rem;
             margin: 0;
             font-weight: 900;
             text-shadow: none;
             letter-spacing: -1px;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .dashboard-header h1::before {
-            content: '🎛️';
-            font-size: 3.5rem;
-            filter: drop-shadow(0 4px 12px rgba(255, 107, 26, 0.4));
         }
 
         .dashboard-nav {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 2.5rem;
-            max-width: 1400px;
-            margin: 0 auto;
+            display: none; /* Hide nav cards - using sidebar instead */
         }
 
         .nav-card {
-            background: linear-gradient(135deg, 
-                rgba(25, 25, 25, 0.95) 0%, 
-                rgba(15, 15, 15, 0.95) 100%);
-            border-radius: 25px;
-            padding: 3rem;
-            border: 2px solid rgba(255, 107, 26, 0.2);
-            box-shadow: 
-                0 10px 40px rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-decoration: none;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
-        }
-
-        .nav-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, 
-                transparent 0%, 
-                rgba(255, 107, 26, 0.05) 50%,
-                transparent 100%);
-            opacity: 0;
-            transition: opacity 0.4s ease;
-        }
-
-        .nav-card::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, 
-                transparent 0%,
-                var(--primary-color) 50%,
-                transparent 100%);
-            transform: scaleX(0);
-            transition: transform 0.4s ease;
-        }
-
-        .nav-card:hover {
-            transform: translateY(-12px) scale(1.03);
-            border-color: rgba(255, 107, 26, 0.6);
-            box-shadow: 
-                0 25px 60px rgba(255, 107, 26, 0.4),
-                0 0 100px rgba(255, 107, 26, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        }
-
-        .nav-card:hover::before {
-            opacity: 1;
-        }
-
-        .nav-card:hover::after {
-            transform: scaleX(1);
-        }
-
-        .nav-card:hover .nav-card-icon {
-            transform: scale(1.1) rotate(5deg);
-        }
-
-        .nav-card-icon {
-            font-size: 4rem;
-            margin-bottom: 1.5rem;
-            display: block;
-            position: relative;
-            z-index: 1;
-            filter: drop-shadow(0 8px 16px rgba(255, 107, 26, 0.4));
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .nav-card h2 {
-            color: var(--white);
-            font-size: 1.75rem;
-            margin-bottom: 1rem;
-            font-weight: 800;
-            position: relative;
-            z-index: 1;
-            background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .nav-card p {
-            color: #999;
-            line-height: 1.8;
-            font-size: 0.95rem;
-            position: relative;
-            z-index: 1;
+            display: none; /* Hide nav cards - using sidebar instead */
         }
 
         .stats-grid {
@@ -413,23 +406,41 @@
         }
 
         @media (max-width: 768px) {
-            .dashboard-wrapper {
-                padding: 1rem;
+            .sidebar {
+                width: 70px;
+            }
+
+            .sidebar-logo img {
+                max-width: 40px;
+            }
+
+            .sidebar-logo h2,
+            .sidebar-nav-item-text {
+                display: none;
+            }
+
+            .sidebar-nav-item {
+                justify-content: center;
+            }
+
+            .main-content {
+                margin-left: 70px;
+                padding: 2rem 1rem;
             }
 
             .dashboard-header {
                 flex-direction: column;
                 gap: 1rem;
                 align-items: stretch;
+                padding: 1.5rem;
             }
 
-            .dashboard-nav {
-                grid-template-columns: 1fr;
-                gap: 1rem;
+            .dashboard-header h1 {
+                font-size: 2rem;
             }
 
             .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: 1fr;
                 gap: 1rem;
             }
         }
@@ -459,67 +470,72 @@
 
         <!-- Dashboard -->
         <div id="dashboard" class="dashboard-wrapper" style="display: none;">
-            <div class="dashboard-header">
-                <h1>📊 Admin Dashboard</h1>
-                <button id="logoutBtn" class="btn-logout">Logout</button>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Total Visits</h3>
-                    <div class="stat-value" id="totalVisits">-</div>
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-logo">
+                    <img src="/images/logo.png" alt="Helmick Underground">
+                    <h2>Admin Panel</h2>
                 </div>
-                <div class="stat-card">
-                    <h3>Today's Visits</h3>
-                    <div class="stat-value" id="todayVisits">-</div>
+
+                <nav class="sidebar-nav">
+                    <a href="/admin/index.html" class="sidebar-nav-item">
+                        <span class="sidebar-nav-item-icon">📊</span>
+                        <span class="sidebar-nav-item-text">Dashboard</span>
+                    </a>
+                    <a href="/admin/inbox.html" class="sidebar-nav-item">
+                        <span class="sidebar-nav-item-icon">📬</span>
+                        <span class="sidebar-nav-item-text">Quote Requests</span>
+                    </a>
+                    <a href="/admin/analytics.html" class="sidebar-nav-item">
+                        <span class="sidebar-nav-item-icon">📈</span>
+                        <span class="sidebar-nav-item-text">Analytics</span>
+                    </a>
+                    <a href="/admin/gallery-manager.html" class="sidebar-nav-item">
+                        <span class="sidebar-nav-item-icon">📸</span>
+                        <span class="sidebar-nav-item-text">Gallery Manager</span>
+                    </a>
+                    <a href="/admin/rates.html" class="sidebar-nav-item">
+                        <span class="sidebar-nav-item-icon">💰</span>
+                        <span class="sidebar-nav-item-text">Rates Management</span>
+                    </a>
+                    <a href="/admin/rate-recipients.html" class="sidebar-nav-item">
+                        <span class="sidebar-nav-item-icon">📧</span>
+                        <span class="sidebar-nav-item-text">Email Recipients</span>
+                    </a>
+                </nav>
+
+                <div class="sidebar-footer">
+                    <button id="logoutBtn" class="btn-logout" style="width: 100%;">Logout</button>
                 </div>
-                <div class="stat-card">
-                    <h3>Unread Quotes</h3>
-                    <div class="stat-value" id="unreadQuotes">-</div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <div class="dashboard-header">
+                    <h1>Dashboard Overview</h1>
                 </div>
-                <div class="stat-card">
-                    <h3>Gallery Items</h3>
-                    <div class="stat-value" id="galleryCount">-</div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Visits</h3>
+                        <div class="stat-value" id="totalVisits">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Today's Visits</h3>
+                        <div class="stat-value" id="todayVisits">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Unread Quotes</h3>
+                        <div class="stat-value" id="unreadQuotes">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Gallery Items</h3>
+                        <div class="stat-value" id="galleryCount">-</div>
+                    </div>
                 </div>
-            </div>
-
-            <div class="dashboard-nav">
-                <a href="/admin/inbox.html" class="nav-card">
-                    <div class="nav-card-icon">📬</div>
-                    <h2>Quote Requests</h2>
-                    <p>View and manage customer quote requests and contact form submissions.</p>
-                </a>
-
-                <a href="/admin/analytics.html" class="nav-card">
-                    <div class="nav-card-icon">📈</div>
-                    <h2>Analytics</h2>
-                    <p>View detailed visitor statistics, page views, geographic data, and traffic sources.</p>
-                </a>
-
-                <a href="/admin/gallery-manager.html" class="nav-card">
-                    <div class="nav-card-icon">📸</div>
-                    <h2>Gallery Manager</h2>
-                    <p>Upload images and videos, edit gallery items, and manage project showcases.</p>
-                </a>
-
-                <a href="/admin/rates.html" class="nav-card">
-                    <div class="nav-card-icon">💰</div>
-                    <h2>Rates Management</h2>
-                    <p>View and update service rates, custom work pricing, and additional item costs.</p>
-                </a>
-
-                <a href="/admin/rate-recipients.html" class="nav-card">
-                    <div class="nav-card-icon">📧</div>
-                    <h2>Rate Recipients</h2>
-                    <p>View history of all customers who received rate sheets via email.</p>
-                </a>
-
-                <a href="../" class="nav-card">
-                    <div class="nav-card-icon">🌐</div>
-                    <h2>View Website</h2>
-                    <p>Visit the public-facing website to see how it appears to visitors.</p>
-                </a>
-            </div>
+            </main>
+        </div>
+    </div>
         </div>
     </div>
 
