@@ -675,14 +675,13 @@
             document.getElementById('dashboardContent').style.display = 'block';
             await loadDashboardStats();
             
-            // Force notification update after dashboard is fully visible
-            setTimeout(async () => {
-                try {
-                    const response = await fetch('/api/contact-submissions?action=stats');
-                    if (!response.ok) return;
-                    
-                    const stats = await response.json();
-                    const unreadCount = stats.unread || 0;
+            // Update notification immediately after dashboard is visible
+            try {
+                const response = await fetch('/api/contact-submissions?action=stats');
+                if (!response.ok) return;
+                
+                const stats = await response.json();
+                const unreadCount = stats.unread || 0;
                     
                     if (unreadCount > 0) {
                         const quoteNavItem = document.querySelector('a[href="/admin/inbox.html"]');
@@ -700,10 +699,9 @@
                             quoteNavItem.appendChild(badge);
                         }
                     }
-                } catch (error) {
-                    console.error('Error updating notification:', error);
-                }
-            }, 500);
+            } catch (error) {
+                console.error('Error updating notification:', error);
+            }
         }
 
         // Load dashboard statistics
