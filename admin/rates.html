@@ -463,9 +463,15 @@
                 print-color-adjust: exact !important;
             }
 
+            body {
+                overflow: visible !important;
+            }
+
             .preview-overlay {
-                background: white;
-                padding: 0;
+                position: static !important;
+                background: white !important;
+                padding: 0 !important;
+                overflow: visible !important;
             }
 
             .preview-actions {
@@ -473,9 +479,11 @@
             }
 
             .preview-container {
-                max-width: 100%;
-                box-shadow: none;
-                padding: 0;
+                max-width: 100% !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                border-radius: 0 !important;
+                margin: 0 !important;
             }
 
             .preview-header {
@@ -488,51 +496,30 @@
                 page-break-after: avoid;
             }
 
-            .preview-content h2 {
-                page-break-before: auto;
+            h2 {
                 page-break-after: avoid;
                 page-break-inside: avoid;
                 margin-top: 1.5rem;
             }
 
             .preview-table {
-                page-break-before: avoid;
                 page-break-inside: auto;
-                page-break-after: auto;
             }
 
             .preview-table thead {
                 display: table-header-group;
             }
 
-            .preview-table tr {
-                page-break-inside: avoid;
-                page-break-after: auto;
-            }
-
-            .preview-table th,
-            .preview-table td {
-                page-break-inside: avoid;
-            }
-
-            body {
-                margin: 0;
-                padding: 0;
-            }
-        }
-
-        @media (max-width: 768px) {            .preview-table {
-                page-break-inside: avoid;
+            .preview-table tbody {
+                display: table-row-group;
             }
 
             .preview-table tr {
                 page-break-inside: avoid;
             }
 
-            /* Hide browser print headers */
-            body {
-                margin: 0;
-                padding: 0;
+            .preview-footer {
+                page-break-inside: avoid;
             }
         }
 
