@@ -440,7 +440,11 @@
         }
 
         function displayRates() {
-            // Display >
+            // Display base rates
+            const baseRatesTable = document.getElementById('baseRatesTable');
+            baseRatesTable.innerHTML = currentRates.baseRates.map(item => `
+                <tr>
+                    <td>
                         <input type="text" 
                                class="name-input" 
                                value="${item.name}" 
@@ -501,26 +505,18 @@
                                data-section="additionalItems" 
                                data-id="${item.id}"
                                data-type="name">
-                    </td> (both names and rates)
-                const inputs = document.querySelectorAll('.rate-input, .name-input');
-                inputs.forEach(input => {
-                    const section = input.dataset.section;
-                    const id = input.dataset.id;
-                    const type = input.dataset.type;
-                    
-                    const item = currentRates[section].find(i => i.id === id);
-                    if (item) {
-                        if (type === 'rate') {
-                            item.rate = parseFloat(input.value);
-                        } else if (type === 'name') {
-                            item.name = input.value;
-                        }
-                    <td class="action-cell">
-                        <button class="delete-btn" onclick="deleteItem('additionalItems', '${item.id}')">🗑️</button
+                    </td>
+                    <td>
+                        <input type="number" 
+                               class="rate-input" 
                                value="${item.rate.toFixed(2)}" 
                                step="0.01" 
                                data-section="additionalItems" 
-                               data-id="${item.id}">
+                               data-id="${item.id}"
+                               data-type="rate">
+                    </td>
+                    <td class="action-cell">
+                        <button class="delete-btn" onclick="deleteItem('additionalItems', '${item.id}')">🗑️</button>
                     </td>
                 </tr>
             `).join('');
@@ -540,22 +536,65 @@
             saveBtn.textContent = '💾 Saving...';
 
             try {
-                // Collect all input values
-                const inputs = document.querySelectorAll('.rate-input');
+                // Collect all input values (both names and rates)
+                const inputs = document.querySelectorAll('.rate-input, .name-input');
                 inputs.forEach(input => {
                     const section = input.dataset.section;
                     const id = input.dataset.id;
-                    const value = parseFloat(input.value);
+                    const type = input.dataset.type;
                     
                     const item = currentRates[section].find(i => i.id === id);
                     if (item) {
-                        item.rate = value;
+                        if (type === 'rate') {
+                            item.rate = parseFloat(input.value);
+                        } else if (type === 'name') {
+                            item.name = input.value;
+                        }
                     }
                 });
 
                 // Add timestamp
                 currentRates.lastUpdated = new Date().toISOString();
 
+                // Save to server
+                const response = await fetch('/api/rates', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(currentRates)
+                });
+
+                if (!response.ok) throw new Error('Failed to save rates');
+
+                showSuccess('Rates saved successfully!');
+                displayRates(); // Refresh display with updated timestamp
+            } catch (error) {
+                console.error('Error saving rates:', error);
+                showError('Failed to save rates. Please try again.');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = '💾 Save Changes';
+            }
+        }
+
+        function showSuccess(message) {
+            const successMsg = document.getElementById('successMessage');
+            successMsg.textContent = message;
+            successMsg.style.display = 'block';
+            setTimeout(() => {
+                successMsg.style.display = 'none';
+            }, 3000);
+        }
+
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMessage');
+            errorMsg.textContent = message;
+            errorMsg.style.display = 'block';
+            setTimeout(() => {
+                errorMsg.style.display = 'none';
+            }, 5000);
+        }
 
         function addNewItem(section) {
             const newId = 'item_' + Date.now();
