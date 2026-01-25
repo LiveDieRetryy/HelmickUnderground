@@ -125,37 +125,6 @@
             overflow-y: auto;
             backdrop-filter: blur(10px);
             box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease;
-            z-index: 1000;
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
-
-        .sidebar.collapsed {
-            transform: translateX(-100%);
-        }
-
-        .sidebar-toggle {
-            display: none;
-            position: fixed;
-            top: 1rem;
-            left: 1rem;
-            z-index: 1001;
-            background: linear-gradient(135deg, var(--primary-color) 0%, #ffb366 100%);
-            border: none;
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(255, 107, 26, 0.4);
-            transition: all 0.3s ease;
-        }
-
-        .sidebar-toggle:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 25px rgba(255, 107, 26, 0.6);
         }
 
         .sidebar-logo {
@@ -250,7 +219,7 @@
             border: 2px solid transparent;
             background-clip: padding-box;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
             box-shadow: 
                 0 20px 60px rgba(0, 0, 0, 0.5),
@@ -403,52 +372,110 @@
             line-height: 1;
             animation: shimmer 3s linear infinite;
         }
--toggle {
+
+        @keyframes shimmer {
+            0% { background-position: 200% center; }
+            100% { background-position: -200% center; }
+        }
+
+        .btn-logout {
+            background: linear-gradient(135deg, #dc143c 0%, #a01028 100%);
+            color: var(--white);
+            border: 2px solid rgba(220, 20, 60, 0.5);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            box-shadow: 0 4px 15px rgba(220, 20, 60, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-logout:hover {
+            background: linear-gradient(135deg, #a01028 0%, #dc143c 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 20, 60, 0.5);
+            border-color: #dc143c;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1001;
+            background: linear-gradient(135deg, rgba(255, 107, 26, 0.9) 0%, rgba(255, 107, 26, 0.7) 100%);
+            border: 2px solid rgba(255, 107, 26, 0.5);
+            border-radius: 12px;
+            padding: 0.75rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 107, 26, 0.6);
+        }
+
+        .mobile-menu-toggle span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background: white;
+            margin: 5px 0;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu-toggle.active span:nth-child(1) {
+            transform: rotate(45deg) translate(7px, 7px);
+        }
+
+        .mobile-menu-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .mobile-menu-toggle.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -7px);
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            backdrop-filter: blur(5px);
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-toggle {
                 display: block;
             }
 
+            .sidebar-overlay.active {
+                display: block;
+            }
             .sidebar {
                 width: 280px;
                 transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 1000;
             }
 
             .sidebar.active {
                 transform: translateX(0);
             }
 
-            .sidebar.collapsed {
-                transform: translateX(-100%);
-            }
-
             .main-content {
                 margin-left: 0;
-                padding: 5rem 1rem 2rem;
-            }
-
-            .dashboard-header {
-                padding: 1.5rem;
-            }
-
-            .dashboard-header h1 {
-                font-size: 1.75
-
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 70px;
-            }
-
-            .sidebar-logo h2,
-            .sidebar-nav-item-text {
-                display: none;
-            }
-
-            .sidebar-nav-item {
-                justify-content: center;
-            }
-
-            .main-content {
-                margin-left: 70px;
-                padding: 2rem 1rem;
+                padding: 4rem 1rem 2rem;
             }
 
             .dashboard-header {
@@ -493,9 +520,16 @@
 
         <!-- Dashboard -->
         <div id="dashboard" class="dashboard-wrapper" style="display: none;">
-            <!-- Mobile Toggle Button -->
-            <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
-            
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <!-- Sidebar Overlay -->
+            <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
             <!-- Sidebar -->
             <aside class="sidebar" id="sidebar">
                 <div class="sidebar-logo">
@@ -609,8 +643,46 @@
         // Show dashboard
         async function showDashboard() {
             document.getElementById('loginBox').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'flex';
+            document.getElementById('dashboard').style.display = 'block';
             await loadDashboardStats();
+            
+            // Initialize mobile menu
+            initMobileMenu();
+        }
+
+        // Mobile menu toggle functionality
+        function initMobileMenu() {
+            const mobileToggle = document.getElementById('mobileMenuToggle');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            if (!mobileToggle || !sidebar || !overlay) return;
+            
+            // Toggle sidebar
+            mobileToggle.addEventListener('click', function() {
+                this.classList.toggle('active');
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            });
+            
+            // Close sidebar when clicking overlay
+            overlay.addEventListener('click', function() {
+                mobileToggle.classList.remove('active');
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+            
+            // Close sidebar when clicking a nav link on mobile
+            const navLinks = sidebar.querySelectorAll('.sidebar-nav-item');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 768) {
+                        mobileToggle.classList.remove('active');
+                        sidebar.classList.remove('active');
+                        overlay.classList.remove('active');
+                    }
+                });
+            });
         }
 
         // Load dashboard statistics
@@ -645,22 +717,7 @@
                 document.getElementById('unreadQuotes').textContent = '0';
             }
         }
-        // Toggle sidebar for mobile
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('active');
-        }
 
-        // Close sidebar when clicking outside on mobile
-        document.addEventListener('click', function(event) {
-            if (window.innerWidth <= 768) {
-                const sidebar = document.getElementById('sidebar');
-                const toggle = document.querySelector('.sidebar-toggle');
-                if (sidebar && !sidebar.contains(event.target) && !toggle.contains(event.target)) {
-                    sidebar.classList.remove('active');
-                }
-            }
-        });
         // Check auth on load
         checkAuth();
     </script>
