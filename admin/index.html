@@ -351,7 +351,8 @@
                 const galleryResponse = await fetch('/api/gallery');
                 if (galleryResponse.ok) {
                     const galleryData = await galleryResponse.json();
-                    document.getElementById('galleryCount').textContent = galleryData.length || 0;
+                    const count = galleryData.items ? galleryData.items.length : 0;
+                    document.getElementById('galleryCount').textContent = count;
                 }
 
                 // Load analytics stats
