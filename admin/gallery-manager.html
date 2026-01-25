@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="sidebar.css">
     <style>
         .admin-container {
             min-height: 100vh;
@@ -650,7 +651,57 @@
     </style>
 </head>
 <body>
-    <div class="admin-container">
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <h2>Admin Panel</h2>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="/admin/index.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📊</span>
+                <span class="sidebar-nav-item-text">Dashboard</span>
+            </a>
+            <a href="/admin/inbox.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📬</span>
+                <span class="sidebar-nav-item-text">Quote Requests</span>
+            </a>
+            <a href="/admin/analytics.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📈</span>
+                <span class="sidebar-nav-item-text">Analytics</span>
+            </a>
+            <a href="/admin/gallery-manager.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📸</span>
+                <span class="sidebar-nav-item-text">Gallery Manager</span>
+            </a>
+            <a href="/admin/rates.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">💰</span>
+                <span class="sidebar-nav-item-text">Rates Management</span>
+            </a>
+            <a href="/admin/rate-recipients.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📧</span>
+                <span class="sidebar-nav-item-text">Email Recipients</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button id="logoutBtn" class="btn-logout" style="width: 100%;">Logout</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="admin-container" style="padding: 0;">
         <!-- Admin Dashboard -->
         <div id="adminDashboard" class="admin-dashboard">
             <div class="admin-header">
@@ -658,7 +709,6 @@
                     <a href="/admin/" style="color: var(--gray); text-decoration: none; font-size: 0.9rem; display: inline-block; margin-bottom: 0.5rem;">← Back to Dashboard</a>
                     <h1>📸 Gallery Manager</h1>
                 </div>
-                <button id="logoutBtn" class="btn btn-logout">Logout</button>
             </div>
 
             <div id="successMessage" class="success-message"></div>
@@ -759,8 +809,10 @@
                 </form>
             </div>
         </div>
+        </div>
     </div>
 
+    <script src="sidebar.js"></script>
     <script src="gallery-manager.js?v=13"></script>
 </body>
 </html>

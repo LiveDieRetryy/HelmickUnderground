@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="sidebar.css">
     <style>
         body {
             background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
@@ -744,7 +745,57 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <h2>Admin Panel</h2>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="/admin/index.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📊</span>
+                <span class="sidebar-nav-item-text">Dashboard</span>
+            </a>
+            <a href="/admin/inbox.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📬</span>
+                <span class="sidebar-nav-item-text">Quote Requests</span>
+            </a>
+            <a href="/admin/analytics.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📈</span>
+                <span class="sidebar-nav-item-text">Analytics</span>
+            </a>
+            <a href="/admin/gallery-manager.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📸</span>
+                <span class="sidebar-nav-item-text">Gallery Manager</span>
+            </a>
+            <a href="/admin/rates.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">💰</span>
+                <span class="sidebar-nav-item-text">Rates Management</span>
+            </a>
+            <a href="/admin/rate-recipients.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📧</span>
+                <span class="sidebar-nav-item-text">Email Recipients</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button id="logoutBtn" class="btn-logout" style="width: 100%;">Logout</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container" style="max-width: 100%;">
         <div class="header">
             <h1>💰 Rates Management</h1>
             <div class="header-actions">
@@ -1321,5 +1372,10 @@
             });
         }
     </script>
+
+        </div>
+    </div>
+
+    <script src="sidebar.js"></script>
 </body>
 </html>
