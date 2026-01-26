@@ -273,7 +273,121 @@ function setDefaultDates() {
 
 // Preview PDF (placeholder for now)
 function previewPDF() {
-    alert('PDF preview feature coming soon! For now, use the Save Invoice button to save your invoice.');
+    const items = Array.from(document.querySelectorAll('.line-item')).map(item => ({
+        description: item.querySelector('.item-description').value,
+        quantity: parseFloat(item.querySelector('.item-quantity').value),
+        rate: parseFloat(item.querySelector('.item-rate').value),
+        amount: parseFloat(item.querySelector('.item-quantity').value) * parseFloat(item.querySelector('.item-rate').value)
+    }));
+    
+    if (items.length === 0) {
+        alert('Please add at least one line item');
+        return;
+    }
+    
+    const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+    const subtotal = items.reduce((sum, item) => sum + item.amount, 0);
+    const tax = subtotal * (taxRate / 100);
+    const total = subtotal + tax;
+    
+    const invoiceDate = new Date(document.getElementById('invoiceDate').value).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const dueDate = new Date(document.getElementById('dueDate').value).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    
+    const previewHTML = `
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <img src="/logo.png" alt="Helmick Underground" style="max-width: 200px; margin-bottom: 1rem;">
+            <h1 style="color: #ff6b1a; margin: 0; font-size: 2rem;">INVOICE</h1>
+            <p style="color: #666; margin: 0.5rem 0;">Invoice #${document.getElementById('invoiceNumber').value}</p>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+            <div style="background: #f9f9f9; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #ff6b1a;">
+                <h3 style="color: #333; margin: 0 0 1rem 0;">Bill To:</h3>
+                <p style="margin: 0.25rem 0; color: #666;"><strong>${document.getElementById('customerName').value}</strong></p>
+                ${document.getElementById('customerEmail').value ? `<p style="margin: 0.25rem 0; color: #666;">${document.getElementById('customerEmail').value}</p>` : ''}
+                ${document.getElementById('customerPhone').value ? `<p style="margin: 0.25rem 0; color: #666;">${document.getElementById('customerPhone').value}</p>` : ''}
+                ${document.getElementById('customerAddress').value ? `<p style="margin: 0.25rem 0; color: #666; white-space: pre-wrap;">${document.getElementById('customerAddress').value}</p>` : ''}
+            </div>
+            
+            <div style="background: #f9f9f9; padding: 1.5rem; border-radius: 8px;">
+                <p style="margin: 0.5rem 0; color: #666;"><strong>Invoice Date:</strong> ${invoiceDate}</p>
+                <p style="margin: 0.5rem 0; color: #666;"><strong>Due Date:</strong> ${dueDate}</p>
+            </div>
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem;">
+            <thead>
+                <tr style="background: #f0f0f0;">
+                    <th style="padding: 0.75rem; text-align: left; color: #333; border-bottom: 2px solid #ff6b1a;">Description</th>
+                    <th style="padding: 0.75rem; text-align: center; color: #333; border-bottom: 2px solid #ff6b1a;">Quantity</th>
+                    <th style="padding: 0.75rem; text-align: right; color: #333; border-bottom: 2px solid #ff6b1a;">Rate</th>
+                    <th style="padding: 0.75rem; text-align: right; color: #333; border-bottom: 2px solid #ff6b1a;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${items.map(item => `
+                    <tr>
+                        <td style="padding: 0.75rem; border-bottom: 1px solid #eee; color: #333;">${item.description}</td>
+                        <td style="padding: 0.75rem; text-align: center; border-bottom: 1px solid #eee; color: #666;">${item.quantity}</td>
+                        <td style="padding: 0.75rem; text-align: right; border-bottom: 1px solid #eee; color: #666;">$${item.rate.toFixed(2)}</td>
+                        <td style="padding: 0.75rem; text-align: right; border-bottom: 1px solid #eee; color: #333; font-weight: 600;">$${item.amount.toFixed(2)}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+            <tfoot>
+                <tr style="border-top: 2px solid #ff6b1a;">
+                    <td colspan="3" style="padding: 1rem 0.75rem; text-align: right; font-weight: 600; color: #666;">Subtotal:</td>
+                    <td style="padding: 1rem 0.75rem; text-align: right; font-weight: 600; color: #333;">$${subtotal.toFixed(2)}</td>
+                </tr>
+                ${taxRate > 0 ? `
+                <tr>
+                    <td colspan="3" style="padding: 1rem 0.75rem; text-align: right; font-weight: 600; color: #666;">Tax (${taxRate}%):</td>
+                    <td style="padding: 1rem 0.75rem; text-align: right; font-weight: 600; color: #ff6b1a;">$${tax.toFixed(2)}</td>
+                </tr>
+                ` : ''}
+                <tr style="background: #fff3e6; font-size: 1.2rem;">
+                    <td colspan="3" style="padding: 1.25rem 0.75rem; text-align: right; font-weight: 700; color: #333; border-top: 3px solid #ff6b1a;">Total Due:</td>
+                    <td style="padding: 1.25rem 0.75rem; text-align: right; font-weight: 700; color: #ff6b1a; border-top: 3px solid #ff6b1a;">$${total.toFixed(2)}</td>
+                </tr>
+            </tfoot>
+        </table>
+        
+        <div style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 2px solid #eee;">
+            <div style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); padding: 2rem; border-radius: 12px; color: white;">
+                <p style="margin: 0; font-size: 1rem; font-weight: 700;">Helmick Underground</p>
+                <p style="margin: 0.5rem 0; font-size: 0.9rem;">Quality Underground Utility Services</p>
+                <p style="margin: 0.75rem 0 0 0; font-size: 0.9rem;">📞 Tommy Helmick: (319) 721-9925</p>
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem;">📧 HelmickUnderground@gmail.com</p>
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem;">🌐 www.helmickunderground.com</p>
+            </div>
+        </div>
+    `;
+    
+    // Create modal
+    const modal = document.createElement('div');
+    modal.id = 'invoicePreviewModal';
+    modal.style.cssText = 'display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 9999; overflow-y: auto; padding: 2rem;';
+    
+    modal.innerHTML = `
+        <div style="max-width: 800px; margin: 0 auto; background: white; border-radius: 20px; position: relative;">
+            <button onclick="document.getElementById('invoicePreviewModal').remove()" style="position: absolute; top: 1rem; right: 1rem; background: rgba(220, 20, 60, 0.9); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.5rem; z-index: 1;">×</button>
+            
+            <div style="padding: 3rem;">
+                ${previewHTML}
+            </div>
+            
+            <div style="padding: 2rem 3rem; background: #f5f5f5; border-top: 2px solid #e0e0e0; display: flex; gap: 1rem; border-radius: 0 0 20px 20px;">
+                <button onclick="window.print()" style="flex: 1; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: white; border: none; padding: 1.25rem 2rem; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 1.1rem;">
+                    🖨️ Print Invoice
+                </button>
+                <button onclick="document.getElementById('invoicePreviewModal').remove()" style="background: rgba(0, 0, 0, 0.1); color: #333; border: 2px solid #ccc; padding: 1.25rem 2rem; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 1.1rem;">
+                    Close
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
 }
 
 // Handle form submission

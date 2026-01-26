@@ -377,11 +377,14 @@ function printQuote() {
 }
 
 async function sendQuoteEmail() {
-    const email = prompt('Enter customer email address:');
+    const customerEmail = document.getElementById('customerEmail').value.trim();
     
-    if (!email) return;
+    if (!customerEmail) {
+        alert('Please enter a customer email address in the Customer Information section above.');
+        return;
+    }
     
-    if (!email.includes('@')) {
+    if (!customerEmail.includes('@')) {
         alert('Please enter a valid email address');
         return;
     }
@@ -393,11 +396,19 @@ async function sendQuoteEmail() {
     
     const customerName = document.getElementById('customerName').value.trim();
     const subtotal = lineItems.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
+    const iowaWork = document.getElementById('iowaWorkCheckbox')?.checked || false;
+    const taxRate = iowaWork ? 0.07 : 0;
+    const tax = subtotal * taxRate;
+    const total = subtotal + tax;
     
     const quoteData = {
         lineItems: lineItems,
         notes: document.getElementById('quoteNotes').value,
-        subtotal: subtotal
+        iowaWork: iowaWork,
+        taxRate: taxRate,
+        tax: tax,
+        subtotal: subtotal,
+        total: total
     };
     
     try {
@@ -405,7 +416,7 @@ async function sendQuoteEmail() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                to: email,
+                to: customerEmail,
                 customerName: customerName,
                 quoteData: quoteData
             })
@@ -416,7 +427,7 @@ async function sendQuoteEmail() {
             console.error('Failed to send email:', response.status, errorData);
             alert('Failed to send email. Please try again.');
         } else {
-            alert(`Quote sent successfully to ${email}!`);
+            alert(`Quote sent successfully to ${customerEmail}!`);
             closePreview();
         }
     } catch (error) {

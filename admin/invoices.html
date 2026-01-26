@@ -348,9 +348,8 @@
 
     <script src="auth.js"></script>
     <script src="sidebar.js"></script>
+    <script src="invoices.js"></script>
     <script>
-        checkAuth();
-
         let allInvoices = [];
 
         // Load invoices
@@ -420,24 +419,12 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        ${filtered.map(inv => `
-                            <tr>
-                                <td class="invoice-number">${inv.invoice_number}</td>
-                                <td>${inv.client_name}</td>
-                                <td>${new Date(inv.invoice_date).toLocaleDateString()}</td>
-                                <td>${new Date(inv.due_date).toLocaleDateString()}</td>
-                                <td>$${parseFloat(inv.total || 0).toFixed(2)}</td>
-                                <td><span class="status-badge status-${inv.status}">${inv.status}</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn-action" onclick="viewInvoice(${inv.id})">View</button>
-                                        <button class="btn-action" onclick="editInvoice(${inv.id})">Edit</button>
-                                        <button class="btn-action" onclick="deleteInvoice(${inv.id})">Delete</button>
-                                    </div>
-                                </td>
-                            </tr>
-                        `).join('')}
+                    <tbody id="invoicesTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 2rem; color: var(--gray);">
+                                Loading invoices...
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             `;
