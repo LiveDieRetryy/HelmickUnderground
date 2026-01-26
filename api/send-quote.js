@@ -139,7 +139,7 @@ module.exports = async function handler(req, res) {
         `;
 
         const { data, error } = await resend.emails.send({
-            from: 'Helmick Underground <onboarding@resend.dev>',
+            from: 'Helmick Underground <noreply@helmickunderground.com>',
             to: [to],
             subject: `Project Quote from Helmick Underground - ${today}`,
             html: htmlContent
