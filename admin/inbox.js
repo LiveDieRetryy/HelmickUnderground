@@ -268,10 +268,22 @@ async function viewSubmission(id) {
             </div>
         ` : ''}
         ${sub.status === 'acknowledged' ? `
-            <button class="btn-send-ack" onclick="markAsContacted(${sub.id})">
+            <button class="btn-send-ack" onclick="showNotesForm(${sub.id})">
                 <span>📞</span>
                 <span>Mark as Contacted</span>
             </button>
+            <div id="notesForm-${sub.id}" style="display: none; margin-top: 1.5rem; padding: 1.5rem; background: rgba(255, 107, 26, 0.05); border-radius: 12px; border: 2px solid rgba(255, 107, 26, 0.3);">
+                <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Contact Notes</h3>
+                <textarea id="notesInput-${sub.id}" placeholder="Enter notes from your conversation with the customer..." style="width: 100%; min-height: 120px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 107, 26, 0.3); border-radius: 8px; padding: 1rem; color: var(--white); font-family: inherit; resize: vertical;"></textarea>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button onclick="saveNotes(${sub.id})" style="flex: 1; background: linear-gradient(135deg, var(--primary-color) 0%, #ff8c42 100%); color: var(--white); padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">
+                        Save & Mark as Contacted
+                    </button>
+                    <button onclick="hideNotesForm(${sub.id})" style="flex: 0 0 auto; background: rgba(255, 255, 255, 0.1); color: var(--white); padding: 0.75rem 1.5rem; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; font-weight: 700; cursor: pointer;">
+                        Cancel
+                    </button>
+                </div>
+            </div>
         ` : `
             <button class="btn-send-ack" id="sendAckBtn-${sub.id}" onclick="sendAcknowledgmentEmail(${sub.id})">
                 <span>📧</span>
@@ -430,6 +442,59 @@ async function sendAcknowledgmentEmail(id) {
 async function markAsContacted(id) {
     const notes = prompt('Enter notes from your conversation with the customer:');
     if (notes === null) return; // User cancelled
+    
+    try {
+        const response = await fetch('/api/contact-submissions', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id, status: 'contacted', notes })
+        });
+
+        if (!response.ok) throw new Error('Failed to update status');
+
+        // Refresh data and close modal
+        await fetchSubmissions();
+        closeModal();
+    } catch (error) {
+        console.error('Error updating status:', error);
+        alert('Failed to mark as contacted: ' + error.message);
+    }
+}
+
+// Show notes form
+function showNotesForm(id) {
+    const form = document.getElementById(`notesForm-${id}`);
+    const button = form.previousElementSibling;
+    if (form && button) {
+        button.style.display = 'none';
+        form.style.display = 'block';
+        document.getElementById(`notesInput-${id}`).focus();
+    }
+}
+
+// Hide notes form
+function hideNotesForm(id) {
+    const form = document.getElementById(`notesForm-${id}`);
+    const button = form.previousElementSibling;
+    if (form && button) {
+        form.style.display = 'none';
+        button.style.display = 'flex';
+        document.getElementById(`notesInput-${id}`).value = '';
+    }
+}
+
+// Save notes and mark as contacted
+async function saveNotes(id) {
+    const notesInput = document.getElementById(`notesInput-${id}`);
+    const notes = notesInput.value.trim();
+    
+    if (!notes) {
+        alert('Please enter notes from your conversation.');
+        notesInput.focus();
+        return;
+    }
     
     try {
         const response = await fetch('/api/contact-submissions', {
