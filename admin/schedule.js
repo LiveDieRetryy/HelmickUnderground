@@ -98,10 +98,19 @@ function createDayElement(day, isOtherMonth, year, month, isToday = false) {
                     hour: 'numeric', 
                     minute: '2-digit' 
                 });
-                return `<div class="appointment-dot" onclick="viewAppointment(${apt.id})" title="${apt.name} - ${time}">${time}</div>`;
+                return `<div class="appointment-dot" data-appointment-id="${apt.id}" title="${apt.name} - ${time}">${time}</div>`;
             }).join('')}
         </div>
     `;
+    
+    // Add click handlers to appointment dots
+    dayDiv.querySelectorAll('.appointment-dot').forEach(dot => {
+        dot.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const appointmentId = parseInt(dot.getAttribute('data-appointment-id'));
+            viewAppointment(appointmentId);
+        });
+    });
     
     return dayDiv;
 }
