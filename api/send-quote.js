@@ -155,6 +155,10 @@ module.exports = async function handler(req, res) {
 
     } catch (error) {
         console.error('Error sending quote:', error);
-        res.status(500).json({ error: 'Failed to send quote email' });
+        res.status(500).json({ 
+            error: 'Failed to send quote email', 
+            message: error.message,
+            details: error.toString()
+        });
     }
 }
