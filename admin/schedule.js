@@ -115,7 +115,6 @@ function createDayElement(day, isOtherMonth, year, month, isToday = false) {
                 const aptDate = new Date(apt.scheduled_date).toISOString().split('T')[0];
                 return aptDate === dateStr;
             });
-            console.log('Day clicked, appointments found:', clickedDateAppointments);
             showDayAppointments(dateStr, clickedDateAppointments);
         });
     }
@@ -168,7 +167,6 @@ function showDayAppointments(dateStr, appointments) {
     document.querySelectorAll('#appointmentsList .appointment-card').forEach(card => {
         card.addEventListener('click', () => {
             const appointmentId = parseInt(card.getAttribute('data-appointment-id'));
-            console.log('Clicked appointment:', appointmentId);
             viewAppointment(appointmentId);
         });
         card.addEventListener('mouseenter', () => {
@@ -184,10 +182,6 @@ function showDayAppointments(dateStr, appointments) {
 
 // View appointment details
 function viewAppointment(id) {
-    console.log('Looking for appointment with ID:', id, 'Type:', typeof id);
-    console.log('Current day appointments:', currentDayAppointments);
-    console.log('Available IDs:', currentDayAppointments.map(a => ({ id: a.id, type: typeof a.id })));
-    
     // Search in current day appointments first, then fall back to all appointments
     // Use == instead of === to handle type coercion (string '3' vs number 3)
     let appointment = currentDayAppointments.find(a => a.id == id);
@@ -196,12 +190,9 @@ function viewAppointment(id) {
     }
     
     if (!appointment) {
-        console.log('Appointment not found:', id);
         alert('Error: Could not find appointment details. ID: ' + id);
         return;
     }
-    
-    console.log('Viewing appointment:', appointment);
     
     const dateTime = new Date(appointment.scheduled_date);
     const dateStr = dateTime.toLocaleDateString('en-US', { 

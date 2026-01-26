@@ -616,6 +616,17 @@
                 <h1>Dashboard Overview</h1>
             </div>
 
+            <!-- Upcoming Appointments Section -->
+            <div style="background: var(--card-dark); border-radius: 20px; padding: 2rem; margin-bottom: 3rem; border: 1px solid rgba(255, 107, 26, 0.3);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2 style="color: var(--primary-color); font-size: 1.5rem; margin: 0;">📅 Upcoming Appointments</h2>
+                    <a href="/admin/schedule.html" style="background: linear-gradient(135deg, var(--primary-color) 0%, #ff8c42 100%); color: var(--white); padding: 0.75rem 1.5rem; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 0.9rem; transition: all 0.3s ease; display: inline-block;">View Schedule</a>
+                </div>
+                <div id="upcomingAppointments" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <p style="color: var(--gray); text-align: center; padding: 2rem;">Loading appointments...</p>
+                </div>
+            </div>
+
                 <div class="stats-grid">
                     <div class="stat-card">
                         <h3>Total Visits</h3>
@@ -682,6 +693,7 @@
             document.getElementById('loginContainer').style.display = 'none';
             document.getElementById('dashboardContent').style.display = 'block';
             await loadDashboardStats();
+            await loadUpcomingAppointments();
             
             // Update notification immediately after dashboard is visible
             try {
@@ -745,8 +757,159 @@
             }
         }
 
+        // Load upcoming appointments
+        async function loadUpcomingAppointments() {
+            try {
+                const response = await fetch('/api/contact-submissions?action=all');
+                if (!response.ok) throw new Error('Failed to load appointments');
+                
+                const allSubmissions = await response.json();
+                const scheduled = allSubmissions.filter(s => 
+                    s.status === 'scheduled' && s.scheduled_date
+                );
+                
+                // Sort by date and get next 5
+                const upcoming = scheduled
+                    .sort((a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date))
+                    .slice(0, 5);
+                
+                const container = document.getElementById('upcomingAppointments');
+                
+                if (upcoming.length === 0) {
+                    container.innerHTML = '<p style="color: var(--gray); text-align: center; padding: 2rem;">No upcoming appointments</p>';
+                    return;
+                }
+                
+                container.innerHTML = upcoming.map(apt => {
+                    const dateTime = new Date(apt.scheduled_date);
+                    const dateStr = dateTime.toLocaleDateString('en-US', { 
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric'
+                    });
+                    const timeStr = dateTime.toLocaleTimeString('en-US', { 
+                        hour: 'numeric',
+                        minute: '2-digit'
+                    });
+                    
+                    return `
+                        <div class="appointment-item" onclick="viewAppointmentDetails(${apt.id})">
+                            <div class="appointment-time">${dateStr} at ${timeStr}</div>
+                            <div class="appointment-details">${apt.name}</div>
+                            <div class="appointment-contact">${apt.phone || 'No phone'} • ${apt.email}</div>
+                            ${apt.services && apt.services.length > 0 ? `
+                                <div style="margin-top: 0.5rem;">
+                                    ${apt.services.map(s => `<span style="background: rgba(255, 107, 26, 0.2); padding: 0.25rem 0.75rem; border-radius: 6px; font-size: 0.8rem; margin-right: 0.5rem; display: inline-block;">${s}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading appointments:', error);
+                document.getElementById('upcomingAppointments').innerHTML = 
+                    '<p style="color: var(--red); text-align: center; padding: 2rem;">Failed to load appointments</p>';
+            }
+        }
+
+        // View appointment details in modal
+        async function viewAppointmentDetails(id) {
+            try {
+                const response = await fetch('/api/contact-submissions?action=all');
+                if (!response.ok) throw new Error('Failed to load appointment');
+                
+                const allSubmissions = await response.json();
+                const appointment = allSubmissions.find(s => s.id == id);
+                
+                if (!appointment) {
+                    alert('Appointment not found');
+                    return;
+                }
+                
+                const dateTime = new Date(appointment.scheduled_date);
+                const dateStr = dateTime.toLocaleDateString('en-US', { 
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit'
+                });
+                
+                document.getElementById('modalBody').innerHTML = `
+                    <div class="detail-section">
+                        <div class="detail-label">Scheduled Date & Time</div>
+                        <div class="detail-value" style="color: var(--primary-color); font-size: 1.3rem; font-weight: 700;">${dateStr}</div>
+                    </div>
+                    <div class="detail-section">
+                        <div class="detail-label">Name</div>
+                        <div class="detail-value">${appointment.name}</div>
+                    </div>
+                    <div class="detail-section">
+                        <div class="detail-label">Email</div>
+                        <div class="detail-value"><a href="mailto:${appointment.email}" style="color: var(--primary-color);">${appointment.email}</a></div>
+                    </div>
+                    <div class="detail-section">
+                        <div class="detail-label">Phone</div>
+                        <div class="detail-value"><a href="tel:${appointment.phone}" style="color: var(--primary-color);">${appointment.phone || 'Not provided'}</a></div>
+                    </div>
+                    ${appointment.services && appointment.services.length > 0 ? `
+                        <div class="detail-section">
+                            <div class="detail-label">Services Requested</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                ${appointment.services.map(s => `<span class="service-tag">${s}</span>`).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    <div class="detail-section">
+                        <div class="detail-label">Message</div>
+                        <div class="detail-value" style="white-space: pre-wrap;">${appointment.message}</div>
+                    </div>
+                    ${appointment.notes ? `
+                        <div class="detail-section">
+                            <div class="detail-label">Contact Notes</div>
+                            <div class="detail-value" style="white-space: pre-wrap; background: rgba(255, 107, 26, 0.1); padding: 1rem; border-radius: 8px; border-left: 3px solid var(--primary-color);">${appointment.notes}</div>
+                        </div>
+                    ` : ''}
+                    <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid rgba(255, 107, 26, 0.2);">
+                        <a href="/admin/inbox.html" style="display: inline-block; background: linear-gradient(135deg, var(--primary-color) 0%, #ff8c42 100%); color: var(--white); padding: 1rem 2rem; border-radius: 12px; text-decoration: none; font-weight: 700;">
+                            View in Quote Requests
+                        </a>
+                    </div>
+                `;
+                
+                document.getElementById('appointmentModal').classList.add('active');
+            } catch (error) {
+                console.error('Error loading appointment details:', error);
+                alert('Failed to load appointment details');
+            }
+        }
+
+        // Close modal
+        function closeAppointmentModal() {
+            document.getElementById('appointmentModal').classList.remove('active');
+        }
+
         // Check auth on load
         checkAuth();
+    </script>
+
+    <!-- Appointment Detail Modal -->
+    <div id="appointmentModal" class="detail-modal">
+        <div class="detail-modal-content">
+            <button class="detail-modal-close" onclick="closeAppointmentModal()">×</button>
+            <h2 style="color: var(--primary-color); margin-bottom: 2rem; font-size: 1.8rem;">Appointment Details</h2>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        // Close modal on outside click
+        document.getElementById('appointmentModal').addEventListener('click', (e) => {
+            if (e.target.id === 'appointmentModal') {
+                closeAppointmentModal();
+            }
+        });
     </script>
 </body>
 </html>
