@@ -26,6 +26,9 @@ module.exports = async function handler(req, res) {
 
         const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
         const subtotal = quoteData.subtotal;
+        const tax = quoteData.tax || 0;
+        const total = quoteData.total || subtotal;
+        const iowaWork = quoteData.iowaWork || false;
 
         // Build line items HTML
         const lineItemsHTML = quoteData.lineItems.map(item => `
@@ -90,9 +93,19 @@ module.exports = async function handler(req, res) {
                                     ${lineItemsHTML}
                                 </tbody>
                                 <tfoot>
+                                    <tr style="border-top: 2px solid #ff6b1a;">
+                                        <td colspan="3" style="padding: 1rem 0.75rem; text-align: right; font-weight: 600; color: #666;">Subtotal:</td>
+                                        <td style="padding: 1rem 0.75rem; text-align: right; color: #333; font-weight: 600;">$${subtotal.toFixed(2)}</td>
+                                    </tr>
+                                    ${iowaWork && tax > 0 ? `
+                                    <tr>
+                                        <td colspan="3" style="padding: 1rem 0.75rem; text-align: right; font-weight: 600; color: #666;">Tax (7% - Iowa):</td>
+                                        <td style="padding: 1rem 0.75rem; text-align: right; color: #ff6b1a; font-weight: 600;">$${tax.toFixed(2)}</td>
+                                    </tr>
+                                    ` : ''}
                                     <tr style="background: #fff3e6; font-size: 1.3rem; font-weight: 700;">
                                         <td colspan="3" style="padding: 1.25rem 0.75rem; text-align: right; color: #333; border-top: 3px solid #ff6b1a;">Total:</td>
-                                        <td style="padding: 1.25rem 0.75rem; text-align: right; color: #ff6b1a; border-top: 3px solid #ff6b1a;">$${subtotal.toFixed(2)}</td>
+                                        <td style="padding: 1.25rem 0.75rem; text-align: right; color: #ff6b1a; border-top: 3px solid #ff6b1a;">$${total.toFixed(2)}</td>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -125,12 +138,12 @@ module.exports = async function handler(req, res) {
 
                     <!-- Footer -->
                     <tr>
-                        <td style="text-align: center; padding: 2rem; background: #f9f9f9; border-top: 2px solid #eee;">
-                            <p style="color: #666; margin: 0; font-size: 0.9rem; font-weight: 600;">Helmick Underground</p>
-                            <p style="color: #999; margin: 0.5rem 0; font-size: 0.85rem;">Quality Underground Utility Services</p>
-                            <p style="color: #666; margin: 0.75rem 0 0 0; font-size: 0.85rem;">📞 (319) 551-4323</p>
-                            <p style="color: #666; margin: 0.25rem 0 0 0; font-size: 0.85rem;">📧 contact@helmickunderground.com</p>
-                            <p style="color: #666; margin: 0.25rem 0 0 0; font-size: 0.85rem;">🌐 www.helmickunderground.com</p>
+                        <td style="text-align: center; padding: 2rem; background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); border-top: 2px solid #ff6b1a;">
+                            <p style="color: #ffffff; margin: 0; font-size: 1rem; font-weight: 700;">Helmick Underground</p>
+                            <p style="color: rgba(255, 255, 255, 0.9); margin: 0.5rem 0; font-size: 0.9rem;">Quality Underground Utility Services</p>
+                            <p style="color: #ffffff; margin: 0.75rem 0 0 0; font-size: 0.9rem; font-weight: 600;">📞 Tommy Helmick: (319) 721-9925</p>
+                            <p style="color: #ffffff; margin: 0.25rem 0 0 0; font-size: 0.9rem;">📧 HelmickUnderground@gmail.com</p>
+                            <p style="color: #ffffff; margin: 0.25rem 0 0 0; font-size: 0.9rem;">🌐 www.helmickunderground.com</p>
                         </td>
                     </tr>
                 </table>

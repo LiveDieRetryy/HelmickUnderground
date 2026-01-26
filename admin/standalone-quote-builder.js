@@ -213,9 +213,24 @@ function updateItemDescription(id, description) {
 function updateSummary() {
     const subtotal = lineItems.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
     
+    // Check if Iowa work checkbox is checked
+    const iowaWork = document.getElementById('iowaWorkCheckbox')?.checked || false;
+    const taxRate = iowaWork ? 0.07 : 0; // 7% Iowa sales tax
+    const tax = subtotal * taxRate;
+    const total = subtotal + tax;
+    
     document.getElementById('totalItems').textContent = lineItems.length;
     document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
-    document.getElementById('grandTotal').textContent = `$${subtotal.toFixed(2)}`;
+    document.getElementById('grandTotal').textContent = `$${total.toFixed(2)}`;
+    
+    // Show/hide tax row
+    const taxRow = document.getElementById('taxRow');
+    if (iowaWork && tax > 0) {
+        taxRow.style.display = 'flex';
+        document.getElementById('taxAmount').textContent = `$${tax.toFixed(2)}`;
+    } else {
+        taxRow.style.display = 'none';
+    }
 }
 
 function previewQuote() {
@@ -235,6 +250,10 @@ function previewQuote() {
     }
     
     const subtotal = lineItems.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
+    const iowaWork = document.getElementById('iowaWorkCheckbox')?.checked || false;
+    const taxRate = iowaWork ? 0.07 : 0;
+    const tax = subtotal * taxRate;
+    const total = subtotal + tax;
     const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     const notes = document.getElementById('quoteNotes').value.trim();
     
@@ -275,9 +294,19 @@ function previewQuote() {
                         <td style="padding: 0.75rem; text-align: right; border-bottom: 1px solid #eee; font-weight: 600;">$${(item.quantity * item.rate).toFixed(2)}</td>
                     </tr>
                 `).join('')}
+                <tr style="border-top: 2px solid #ff6b1a;">
+                    <td colspan="3" style="padding: 1rem 0.75rem; text-align: right; font-weight: 600; color: #666;">Subtotal:</td>
+                    <td style="padding: 1rem 0.75rem; text-align: right; font-weight: 600; color: #333;">$${subtotal.toFixed(2)}</td>
+                </tr>
+                ${iowaWork && tax > 0 ? `
+                <tr>
+                    <td colspan="3" style="padding: 1rem 0.75rem; text-align: right; font-weight: 600; color: #666;">Tax (7% - Iowa):</td>
+                    <td style="padding: 1rem 0.75rem; text-align: right; font-weight: 600; color: #ff6b1a;">$${tax.toFixed(2)}</td>
+                </tr>
+                ` : ''}
                 <tr style="font-weight: 700; font-size: 1.2rem;">
                     <td colspan="3" style="padding: 1rem 0.75rem; text-align: right; border-top: 3px solid #ff6b1a; color: #333;">Total:</td>
-                    <td style="padding: 1rem 0.75rem; text-align: right; border-top: 3px solid #ff6b1a; color: #ff6b1a;">$${subtotal.toFixed(2)}</td>
+                    <td style="padding: 1rem 0.75rem; text-align: right; border-top: 3px solid #ff6b1a; color: #ff6b1a;">$${total.toFixed(2)}</td>
                 </tr>
             </tbody>
         </table>
@@ -294,12 +323,12 @@ function previewQuote() {
             <p style="color: #999; margin: 0.5rem 0; font-size: 0.9rem;">Please contact us if you have any questions.</p>
         </div>
 
-        <div style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 2px solid #eee;">
-            <p style="color: #666; margin: 0; font-size: 0.9rem; font-weight: 600;">Helmick Underground</p>
-            <p style="color: #999; margin: 0.5rem 0; font-size: 0.85rem;">Quality Underground Utility Services</p>
-            <p style="color: #666; margin: 0.75rem 0 0 0; font-size: 0.85rem;">📞 (319) 551-4323</p>
-            <p style="color: #666; margin: 0.25rem 0 0 0; font-size: 0.85rem;">📧 contact@helmickunderground.com</p>
-            <p style="color: #666; margin: 0.25rem 0 0 0; font-size: 0.85rem;">🌐 www.helmickunderground.com</p>
+        <div style="text-align: center; margin-top: 2rem; padding: 2rem; background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); border-radius: 12px;">
+            <p style="color: white; margin: 0; font-size: 1rem; font-weight: 700;">Helmick Underground</p>
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 0.5rem 0; font-size: 0.9rem;">Quality Underground Utility Services</p>
+            <p style="color: white; margin: 0.75rem 0 0 0; font-size: 0.9rem;">📞 Tommy Helmick: (319) 721-9925</p>
+            <p style="color: white; margin: 0.25rem 0 0 0; font-size: 0.9rem;">📧 HelmickUnderground@gmail.com</p>
+            <p style="color: white; margin: 0.25rem 0 0 0; font-size: 0.9rem;">🌐 www.helmickunderground.com</p>
         </div>
     `;
     
@@ -345,6 +374,58 @@ function printQuote() {
         printWindow.print();
         printWindow.close();
     }, 250);
+}
+
+async function sendQuoteEmail() {
+    const email = prompt('Enter customer email address:');
+    
+    if (!email) return;
+    
+    if (!email.includes('@')) {
+        alert('Please enter a valid email address');
+        return;
+    }
+    
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '⏳ Sending...';
+    button.disabled = true;
+    
+    const customerName = document.getElementById('customerName').value.trim();
+    const subtotal = lineItems.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
+    
+    const quoteData = {
+        lineItems: lineItems,
+        notes: document.getElementById('quoteNotes').value,
+        subtotal: subtotal
+    };
+    
+    try {
+        const response = await fetch('/api/send-quote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                to: email,
+                customerName: customerName,
+                quoteData: quoteData
+            })
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('Failed to send email:', response.status, errorData);
+            alert('Failed to send email. Please try again.');
+        } else {
+            alert(`Quote sent successfully to ${email}!`);
+            closePreview();
+        }
+    } catch (error) {
+        console.error('Error sending quote:', error);
+        alert('Failed to send quote email. Please try again.');
+    } finally {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
 }
 
 // Load data on page load

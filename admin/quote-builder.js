@@ -331,9 +331,24 @@ function renderLineItems() {
 function updateSummary() {
     const subtotal = lineItems.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
     
+    // Check if Iowa work checkbox is checked
+    const iowaWork = document.getElementById('iowaWorkCheckbox')?.checked || false;
+    const taxRate = iowaWork ? 0.07 : 0; // 7% Iowa sales tax
+    const tax = subtotal * taxRate;
+    const total = subtotal + tax;
+    
     document.getElementById('totalItems').textContent = lineItems.length;
     document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
-    document.getElementById('grandTotal').textContent = `$${subtotal.toFixed(2)}`;
+    document.getElementById('grandTotal').textContent = `$${total.toFixed(2)}`;
+    
+    // Show/hide tax row
+    const taxRow = document.getElementById('taxRow');
+    if (iowaWork && tax > 0) {
+        taxRow.style.display = 'flex';
+        document.getElementById('taxAmount').textContent = `$${tax.toFixed(2)}`;
+    } else {
+        taxRow.style.display = 'none';
+    }
 }
 
 // Render custom item form
@@ -401,6 +416,10 @@ function previewQuote() {
     }
 
     const subtotal = lineItems.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
+    const iowaWork = document.getElementById('iowaWorkCheckbox')?.checked || false;
+    const taxRate = iowaWork ? 0.07 : 0;
+    const tax = subtotal * taxRate;
+    const total = subtotal + tax;
     const quoteNotes = document.getElementById('quoteNotes').value;
     const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -446,9 +465,19 @@ function previewQuote() {
                     `).join('')}
                 </tbody>
                 <tfoot>
+                    <tr style="border-top: 2px solid #ff6b1a;">
+                        <td colspan="3" style="padding: 1rem 0.75rem; text-align: right; font-weight: 600; color: #666;">Subtotal:</td>
+                        <td style="padding: 1rem 0.75rem; text-align: right; color: #333; font-weight: 600;">$${subtotal.toFixed(2)}</td>
+                    </tr>
+                    ${iowaWork && tax > 0 ? `
+                    <tr>
+                        <td colspan="3" style="padding: 1rem 0.75rem; text-align: right; font-weight: 600; color: #666;">Tax (7% - Iowa):</td>
+                        <td style="padding: 1rem 0.75rem; text-align: right; color: #ff6b1a; font-weight: 600;">$${tax.toFixed(2)}</td>
+                    </tr>
+                    ` : ''}
                     <tr style="background: #fff3e6; font-size: 1.3rem; font-weight: 700;">
                         <td colspan="3" style="padding: 1.25rem 0.75rem; text-align: right; color: #333; border-top: 3px solid #ff6b1a;">Total:</td>
-                        <td style="padding: 1.25rem 0.75rem; text-align: right; color: #ff6b1a; border-top: 3px solid #ff6b1a;">$${subtotal.toFixed(2)}</td>
+                        <td style="padding: 1.25rem 0.75rem; text-align: right; color: #ff6b1a; border-top: 3px solid #ff6b1a;">$${total.toFixed(2)}</td>
                     </tr>
                 </tfoot>
             </table>
@@ -484,6 +513,11 @@ async function saveAndSendQuote() {
     button.disabled = true;
 
     const subtotal = lineItems.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
+    const iowaWork = document.getElementById('iowaWorkCheckbox')?.checked || false;
+    const taxRate = iowaWork ? 0.07 : 0;
+    const tax = subtotal * taxRate;
+    const total = subtotal + tax;
+    
     const quoteData = {
         submissionId: submissionId,
         customer: {
@@ -493,7 +527,11 @@ async function saveAndSendQuote() {
         },
         lineItems: lineItems,
         notes: document.getElementById('quoteNotes').value,
+        iowaWork: iowaWork,
+        taxRate: taxRate,
+        tax: tax,
         subtotal: subtotal,
+        total: total,
         createdAt: new Date().toISOString()
     };
 
