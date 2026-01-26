@@ -271,6 +271,35 @@ function setDefaultDates() {
     document.getElementById('dueDate').valueAsDate = dueDate;
 }
 
+// Generate unique invoice number
+async function generateInvoiceNumber() {
+    try {
+        // Try to get existing invoices to determine next number
+        const response = await fetch('/api/invoices?action=all');
+        let invoiceCount = 0;
+        
+        if (response.ok) {
+            const data = await response.json();
+            invoiceCount = data.invoices ? data.invoices.length : 0;
+        }
+        
+        // Format: INV-YYYYMMDD-XXX
+        const today = new Date();
+        const dateStr = today.getFullYear().toString() + 
+                       (today.getMonth() + 1).toString().padStart(2, '0') + 
+                       today.getDate().toString().padStart(2, '0');
+        const sequentialNum = (invoiceCount + 1).toString().padStart(3, '0');
+        
+        const invoiceNumber = `INV-${dateStr}-${sequentialNum}`;
+        document.getElementById('invoiceNumber').value = invoiceNumber;
+        
+    } catch (error) {
+        // Fallback to timestamp-based number if API fails
+        const timestamp = Date.now().toString().slice(-8);
+        document.getElementById('invoiceNumber').value = `INV-${timestamp}`;
+    }
+}
+
 // Preview PDF (placeholder for now)
 function previewPDF() {
     const items = Array.from(document.querySelectorAll('.line-item')).map(item => ({
@@ -456,6 +485,7 @@ document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
 
 // Initialize
 setDefaultDates();
+generateInvoiceNumber();
 loadRates();
 loadProfiles();
 addLineItem(); // Add one empty line item to start
