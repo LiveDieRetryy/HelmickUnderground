@@ -525,19 +525,50 @@ async function saveAndSendQuote() {
         if (!emailRes.ok) {
             const errorData = await emailRes.json().catch(() => ({}));
             console.error('Failed to send email:', emailRes.status, errorData);
-            alert('Quote saved successfully, but failed to send email. You can resend it from the inbox.');
+            showSuccessMessage('Quote saved successfully, but failed to send email. You can resend it from the inbox.', true);
         } else {
-            alert('Quote sent successfully!');
+            showSuccessMessage('Quote sent successfully! The customer will receive the quote via email.', false);
         }
-
-        window.location.href = '/admin/inbox.html';
 
     } catch (error) {
         console.error('Error saving quote:', error);
-        alert('Failed to save quote. Please try again.');
+        showSuccessMessage('Failed to save quote. Please try again.', true);
         button.innerHTML = originalText;
         button.disabled = false;
     }
+}
+
+function showSuccessMessage(message, isError) {
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 9999; display: flex; align-items: center; justify-content: center;';
+    
+    const content = document.createElement('div');
+    content.style.cssText = 'background: white; border-radius: 20px; padding: 3rem; max-width: 500px; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);';
+    
+    const icon = document.createElement('div');
+    icon.style.cssText = 'font-size: 4rem; margin-bottom: 1rem;';
+    icon.textContent = isError ? '⚠️' : '✅';
+    
+    const text = document.createElement('p');
+    text.style.cssText = 'font-size: 1.2rem; color: #333; margin-bottom: 2rem;';
+    text.textContent = message;
+    
+    const button = document.createElement('button');
+    button.style.cssText = 'background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); color: white; border: none; padding: 1rem 2rem; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer;';
+    button.textContent = 'OK';
+    button.onclick = () => {
+        if (!isError) {
+            window.location.href = '/admin/inbox.html';
+        } else {
+            modal.remove();
+        }
+    };
+    
+    content.appendChild(icon);
+    content.appendChild(text);
+    content.appendChild(button);
+    modal.appendChild(content);
+    document.body.appendChild(modal);
 }
 
 // Load data on page load

@@ -126,8 +126,11 @@ module.exports = async function handler(req, res) {
                     <!-- Footer -->
                     <tr>
                         <td style="text-align: center; padding: 2rem; background: #f9f9f9; border-top: 2px solid #eee;">
-                            <p style="color: #666; margin: 0; font-size: 0.9rem;">Helmick Underground</p>
-                            <p style="color: #999; margin: 0.5rem 0 0 0; font-size: 0.85rem;">Quality Underground Utility Services</p>
+                            <p style="color: #666; margin: 0; font-size: 0.9rem; font-weight: 600;">Helmick Underground</p>
+                            <p style="color: #999; margin: 0.5rem 0; font-size: 0.85rem;">Quality Underground Utility Services</p>
+                            <p style="color: #666; margin: 0.75rem 0 0 0; font-size: 0.85rem;">📞 (319) 551-4323</p>
+                            <p style="color: #666; margin: 0.25rem 0 0 0; font-size: 0.85rem;">📧 contact@helmickunderground.com</p>
+                            <p style="color: #666; margin: 0.25rem 0 0 0; font-size: 0.85rem;">🌐 www.helmickunderground.com</p>
                         </td>
                     </tr>
                 </table>
