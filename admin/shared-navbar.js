@@ -23,6 +23,10 @@ function loadAdminNavbar() {
                 </a>
                 
                 <div style="padding: 0.5rem 1.5rem 0.15rem; color: rgba(255, 107, 26, 0.7); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Financial</div>
+                <a href="/admin/rates.html" class="sidebar-nav-item">
+                    <span class="sidebar-nav-item-icon">💰</span>
+                    <span class="sidebar-nav-item-text">Rates Management</span>
+                </a>
                 <a href="/admin/invoices.html" class="sidebar-nav-item">
                     <span class="sidebar-nav-item-icon">🧾</span>
                     <span class="sidebar-nav-item-text">Invoices</span>
@@ -30,10 +34,6 @@ function loadAdminNavbar() {
                 <a href="/admin/standalone-quote-builder.html" class="sidebar-nav-item">
                     <span class="sidebar-nav-item-icon">📋</span>
                     <span class="sidebar-nav-item-text">Build Quote</span>
-                </a>
-                <a href="/admin/rates.html" class="sidebar-nav-item">
-                    <span class="sidebar-nav-item-icon">💰</span>
-                    <span class="sidebar-nav-item-text">Rates Management</span>
                 </a>
                 
                 <div style="padding: 0.5rem 1.5rem 0.15rem; color: rgba(255, 107, 26, 0.7); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Content & Analytics</div>
