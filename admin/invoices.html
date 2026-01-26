@@ -352,10 +352,26 @@
             </div>
 
             <div id="invoicesList">
-                <div class="empty-state">
-                    <h3>No Invoices Yet</h3>
-                    <p>Create your first invoice to get started</p>
-                </div>
+                <table class="invoices-table">
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Due Date</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoicesTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 2rem; color: var(--gray);">
+                                Loading invoices...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
