@@ -107,8 +107,16 @@ function createDayElement(day, isOtherMonth, year, month, isToday = false) {
     // Make entire day clickable if it has appointments
     if (dayAppointments.length > 0) {
         dayDiv.style.cursor = 'pointer';
+        dayDiv.dataset.dateStr = dateStr; // Store date on element
         dayDiv.addEventListener('click', () => {
-            showDayAppointments(dateStr, dayAppointments);
+            // Look up appointments fresh when clicked to avoid closure issues
+            const clickedDateAppointments = scheduledAppointments.filter(apt => {
+                if (!apt.scheduled_date) return false;
+                const aptDate = new Date(apt.scheduled_date).toISOString().split('T')[0];
+                return aptDate === dateStr;
+            });
+            console.log('Day clicked, appointments found:', clickedDateAppointments);
+            showDayAppointments(dateStr, clickedDateAppointments);
         });
     }
     
