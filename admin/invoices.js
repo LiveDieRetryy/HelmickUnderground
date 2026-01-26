@@ -96,13 +96,16 @@ async function loadStats() {
         
         const stats = await response.json();
         
-        document.getElementById('totalInvoices').textContent = stats.total;
-        document.getElementById('draftInvoices').textContent = stats.draft;
-        document.getElementById('sentInvoices').textContent = stats.sent;
-        document.getElementById('paidInvoices').textContent = stats.paid;
-        document.getElementById('totalAmount').textContent = `$${stats.totalAmount.toFixed(2)}`;
-        document.getElementById('paidAmount').textContent = `$${stats.paidAmount.toFixed(2)}`;
-        document.getElementById('outstandingAmount').textContent = `$${stats.outstandingAmount.toFixed(2)}`;
+        // Update stats that exist in the HTML
+        const totalInvoicesEl = document.getElementById('totalInvoices');
+        const totalRevenueEl = document.getElementById('totalRevenue');
+        const pendingAmountEl = document.getElementById('pendingAmount');
+        const overdueCountEl = document.getElementById('overdueCount');
+        
+        if (totalInvoicesEl) totalInvoicesEl.textContent = stats.total || 0;
+        if (totalRevenueEl) totalRevenueEl.textContent = `$${(stats.total_amount || 0).toFixed(2)}`;
+        if (pendingAmountEl) pendingAmountEl.textContent = `$${(stats.outstanding_amount || 0).toFixed(2)}`;
+        if (overdueCountEl) overdueCountEl.textContent = stats.overdue || 0;
     } catch (error) {
         console.error('Error loading stats:', error);
     }
