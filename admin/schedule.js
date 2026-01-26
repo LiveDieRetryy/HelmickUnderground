@@ -184,14 +184,15 @@ function showDayAppointments(dateStr, appointments) {
 
 // View appointment details
 function viewAppointment(id) {
-    console.log('Looking for appointment with ID:', id);
+    console.log('Looking for appointment with ID:', id, 'Type:', typeof id);
     console.log('Current day appointments:', currentDayAppointments);
-    console.log('Available IDs:', currentDayAppointments.map(a => a.id));
+    console.log('Available IDs:', currentDayAppointments.map(a => ({ id: a.id, type: typeof a.id })));
     
     // Search in current day appointments first, then fall back to all appointments
-    let appointment = currentDayAppointments.find(a => a.id === id);
+    // Use == instead of === to handle type coercion (string '3' vs number 3)
+    let appointment = currentDayAppointments.find(a => a.id == id);
     if (!appointment) {
-        appointment = scheduledAppointments.find(a => a.id === id);
+        appointment = scheduledAppointments.find(a => a.id == id);
     }
     
     if (!appointment) {
