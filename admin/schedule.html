@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Schedule - Helmick Underground</title>
+    <link rel="icon" type="image/png" href="../logo.png">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="sidebar.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+            min-height: 100vh;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            padding: 3rem;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 5rem 1rem 2rem;
+            }
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, rgba(255, 107, 26, 0.15) 0%, rgba(255, 107, 26, 0.08) 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 2px solid rgba(255, 107, 26, 0.3);
+            box-shadow: 0 8px 32px rgba(255, 107, 26, 0.1);
+        }
+
+        .page-header h1 {
+            color: var(--primary-color);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 2rem;
+        }
+
+        .calendar-container {
+            background: var(--card-dark);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 2px solid rgba(255, 107, 26, 0.3);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(255, 107, 26, 0.2);
+        }
+
+        .calendar-header h2 {
+            color: var(--white);
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .calendar-nav button {
+            background: rgba(255, 107, 26, 0.1);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            color: var(--white);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-nav button:hover {
+            background: rgba(255, 107, 26, 0.2);
+            border-color: var(--primary-color);
+        }
+
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .calendar-weekday {
+            text-align: center;
+            color: var(--primary-color);
+            font-weight: 700;
+            padding: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 107, 26, 0.2);
+            border-radius: 8px;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .calendar-day:hover {
+            background: rgba(255, 107, 26, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .calendar-day.other-month {
+            opacity: 0.3;
+        }
+
+        .calendar-day.today {
+            background: rgba(255, 107, 26, 0.15);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 15px rgba(255, 107, 26, 0.3);
+        }
+
+        .calendar-day-number {
+            color: var(--white);
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .calendar-day-appointments {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .appointment-dot {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #ff8c42 100%);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--white);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .appointment-dot:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(255, 107, 26, 0.4);
+        }
+
+        .appointments-list {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid rgba(255, 107, 26, 0.2);
+        }
+
+        .appointments-list h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .appointment-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .appointment-card:hover {
+            border-color: var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .appointment-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .appointment-field {
+            color: var(--white);
+        }
+
+        .appointment-label {
+            color: var(--gray);
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .appointment-value {
+            color: var(--white);
+            font-weight: 600;
+        }
+
+        .appointment-time {
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <div class="mobile-menu-toggle" id="mobileMenuToggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <h2>Admin Panel</h2>
+        </div>
+        
+        <div class="sidebar-nav">
+            <a href="/admin/" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📊</span>
+                <span class="sidebar-nav-item-text">Dashboard</span>
+            </a>
+            <a href="/admin/inbox.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📬</span>
+                <span class="sidebar-nav-item-text">Quote Requests</span>
+            </a>
+            <a href="/admin/schedule.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📅</span>
+                <span class="sidebar-nav-item-text">Schedule</span>
+            </a>
+            <a href="/admin/analytics.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📈</span>
+                <span class="sidebar-nav-item-text">Analytics</span>
+            </a>
+            <a href="/admin/gallery-manager.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📸</span>
+                <span class="sidebar-nav-item-text">Gallery Manager</span>
+            </a>
+            <a href="/admin/rates.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">💰</span>
+                <span class="sidebar-nav-item-text">Rates Management</span>
+            </a>
+            <a href="/admin/rate-recipients.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📧</span>
+                <span class="sidebar-nav-item-text">Email Recipients</span>
+            </a>
+            <a href="/admin/invoices.html" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">🧾</span>
+                <span class="sidebar-nav-item-text">Invoices</span>
+            </a>
+            <a href="../" class="sidebar-nav-item" style="margin-top: 1.5rem; border-top: 2px solid rgba(255, 107, 26, 0.2); padding-top: 1.5rem;">
+                <span class="sidebar-nav-item-icon">🌐</span>
+                <span class="sidebar-nav-item-text">View Website</span>
+            </a>
+        </div>
+
+        <div class="sidebar-footer">
+            <button id="logoutBtn" class="btn-logout">
+                <span>🚪</span>
+                <span>Logout</span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1><span>📅</span> Scheduled Appointments</h1>
+        </div>
+
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <h2 id="calendarMonth"></h2>
+                <div class="calendar-nav">
+                    <button onclick="previousMonth()">← Previous</button>
+                    <button onclick="goToToday()">Today</button>
+                    <button onclick="nextMonth()">Next →</button>
+                </div>
+            </div>
+
+            <div class="calendar-weekdays">
+                <div class="calendar-weekday">Sun</div>
+                <div class="calendar-weekday">Mon</div>
+                <div class="calendar-weekday">Tue</div>
+                <div class="calendar-weekday">Wed</div>
+                <div class="calendar-weekday">Thu</div>
+                <div class="calendar-weekday">Fri</div>
+                <div class="calendar-weekday">Sat</div>
+            </div>
+
+            <div class="calendar-days" id="calendarDays"></div>
+
+            <div class="appointments-list">
+                <h3>Upcoming Appointments</h3>
+                <div id="appointmentsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="sidebar.js"></script>
+    <script src="schedule.js"></script>
+</body>
+</html>
