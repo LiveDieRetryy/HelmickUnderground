@@ -4,7 +4,7 @@ module.exports = async function handler(req, res) {
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') {
@@ -22,6 +22,7 @@ module.exports = async function handler(req, res) {
                 services TEXT[],
                 message TEXT,
                 status VARCHAR(50) DEFAULT 'unread',
+                notes TEXT,
                 ip VARCHAR(100),
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
@@ -64,6 +65,7 @@ module.exports = async function handler(req, res) {
                     services: row.services,
                     message: row.message,
                     status: row.status,
+                    notes: row.notes,
                     ip: row.ip,
                     timestamp: row.timestamp
                 }));
@@ -134,6 +136,43 @@ module.exports = async function handler(req, res) {
                 `;
                 return res.status(200).json({ success: true });
             }
+        }
+
+        if (req.method === 'PUT') {
+            const { id, status, notes } = req.body;
+            
+            if (!id) {
+                return res.status(400).json({ error: 'ID is required' });
+            }
+            
+            const validStatuses = ['unread', 'read', 'acknowledged', 'contacted', 'scheduled', 'completed', 'declined'];
+            
+            if (status && !validStatuses.includes(status)) {
+                return res.status(400).json({ error: 'Invalid status' });
+            }
+            
+            // Build update query dynamically based on what's provided
+            if (status && notes !== undefined) {
+                await sql`
+                    UPDATE contact_submissions 
+                    SET status = ${status}, notes = ${notes}
+                    WHERE id = ${id}
+                `;
+            } else if (status) {
+                await sql`
+                    UPDATE contact_submissions 
+                    SET status = ${status}
+                    WHERE id = ${id}
+                `;
+            } else if (notes !== undefined) {
+                await sql`
+                    UPDATE contact_submissions 
+                    SET notes = ${notes}
+                    WHERE id = ${id}
+                `;
+            }
+            
+            return res.status(200).json({ success: true });
         }
 
         return res.status(400).json({ error: 'Invalid request' });

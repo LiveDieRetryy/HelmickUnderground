@@ -255,16 +255,29 @@ async function viewSubmission(id) {
             <div class="detail-label">Message</div>
             <div class="detail-value" style="white-space: pre-wrap;">${sub.message}</div>
         </div>
+        ${sub.notes ? `
+            <div class="detail-section">
+                <div class="detail-label">Contact Notes</div>
+                <div class="detail-value" style="white-space: pre-wrap; background: rgba(255, 107, 26, 0.1); padding: 1rem; border-radius: 8px; border-left: 3px solid var(--primary-color);">${sub.notes}</div>
+            </div>
+        ` : ''}
         ${sub.ip ? `
             <div class="detail-section">
                 <div class="detail-label">IP Address</div>
                 <div class="detail-value" style="color: var(--gray); font-size: 0.9rem;">${sub.ip}</div>
             </div>
         ` : ''}
-        <button class="btn-send-ack" id="sendAckBtn-${sub.id}" onclick="sendAcknowledgmentEmail(${sub.id})">
-            <span>📧</span>
-            <span>Send Acknowledgment Email</span>
-        </button>
+        ${sub.status === 'acknowledged' ? `
+            <button class="btn-send-ack" onclick="markAsContacted(${sub.id})">
+                <span>📞</span>
+                <span>Mark as Contacted</span>
+            </button>
+        ` : `
+            <button class="btn-send-ack" id="sendAckBtn-${sub.id}" onclick="sendAcknowledgmentEmail(${sub.id})">
+                <span>📧</span>
+                <span>Send Acknowledgment Email</span>
+            </button>
+        `}
         <button class="btn-delete" onclick="deleteSubmission(${sub.id})">🗑️ Delete This Submission</button>
     `;
 
@@ -410,6 +423,31 @@ async function sendAcknowledgmentEmail(id) {
         }, 3000);
         
         alert('Failed to send acknowledgment email: ' + error.message);
+    }
+}
+
+// Mark as contacted
+async function markAsContacted(id) {
+    const notes = prompt('Enter notes from your conversation with the customer:');
+    if (notes === null) return; // User cancelled
+    
+    try {
+        const response = await fetch('/api/contact-submissions', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id, status: 'contacted', notes })
+        });
+
+        if (!response.ok) throw new Error('Failed to update status');
+
+        // Refresh data and close modal
+        await fetchSubmissions();
+        closeModal();
+    } catch (error) {
+        console.error('Error updating status:', error);
+        alert('Failed to mark as contacted: ' + error.message);
     }
 }
 
