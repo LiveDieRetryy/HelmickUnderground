@@ -529,8 +529,13 @@ async function loadInvoiceForEdit(id) {
         
         // Populate form fields
         document.getElementById('invoiceNumber').value = invoice.invoice_number;
-        document.getElementById('invoiceDate').value = invoice.invoice_date;
-        document.getElementById('dueDate').value = invoice.due_date;
+        
+        // Format dates to YYYY-MM-DD for date inputs
+        const invoiceDate = invoice.invoice_date ? invoice.invoice_date.split('T')[0] : '';
+        const dueDate = invoice.due_date ? invoice.due_date.split('T')[0] : '';
+        
+        document.getElementById('invoiceDate').value = invoiceDate;
+        document.getElementById('dueDate').value = dueDate;
         document.getElementById('customerName').value = invoice.customer_name;
         document.getElementById('customerEmail').value = invoice.customer_email || '';
         document.getElementById('customerPhone').value = invoice.customer_phone || '';

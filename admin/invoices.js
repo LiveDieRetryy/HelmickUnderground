@@ -200,55 +200,57 @@ async function viewInvoice(id) {
         
         const modalHTML = `
             <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 2rem;" onclick="this.remove()">
-                <div style="background: white; border-radius: 20px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative;" onclick="event.stopPropagation()">
+                <div style="background: white; border-radius: 20px; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative;" onclick="event.stopPropagation()">
                     <button onclick="this.closest('div[style*=\"position: fixed\"]').remove()" style="position: absolute; top: 1rem; right: 1rem; background: rgba(220, 20, 60, 0.9); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.5rem; z-index: 1;">×</button>
                     
                     <div style="padding: 3rem;">
                         <div style="text-align: center; margin-bottom: 2rem;">
-                            <h1 style="color: #ff6b1a; margin: 0;">Invoice Preview</h1>
-                            <p style="color: #666; margin: 0.5rem 0;">${invoice.invoice_number}</p>
+                            <h1 style="color: #ff6b1a; margin: 0; font-size: 2rem;">Invoice Preview</h1>
+                            <p style="color: #666; margin: 0.5rem 0; font-size: 1rem;">${invoice.invoice_number}</p>
                         </div>
                         
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; background: #f9f9f9; padding: 1.5rem; border-radius: 12px;">
                             <div>
-                                <h3 style="color: #333; margin: 0 0 0.5rem 0;">Customer Information</h3>
-                                <p style="margin: 0.25rem 0; color: #666;"><strong>Name:</strong> ${invoice.customer_name}</p>
-                                ${invoice.customer_email ? `<p style="margin: 0.25rem 0; color: #666;"><strong>Email:</strong> ${invoice.customer_email}</p>` : ''}
-                                ${invoice.customer_phone ? `<p style="margin: 0.25rem 0; color: #666;"><strong>Phone:</strong> ${invoice.customer_phone}</p>` : ''}
+                                <h3 style="color: #333; margin: 0 0 1rem 0; font-size: 1.2rem;">Customer Information</h3>
+                                <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;"><strong>Name:</strong> ${invoice.customer_name}</p>
+                                ${invoice.customer_email ? `<p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;"><strong>Email:</strong> ${invoice.customer_email}</p>` : ''}
+                                ${invoice.customer_phone ? `<p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;"><strong>Phone:</strong> ${invoice.customer_phone}</p>` : ''}
                             </div>
                             <div style="text-align: right;">
-                                <p style="margin: 0.25rem 0; color: #666;"><strong>Invoice Date:</strong> ${new Date(invoice.invoice_date).toLocaleDateString()}</p>
-                                <p style="margin: 0.25rem 0; color: #666;"><strong>Due Date:</strong> ${new Date(invoice.due_date).toLocaleDateString()}</p>
-                                <p style="margin: 0.25rem 0; color: #666;"><strong>Status:</strong> <span style="color: ${getStatusColor(invoice.status)}; font-weight: 600;">${invoice.status.toUpperCase()}</span></p>
+                                <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;"><strong>Invoice Date:</strong> ${new Date(invoice.invoice_date).toLocaleDateString()}</p>
+                                <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;"><strong>Due Date:</strong> ${new Date(invoice.due_date).toLocaleDateString()}</p>
+                                <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;"><strong>Status:</strong> <span style="color: ${getStatusColor(invoice.status)}; font-weight: 700; text-transform: uppercase;">${invoice.status}</span></p>
                             </div>
                         </div>
                         
-                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem;">
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem; border: 1px solid #e5e7eb;">
                             <thead>
-                                <tr style="background: #f5f5f5;">
-                                    <th style="padding: 0.75rem; text-align: left; border-bottom: 2px solid #ff6b1a;">Description</th>
-                                    <th style="padding: 0.75rem; text-align: center; border-bottom: 2px solid #ff6b1a;">Quantity</th>
-                                    <th style="padding: 0.75rem; text-align: right; border-bottom: 2px solid #ff6b1a;">Rate</th>
-                                    <th style="padding: 0.75rem; text-align: right; border-bottom: 2px solid #ff6b1a;">Amount</th>
+                                <tr style="background: #f9fafb;">
+                                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #ff6b1a; font-weight: 700; color: #333;">Description</th>
+                                    <th style="padding: 1rem; text-align: center; border-bottom: 2px solid #ff6b1a; font-weight: 700; color: #333;">Quantity</th>
+                                    <th style="padding: 1rem; text-align: right; border-bottom: 2px solid #ff6b1a; font-weight: 700; color: #333;">Rate</th>
+                                    <th style="padding: 1rem; text-align: right; border-bottom: 2px solid #ff6b1a; font-weight: 700; color: #333;">Amount</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                ${itemsHTML}
-                                <tr style="font-weight: 600; background: #fff3e6;">
-                                    <td colspan="3" style="padding: 1rem 0.75rem; text-align: right; border-top: 2px solid #ff6b1a;">Subtotal:</td>
-                                    <td style="padding: 1rem 0.75rem; text-align: right; border-top: 2px solid #ff6b1a;">$${parseFloat(invoice.subtotal).toFixed(2)}</td>
+                                ${itemsHTML || '<tr><td colspan="4" style="padding: 2rem; text-align: center; color: #999;">No line items</td></tr>'}
+                            </tbody>
+                            <tfoot>
+                                <tr style="background: #fff3e6;">
+                                    <td colspan="3" style="padding: 1rem; text-align: right; font-weight: 600; color: #333; border-top: 2px solid #ff6b1a;">Subtotal:</td>
+                                    <td style="padding: 1rem; text-align: right; font-weight: 600; color: #333; border-top: 2px solid #ff6b1a;">$${parseFloat(invoice.subtotal || 0).toFixed(2)}</td>
                                 </tr>
-                                ${parseFloat(invoice.tax) > 0 ? `
-                                <tr style="font-weight: 600;">
-                                    <td colspan="3" style="padding: 0.5rem 0.75rem; text-align: right;">Tax (${parseFloat(invoice.tax_rate).toFixed(2)}%):</td>
-                                    <td style="padding: 0.5rem 0.75rem; text-align: right;">$${parseFloat(invoice.tax).toFixed(2)}</td>
+                                ${parseFloat(invoice.tax || 0) > 0 ? `
+                                <tr style="background: #fff3e6;">
+                                    <td colspan="3" style="padding: 0.75rem 1rem; text-align: right; font-weight: 600; color: #666;">Tax (${parseFloat(invoice.tax_rate || 0).toFixed(1)}%):</td>
+                                    <td style="padding: 0.75rem 1rem; text-align: right; font-weight: 600; color: #666;">$${parseFloat(invoice.tax).toFixed(2)}</td>
                                 </tr>
                                 ` : ''}
-                                <tr style="font-weight: 700; font-size: 1.2rem; background: #ff6b1a; color: white;">
-                                    <td colspan="3" style="padding: 1rem 0.75rem; text-align: right;">Total:</td>
-                                    <td style="padding: 1rem 0.75rem; text-align: right;">$${parseFloat(invoice.total).toFixed(2)}</td>
+                                <tr style="background: #ff6b1a; color: white;">
+                                    <td colspan="3" style="padding: 1.25rem 1rem; text-align: right; font-weight: 700; font-size: 1.3rem;">Total:</td>
+                                    <td style="padding: 1.25rem 1rem; text-align: right; font-weight: 700; font-size: 1.3rem;">$${parseFloat(invoice.total || 0).toFixed(2)}</td>
                                 </tr>
-                            </tbody>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
