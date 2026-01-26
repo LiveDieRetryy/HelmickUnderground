@@ -116,25 +116,65 @@ function viewAppointment(id) {
         weekday: 'long', 
         year: 'numeric', 
         month: 'long', 
-        day: 'numeric' 
-    });
-    const timeStr = dateTime.toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit' 
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
     });
     
-    alert(`Appointment Details:
+    document.getElementById('modalBody').innerHTML = `
+        <div class="detail-section">
+            <div class="detail-label">Scheduled Date & Time</div>
+            <div class="detail-value" style="color: var(--primary-color); font-size: 1.3rem; font-weight: 700;">${dateStr}</div>
+        </div>
+        <div class="detail-section">
+            <div class="detail-label">Name</div>
+            <div class="detail-value">${appointment.name}</div>
+        </div>
+        <div class="detail-section">
+            <div class="detail-label">Email</div>
+            <div class="detail-value"><a href="mailto:${appointment.email}" style="color: var(--primary-color);">${appointment.email}</a></div>
+        </div>
+        <div class="detail-section">
+            <div class="detail-label">Phone</div>
+            <div class="detail-value"><a href="tel:${appointment.phone}" style="color: var(--primary-color);">${appointment.phone || 'Not provided'}</a></div>
+        </div>
+        ${appointment.services && appointment.services.length > 0 ? `
+            <div class="detail-section">
+                <div class="detail-label">Services Requested</div>
+                <div class="services-list">
+                    ${appointment.services.map(s => `<span class="service-tag">${s}</span>`).join('')}
+                </div>
+            </div>
+        ` : ''}
+        <div class="detail-section">
+            <div class="detail-label">Message</div>
+            <div class="detail-value" style="white-space: pre-wrap;">${appointment.message}</div>
+        </div>
+        ${appointment.notes ? `
+            <div class="detail-section">
+                <div class="detail-label">Contact Notes</div>
+                <div class="detail-value" style="white-space: pre-wrap; background: rgba(255, 107, 26, 0.1); padding: 1rem; border-radius: 8px; border-left: 3px solid var(--primary-color);">${appointment.notes}</div>
+            </div>
+        ` : ''}
+        ${appointment.ip ? `
+            <div class="detail-section">
+                <div class="detail-label">IP Address</div>
+                <div class="detail-value" style="color: var(--gray); font-size: 0.9rem;">${appointment.ip}</div>
+            </div>
+        ` : ''}
+        <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid rgba(255, 107, 26, 0.2);">
+            <a href="/admin/inbox.html" style="display: inline-block; background: linear-gradient(135deg, var(--primary-color) 0%, #ff8c42 100%); color: var(--white); padding: 1rem 2rem; border-radius: 12px; text-decoration: none; font-weight: 700;">
+                View in Quote Requests
+            </a>
+        </div>
+    `;
+    
+    document.getElementById('detailModal').classList.add('active');
+}
 
-Name: ${appointment.name}
-Email: ${appointment.email}
-Phone: ${appointment.phone || 'Not provided'}
-Date: ${dateStr}
-Time: ${timeStr}
-Services: ${appointment.services ? appointment.services.join(', ') : 'Not specified'}
-
-Message: ${appointment.message}
-
-${appointment.notes ? 'Notes: ' + appointment.notes : ''}`);
+// Close modal
+function closeModal() {
+    document.getElementById('detailModal').classList.remove('active');
 }
 
 // Render appointments list
@@ -221,6 +261,13 @@ function goToToday() {
 
 // Auto-refresh every 30 seconds
 setInterval(loadAppointments, 30000);
+
+// Close modal on outside click
+document.getElementById('detailModal').addEventListener('click', (e) => {
+    if (e.target.id === 'detailModal') {
+        closeModal();
+    }
+});
 
 // Initial load
 loadAppointments();
