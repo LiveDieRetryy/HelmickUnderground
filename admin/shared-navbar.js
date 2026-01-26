@@ -12,7 +12,7 @@ function loadAdminNavbar() {
                     <span class="sidebar-nav-item-text">Dashboard</span>
                 </a>
                 
-                <div style="padding: 0.75rem 1.5rem 0.25rem; color: rgba(255, 107, 26, 0.7); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Customer Management</div>
+                <div style="padding: 0.5rem 1.5rem 0.15rem; color: rgba(255, 107, 26, 0.7); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Customer Management</div>
                 <a href="/admin/inbox.html" class="sidebar-nav-item">
                     <span class="sidebar-nav-item-icon">📬</span>
                     <span class="sidebar-nav-item-text">Work Requests</span>
@@ -22,7 +22,7 @@ function loadAdminNavbar() {
                     <span class="sidebar-nav-item-text">Schedule</span>
                 </a>
                 
-                <div style="padding: 0.75rem 1.5rem 0.25rem; color: rgba(255, 107, 26, 0.7); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Financial</div>
+                <div style="padding: 0.5rem 1.5rem 0.15rem; color: rgba(255, 107, 26, 0.7); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Financial</div>
                 <a href="/admin/invoices.html" class="sidebar-nav-item">
                     <span class="sidebar-nav-item-icon">🧾</span>
                     <span class="sidebar-nav-item-text">Invoices</span>
@@ -36,7 +36,7 @@ function loadAdminNavbar() {
                     <span class="sidebar-nav-item-text">Rates Management</span>
                 </a>
                 
-                <div style="padding: 0.75rem 1.5rem 0.25rem; color: rgba(255, 107, 26, 0.7); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Content & Analytics</div>
+                <div style="padding: 0.5rem 1.5rem 0.15rem; color: rgba(255, 107, 26, 0.7); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Content & Analytics</div>
                 <a href="/admin/gallery-manager.html" class="sidebar-nav-item">
                     <span class="sidebar-nav-item-icon">📸</span>
                     <span class="sidebar-nav-item-text">Gallery Manager</span>
@@ -46,13 +46,13 @@ function loadAdminNavbar() {
                     <span class="sidebar-nav-item-text">Analytics</span>
                 </a>
                 
-                <div style="padding: 0.75rem 1.5rem 0.25rem; color: rgba(255, 107, 26, 0.7); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Settings</div>
+                <div style="padding: 0.5rem 1.5rem 0.15rem; color: rgba(255, 107, 26, 0.7); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Settings</div>
                 <a href="/admin/rate-recipients.html" class="sidebar-nav-item">
                     <span class="sidebar-nav-item-icon">📧</span>
                     <span class="sidebar-nav-item-text">Email Recipients</span>
                 </a>
                 
-                <a href="../" class="sidebar-nav-item" style="margin-top: 1.5rem; border-top: 2px solid rgba(255, 107, 26, 0.2); padding-top: 1.5rem;">
+                <a href="../" class="sidebar-nav-item" style="margin-top: 0.75rem; border-top: 2px solid rgba(255, 107, 26, 0.2); padding-top: 0.75rem;">
                     <span class="sidebar-nav-item-icon">🌐</span>
                     <span class="sidebar-nav-item-text">View Website</span>
                 </a>
