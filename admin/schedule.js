@@ -173,9 +173,14 @@ function showDayAppointments(dateStr, appointments) {
 
 // View appointment details
 function viewAppointment(id) {
+    console.log('Looking for appointment with ID:', id);
+    console.log('Available appointments:', scheduledAppointments);
+    console.log('Available IDs:', scheduledAppointments.map(a => a.id));
+    
     const appointment = scheduledAppointments.find(a => a.id === id);
     if (!appointment) {
         console.log('Appointment not found:', id);
+        alert('Error: Could not find appointment details. ID: ' + id);
         return;
     }
     
