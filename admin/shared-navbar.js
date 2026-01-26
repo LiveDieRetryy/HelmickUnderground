@@ -70,10 +70,14 @@ function loadAdminNavbar() {
     // Insert navbar - check if dashboardContent div exists (for pages with login)
     const dashboardContent = document.getElementById('dashboardContent');
     if (dashboardContent) {
+        console.log('Injecting navbar into dashboardContent');
         dashboardContent.insertAdjacentHTML('afterbegin', navbarHTML);
     } else {
+        console.log('Injecting navbar into body');
         document.body.insertAdjacentHTML('afterbegin', navbarHTML);
     }
+    
+    console.log('Navbar injected successfully');
     
     // Set active nav item based on current page
     const currentPath = window.location.pathname;

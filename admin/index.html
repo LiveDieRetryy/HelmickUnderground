@@ -520,6 +520,60 @@
                 gap: 1rem;
             }
         }
+
+        /* Modal Styles */
+        .detail-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .detail-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .detail-modal-content {
+            background: var(--card-dark);
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .detail-modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(220, 20, 60, 0.9);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .detail-modal-close:hover {
+            background: var(--red);
+            transform: rotate(90deg);
+        }
     </style>
 </head>
 <body>
