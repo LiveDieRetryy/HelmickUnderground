@@ -599,7 +599,7 @@
     </div>
 
     <!-- Dashboard Content (hidden until login) -->
-    <div id="dashboardContent" style="display: none;">
+    <div id="dashboardContent" class="dashboard-wrapper" style="display: none;">
         <!-- Mobile Menu Toggle -->
         <button class="mobile-menu-toggle" id="mobileMenuToggle">
             <span></span>
@@ -610,7 +610,7 @@
         <!-- Sidebar Overlay -->
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-        <!-- Sidebar -->
+        <!-- Sidebar will be injected here -->
         <!-- Main Content -->
         <div class="main-content">
             <div style="text-align: center; margin-bottom: 2rem;">
@@ -652,7 +652,6 @@
             </div>
         </div>
     </div>
-    </div>
 
     <script src="./sidebar.js"></script>
     <script src="./shared-navbar.js"></script>
@@ -690,24 +689,33 @@
 
         // Show dashboard
         async function showDashboard() {
+            console.log('Showing dashboard...');
             document.getElementById('loginContainer').style.display = 'none';
             document.getElementById('dashboardContent').style.display = 'block';
             
             // Wait for next frame to ensure display is rendered
             await new Promise(resolve => requestAnimationFrame(resolve));
             
+            console.log('Attempting to load navbar...');
             // Load navbar after dashboard is visible
             if (typeof loadAdminNavbar === 'function') {
+                console.log('loadAdminNavbar function found, calling it...');
                 loadAdminNavbar();
+                
+                // Wait a moment for navbar to be injected
+                await new Promise(resolve => setTimeout(resolve, 100));
                 
                 // Attach logout handler after navbar is loaded
                 const logoutBtn = document.getElementById('logoutBtn');
+                console.log('Logout button found:', logoutBtn);
                 if (logoutBtn) {
                     logoutBtn.addEventListener('click', function() {
                         sessionStorage.removeItem('adminLoggedIn');
                         location.reload();
                     });
                 }
+            } else {
+                console.error('loadAdminNavbar function not found!');
             }
             
             await loadDashboardStats();
