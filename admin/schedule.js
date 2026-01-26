@@ -98,21 +98,62 @@ function createDayElement(day, isOtherMonth, year, month, isToday = false) {
                     hour: 'numeric', 
                     minute: '2-digit' 
                 });
-                return `<div class="appointment-dot" data-appointment-id="${apt.id}" title="${apt.name} - ${time}">${time}</div>`;
+                return `<div class="appointment-dot" title="${apt.name} - ${time}">${time}</div>`;
             }).join('')}
         </div>
     `;
     
-    // Add click handlers to appointment dots
-    dayDiv.querySelectorAll('.appointment-dot').forEach(dot => {
-        dot.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const appointmentId = parseInt(dot.getAttribute('data-appointment-id'));
-            viewAppointment(appointmentId);
+    // Make entire day clickable if it has appointments
+    if (dayAppointments.length > 0) {
+        dayDiv.style.cursor = 'pointer';
+        dayDiv.addEventListener('click', () => {
+            showDayAppointments(dateStr, dayAppointments);
         });
-    });
+    }
     
     return dayDiv;
+}
+
+// Show all appointments for a specific day
+function showDayAppointments(dateStr, appointments) {
+    const date = new Date(dateStr + 'T00:00:00');
+    const dateFormatted = date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+    
+    document.getElementById('modalBody').innerHTML = `
+        <h3 style="color: var(--primary-color); margin-bottom: 1.5rem;">Appointments for ${dateFormatted}</h3>
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            ${appointments.map(apt => {
+                const time = new Date(apt.scheduled_date).toLocaleTimeString('en-US', { 
+                    hour: 'numeric', 
+                    minute: '2-digit' 
+                });
+                return `
+                    <div class="appointment-card" style="cursor: pointer; transition: all 0.3s ease;" onclick="viewAppointment(${apt.id})">
+                        <div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem;">
+                            <div style="flex: 1;">
+                                <div style="color: var(--primary-color); font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem;">${time}</div>
+                                <div style="color: var(--white); font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem;">${apt.name}</div>
+                                <div style="color: var(--gray); font-size: 0.9rem;">${apt.phone || 'No phone'}</div>
+                            </div>
+                            <div style="color: var(--primary-color); font-size: 1.5rem;">→</div>
+                        </div>
+                        ${apt.services && apt.services.length > 0 ? `
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                                ${apt.services.map(s => `<span style="background: rgba(255, 107, 26, 0.2); padding: 0.25rem 0.75rem; border-radius: 6px; font-size: 0.85rem;">${s}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+    
+    document.getElementById('detailModal').classList.add('active');
 }
 
 // View appointment details
