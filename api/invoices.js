@@ -104,7 +104,9 @@ module.exports = async function handler(req, res) {
                     ORDER BY created_at DESC
                 `;
                 
-                return res.status(200).json(result.rows);
+                return res.status(200).json({ 
+                    invoices: result.rows 
+                });
             }
             
             if (action === 'stats') {

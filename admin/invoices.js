@@ -11,7 +11,8 @@ async function loadInvoices() {
         const response = await fetch('/api/invoices?action=all');
         if (!response.ok) throw new Error('Failed to load invoices');
         
-        allInvoices = await response.json();
+        const data = await response.json();
+        allInvoices = data.invoices || [];
         displayInvoices(allInvoices);
         loadStats();
     } catch (error) {
