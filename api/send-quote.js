@@ -147,9 +147,10 @@ module.exports = async function handler(req, res) {
 
         if (error) {
             console.error('Resend error:', error);
-            return res.status(400).json({ error: error.message });
+            return res.status(400).json({ error: error.message || 'Failed to send email', details: error });
         }
 
+        console.log('Email sent successfully:', data);
         res.status(200).json({ success: true, messageId: data.id });
 
     } catch (error) {

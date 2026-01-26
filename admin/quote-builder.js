@@ -523,7 +523,8 @@ async function saveAndSendQuote() {
         });
 
         if (!emailRes.ok) {
-            console.error('Failed to send email, but quote was saved');
+            const errorData = await emailRes.json().catch(() => ({}));
+            console.error('Failed to send email:', emailRes.status, errorData);
             alert('Quote saved successfully, but failed to send email. You can resend it from the inbox.');
         } else {
             alert('Quote sent successfully!');
