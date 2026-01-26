@@ -5,6 +5,153 @@ if (!sessionStorage.getItem('adminLoggedIn')) {
 
 let ratesData = [];
 let lineItemCounter = 0;
+let companyProfiles = [];
+
+// Load company profiles from localStorage
+function loadProfiles() {
+    const saved = localStorage.getItem('companyProfiles');
+    companyProfiles = saved ? JSON.parse(saved) : [];
+    updateProfileDropdown();
+}
+
+// Update profile dropdown
+function updateProfileDropdown() {
+    const select = document.getElementById('companyProfile');
+    select.innerHTML = '<option value="">-- Select a company profile --</option>' +
+        companyProfiles.map((profile, index) => 
+            `<option value="${index}">${profile.name}</option>`
+        ).join('');
+}
+
+// Open profile manager modal
+function openProfileManager() {
+    document.getElementById('profileModal').style.display = 'block';
+    displayProfiles();
+}
+
+// Close profile manager modal
+function closeProfileManager() {
+    document.getElementById('profileModal').style.display = 'none';
+    document.getElementById('newProfileName').value = '';
+    document.getElementById('newProfileItems').value = '';
+}
+
+// Display saved profiles
+function displayProfiles() {
+    const container = document.getElementById('profilesList');
+    
+    if (companyProfiles.length === 0) {
+        container.innerHTML = '<div style="color: var(--gray); text-align: center; padding: 2rem;">No profiles saved yet</div>';
+        return;
+    }
+    
+    container.innerHTML = companyProfiles.map((profile, index) => `
+        <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 107, 26, 0.2); border-radius: 12px; padding: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                <div>
+                    <h4 style="color: var(--primary-color); margin: 0 0 0.5rem 0;">${profile.name}</h4>
+                    <div style="color: var(--gray); font-size: 0.9rem;">${profile.lineItems.length} custom line items</div>
+                </div>
+                <button onclick="deleteProfile(${index})" style="background: rgba(220, 20, 60, 0.2); border: 1px solid rgba(220, 20, 60, 0.5); color: var(--red); padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600;">\ud83d\uddd1\ufe0f Delete</button>
+            </div>
+            <div style="background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 1rem; max-height: 200px; overflow-y: auto;">
+                ${profile.lineItems.map(item => `
+                    <div style="color: var(--gray); padding: 0.5rem 0; border-bottom: 1px solid rgba(255, 107, 26, 0.1);">
+                        <span style="color: var(--white);">${item.description}</span> - 
+                        <span style="color: var(--primary-color); font-weight: 600;">$${item.rate.toFixed(2)}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
+// Save new profile
+function saveNewProfile() {
+    const name = document.getElementById('newProfileName').value.trim();
+    const itemsText = document.getElementById('newProfileItems').value.trim();
+    
+    if (!name) {
+        alert('Please enter a company name');
+        return;
+    }
+    
+    if (!itemsText) {
+        alert('Please enter at least one line item');
+        return;
+    }
+    
+    // Parse line items
+    const lines = itemsText.split('\\n').filter(line => line.trim());
+    const lineItems = [];
+    
+    for (const line of lines) {
+        const parts = line.split('-').map(p => p.trim());
+        if (parts.length === 2) {
+            const description = parts[0];
+            const rate = parseFloat(parts[1]);
+            
+            if (description && !isNaN(rate)) {
+                lineItems.push({ description, rate });
+            }
+        }
+    }
+    
+    if (lineItems.length === 0) {
+        alert('No valid line items found. Please use the format: Description - Rate');
+        return;
+    }
+    
+    // Save profile
+    companyProfiles.push({
+        name,
+        lineItems,
+        createdAt: new Date().toISOString()
+    });
+    
+    localStorage.setItem('companyProfiles', JSON.stringify(companyProfiles));
+    
+    // Clear form and update display
+    document.getElementById('newProfileName').value = '';
+    document.getElementById('newProfileItems').value = '';
+    displayProfiles();
+    updateProfileDropdown();
+    
+    alert(`Profile "${name}" saved successfully!`);
+}
+
+// Delete profile
+function deleteProfile(index) {
+    if (!confirm(`Delete profile "${companyProfiles[index].name}"?`)) return;
+    
+    companyProfiles.splice(index, 1);
+    localStorage.setItem('companyProfiles', JSON.stringify(companyProfiles));
+    displayProfiles();
+    updateProfileDropdown();
+}
+
+// Load company profile into form
+function loadCompanyProfile() {
+    const select = document.getElementById('companyProfile');
+    const index = select.value;
+    
+    if (index === '') return;
+    
+    const profile = companyProfiles[index];
+    if (!profile) return;
+    
+    // Clear existing line items
+    document.getElementById('lineItemsContainer').innerHTML = '';
+    lineItemCounter = 0;
+    
+    // Add profile's line items
+    profile.lineItems.forEach(item => {
+        addLineItem(item.description, 1, item.rate);
+    });
+    
+    // Set company name
+    document.getElementById('customerName').value = profile.name;
+}
 
 // Load rates data on init
 async function loadRates() {
@@ -196,4 +343,5 @@ document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
 // Initialize
 setDefaultDates();
 loadRates();
+loadProfiles();
 addLineItem(); // Add one empty line item to start

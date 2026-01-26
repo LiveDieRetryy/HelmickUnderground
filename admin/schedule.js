@@ -345,6 +345,88 @@ function goToToday() {
     renderCalendar();
 }
 
+// Add appointment modal functions
+function openAddAppointmentModal() {
+    document.getElementById('addAppointmentModal').style.display = 'block';
+    // Set default date/time to current
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('aptDateTime').value = now.toISOString().slice(0, 16);
+}
+
+function closeAddAppointmentModal() {
+    document.getElementById('addAppointmentModal').style.display = 'none';
+    document.getElementById('addAppointmentForm').reset();
+}
+
+async function saveNewAppointment(event) {
+    event.preventDefault();
+    
+    const button = event.target.querySelector('button[type="submit"]');
+    const originalText = button.innerHTML;
+    button.innerHTML = '⏳ Saving...';
+    button.disabled = true;
+
+    const appointmentData = {
+        name: document.getElementById('aptName').value,
+        email: document.getElementById('aptEmail').value || 'N/A',
+        phone: document.getElementById('aptPhone').value,
+        service: document.getElementById('aptService').value,
+        scheduled_date: new Date(document.getElementById('aptDateTime').value).toISOString(),
+        location: document.getElementById('aptLocation').value || '',
+        message: document.getElementById('aptNotes').value || '',
+        status: 'scheduled',
+        created_at: new Date().toISOString()
+    };
+
+    try {
+        const response = await fetch('/api/contact-submissions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(appointmentData)
+        });
+
+        if (!response.ok) throw new Error('Failed to create appointment');
+
+        closeAddAppointmentModal();
+        showSuccessMessage('Appointment created successfully!');
+        await loadAppointments();
+
+    } catch (error) {
+        console.error('Error creating appointment:', error);
+        alert('Failed to create appointment. Please try again.');
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+
+function showSuccessMessage(message) {
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 9999; display: flex; align-items: center; justify-content: center;';
+    
+    const content = document.createElement('div');
+    content.style.cssText = 'background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%); border: 2px solid #22c55e; border-radius: 20px; padding: 3rem; max-width: 400px; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);';
+    
+    const icon = document.createElement('div');
+    icon.style.cssText = 'font-size: 4rem; margin-bottom: 1rem;';
+    icon.textContent = '✅';
+    
+    const text = document.createElement('p');
+    text.style.cssText = 'font-size: 1.2rem; color: white; margin-bottom: 2rem;';
+    text.textContent = message;
+    
+    const button = document.createElement('button');
+    button.style.cssText = 'background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: white; border: none; padding: 1rem 2rem; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer;';
+    button.textContent = 'OK';
+    button.onclick = () => modal.remove();
+    
+    content.appendChild(icon);
+    content.appendChild(text);
+    content.appendChild(button);
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+}
+
 // Auto-refresh every 30 seconds
 setInterval(loadAppointments, 30000);
 
@@ -352,6 +434,12 @@ setInterval(loadAppointments, 30000);
 document.getElementById('detailModal').addEventListener('click', (e) => {
     if (e.target.id === 'detailModal') {
         closeModal();
+    }
+});
+
+document.getElementById('addAppointmentModal').addEventListener('click', (e) => {
+    if (e.target.id === 'addAppointmentModal') {
+        closeAddAppointmentModal();
     }
 });
 
