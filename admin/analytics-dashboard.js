@@ -8,12 +8,6 @@ function checkAuth() {
     return true;
 }
 
-// Logout
-document.getElementById('logoutBtn').addEventListener('click', () => {
-    sessionStorage.removeItem('adminLoggedIn');
-    window.location.href = '/admin/login.html';
-});
-
 // Clear analytics
 document.getElementById('clearBtn').addEventListener('click', async () => {
     if (!confirm('⚠️ Are you sure you want to delete ALL analytics data? This cannot be undone!')) {

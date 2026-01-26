@@ -12,12 +12,6 @@ function checkAuth() {
     showDashboard();
 }
 
-// Logout handler
-document.getElementById('logoutBtn')?.addEventListener('click', function() {
-    sessionStorage.removeItem('adminLoggedIn');
-    window.location.href = '/admin/login.html';
-});
-
 // Show dashboard
 function showDashboard() {
     document.getElementById('adminDashboard').style.display = 'block';

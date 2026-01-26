@@ -3,12 +3,6 @@ if (!sessionStorage.getItem('adminLoggedIn')) {
     window.location.href = '/admin/login.html';
 }
 
-// Logout
-document.getElementById('logoutBtn').addEventListener('click', () => {
-    sessionStorage.removeItem('adminLoggedIn');
-    window.location.href = '/admin/login.html';
-});
-
 let currentDate = new Date();
 let scheduledAppointments = [];
 let currentDayAppointments = []; // Store appointments for currently viewed day

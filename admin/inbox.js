@@ -8,12 +8,6 @@ function checkAuth() {
     return true;
 }
 
-// Logout
-document.getElementById('logoutBtn')?.addEventListener('click', () => {
-    sessionStorage.removeItem('adminLoggedIn');
-    window.location.href = '/admin/login.html';
-});
-
 let allSubmissions = [];
 let currentFilter = 'all';
 
