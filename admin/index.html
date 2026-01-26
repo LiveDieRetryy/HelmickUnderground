@@ -698,6 +698,12 @@
         async function showDashboard() {
             document.getElementById('loginContainer').style.display = 'none';
             document.getElementById('dashboardContent').style.display = 'block';
+            
+            // Manually trigger navbar load if it hasn't loaded yet
+            if (typeof loadAdminNavbar === 'function' && !document.querySelector('.sidebar')) {
+                loadAdminNavbar();
+            }
+            
             await loadDashboardStats();
             await loadUpcomingAppointments();
             
