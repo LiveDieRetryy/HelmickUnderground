@@ -174,14 +174,27 @@ async function viewInvoice(id) {
         if (!response.ok) throw new Error('Failed to load invoice');
         
         const invoice = await response.json();
-        const items = JSON.parse(invoice.items);
+        
+        // Parse items - check if it's already an object or a string
+        let items;
+        try {
+            items = typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items;
+        } catch (e) {
+            console.error('Error parsing items:', e);
+            items = [];
+        }
+        
+        if (!Array.isArray(items)) {
+            console.error('Items is not an array:', items);
+            items = [];
+        }
         
         const itemsHTML = items.map(item => `
             <tr>
-                <td style="padding: 0.75rem; border-bottom: 1px solid #eee;">${item.description}</td>
-                <td style="padding: 0.75rem; text-align: center; border-bottom: 1px solid #eee;">${item.quantity}</td>
-                <td style="padding: 0.75rem; text-align: right; border-bottom: 1px solid #eee;">$${parseFloat(item.rate).toFixed(2)}</td>
-                <td style="padding: 0.75rem; text-align: right; border-bottom: 1px solid #eee; font-weight: 600;">$${parseFloat(item.amount).toFixed(2)}</td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #eee;">${item.description || ''}</td>
+                <td style="padding: 0.75rem; text-align: center; border-bottom: 1px solid #eee;">${item.quantity || 0}</td>
+                <td style="padding: 0.75rem; text-align: right; border-bottom: 1px solid #eee;">$${parseFloat(item.rate || 0).toFixed(2)}</td>
+                <td style="padding: 0.75rem; text-align: right; border-bottom: 1px solid #eee; font-weight: 600;">$${parseFloat(item.amount || 0).toFixed(2)}</td>
             </tr>
         `).join('');
         

@@ -538,17 +538,32 @@ async function loadInvoiceForEdit(id) {
         document.getElementById('taxRate').value = invoice.tax_rate || 0;
         
         // Clear default line item
-        document.getElementById('lineItemsContainer').innerHTML = '';
+        const container = document.getElementById('lineItemsContainer');
+        if (container) {
+            container.innerHTML = '';
+        }
         lineItemCounter = 0;
         
-        // Load line items
-        const items = JSON.parse(invoice.items);
-        items.forEach(item => {
-            addLineItem(item.description, item.quantity, item.rate);
-        });
+        // Load line items - parse if string
+        let items;
+        try {
+            items = typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items;
+        } catch (e) {
+            console.error('Error parsing items:', e);
+            items = [];
+        }
+        
+        if (Array.isArray(items)) {
+            items.forEach(item => {
+                addLineItem(item.description, item.quantity, item.rate);
+            });
+        }
         
         // Update page title
-        document.querySelector('.page-header h1').textContent = '✏️ Edit Invoice';
+        const titleEl = document.querySelector('.page-header h1');
+        if (titleEl) {
+            titleEl.textContent = '✏️ Edit Invoice';
+        }
         
     } catch (error) {
         console.error('Error loading invoice:', error);
