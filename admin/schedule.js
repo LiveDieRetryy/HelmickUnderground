@@ -126,14 +126,14 @@ function showDayAppointments(dateStr, appointments) {
     
     document.getElementById('modalBody').innerHTML = `
         <h3 style="color: var(--primary-color); margin-bottom: 1.5rem;">Appointments for ${dateFormatted}</h3>
-        <div style="display: flex; flex-direction: column; gap: 1rem;">
+        <div style="display: flex; flex-direction: column; gap: 1rem;" id="appointmentsList">
             ${appointments.map(apt => {
                 const time = new Date(apt.scheduled_date).toLocaleTimeString('en-US', { 
                     hour: 'numeric', 
                     minute: '2-digit' 
                 });
                 return `
-                    <div class="appointment-card" style="cursor: pointer; transition: all 0.3s ease;" onclick="viewAppointment(${apt.id})">
+                    <div class="appointment-card" data-appointment-id="${apt.id}" style="cursor: pointer; transition: all 0.3s ease;">
                         <div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem;">
                             <div style="flex: 1;">
                                 <div style="color: var(--primary-color); font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem;">${time}</div>
@@ -152,6 +152,14 @@ function showDayAppointments(dateStr, appointments) {
             }).join('')}
         </div>
     `;
+    
+    // Add click listeners to appointment cards
+    document.querySelectorAll('#appointmentsList .appointment-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const appointmentId = parseInt(card.getAttribute('data-appointment-id'));
+            viewAppointment(appointmentId);
+        });
+    });
     
     document.getElementById('detailModal').classList.add('active');
 }
