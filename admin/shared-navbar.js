@@ -67,8 +67,13 @@ function loadAdminNavbar() {
         </nav>
     `;
     
-    // Insert navbar at the beginning of body
-    document.body.insertAdjacentHTML('afterbegin', navbarHTML);
+    // Insert navbar - check if dashboardContent div exists (for pages with login)
+    const dashboardContent = document.getElementById('dashboardContent');
+    if (dashboardContent) {
+        dashboardContent.insertAdjacentHTML('afterbegin', navbarHTML);
+    } else {
+        document.body.insertAdjacentHTML('afterbegin', navbarHTML);
+    }
     
     // Set active nav item based on current page
     const currentPath = window.location.pathname;
