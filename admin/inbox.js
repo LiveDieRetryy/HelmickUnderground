@@ -88,6 +88,7 @@ function updateFilterCounts(stats) {
     const acknowledgedCount = stats.acknowledged || 0;
     const contactedCount = stats.contacted || 0;
     const scheduledCount = stats.scheduled || 0;
+    const quotedCount = stats.quoted || 0;
     const completedCount = stats.completed || 0;
     const declinedCount = (stats.declined || 0);
     const todayCount = stats.today || 0;
@@ -100,8 +101,9 @@ function updateFilterCounts(stats) {
     select.options[3].text = `✉️ Acknowledged (${acknowledgedCount})`;
     select.options[4].text = `📞 Contacted (${contactedCount})`;
     select.options[5].text = `📅 Scheduled (${scheduledCount})`;
-    select.options[6].text = `✅ Completed (${completedCount})`;
-    select.options[7].text = `❌ Declined (${declinedCount})`;
+    select.options[6].text = `💰 Quoted (${quotedCount})`;
+    select.options[7].text = `✅ Completed (${completedCount})`;
+    select.options[8].text = `❌ Declined (${declinedCount})`;
     
     // Update today count
     document.getElementById('todayCount').innerHTML = `Today: <strong style="color: var(--primary-color);">${todayCount}</strong>`;
@@ -159,6 +161,7 @@ function renderSubmissions() {
                         <option value="acknowledged" ${sub.status === 'acknowledged' ? 'selected' : ''}>✉️ Acknowledged</option>
                         <option value="contacted" ${sub.status === 'contacted' ? 'selected' : ''}>📞 Contacted</option>
                         <option value="scheduled" ${sub.status === 'scheduled' ? 'selected' : ''}>📅 Scheduled</option>
+                        <option value="quoted" ${sub.status === 'quoted' ? 'selected' : ''}>💰 Quoted</option>
                         <option value="completed" ${sub.status === 'completed' ? 'selected' : ''}>✅ Completed</option>
                         <option value="declined" ${sub.status === 'declined' ? 'selected' : ''}>❌ Declined</option>
                     </select>
@@ -223,6 +226,7 @@ async function viewSubmission(id) {
                 <option value="acknowledged" ${sub.status === 'acknowledged' ? 'selected' : ''}>✉️ Acknowledged</option>
                 <option value="contacted" ${sub.status === 'contacted' ? 'selected' : ''}>📞 Contacted</option>
                 <option value="scheduled" ${sub.status === 'scheduled' ? 'selected' : ''}>📅 Scheduled</option>
+                <option value="quoted" ${sub.status === 'quoted' ? 'selected' : ''}>💰 Quoted</option>
                 <option value="completed" ${sub.status === 'completed' ? 'selected' : ''}>✅ Completed</option>
                 <option value="declined" ${sub.status === 'declined' ? 'selected' : ''}>❌ Declined</option>
             </select>
@@ -316,6 +320,11 @@ async function viewSubmission(id) {
                     </button>
                 </div>
             </div>
+        ` : sub.status === 'scheduled' ? `
+            <button class="btn-send-ack" onclick="window.location.href='/admin/quote-builder.html?id=${sub.id}'">
+                <span>📝</span>
+                <span>Build Quote</span>
+            </button>
         ` : `
             <button class="btn-send-ack" id="sendAckBtn-${sub.id}" onclick="sendAcknowledgmentEmail(${sub.id})">
                 <span>📧</span>
