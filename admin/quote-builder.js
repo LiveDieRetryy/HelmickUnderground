@@ -1,12 +1,12 @@
 // Check auth
 if (!sessionStorage.getItem('adminLoggedIn')) {
-    window.location.href = '/admin/';
+    window.location.href = '/admin/login.html';
 }
 
 // Logout
-document.getElementById('logoutBtn').addEventListener('click', () => {
+document.getElementById('logoutBtn')?.addEventListener('click', () => {
     sessionStorage.removeItem('adminLoggedIn');
-    window.location.href = '/admin/';
+    window.location.href = '/admin/login.html';
 });
 
 // Get submission ID from URL

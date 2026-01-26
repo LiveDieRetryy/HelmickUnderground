@@ -2,7 +2,7 @@
 function checkAuth() {
     const isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
     if (!isLoggedIn) {
-        window.location.href = '/admin/';
+        window.location.href = '/admin/login.html';
         return false;
     }
     return true;
@@ -11,7 +11,7 @@ function checkAuth() {
 // Logout
 document.getElementById('logoutBtn').addEventListener('click', () => {
     sessionStorage.removeItem('adminLoggedIn');
-    window.location.href = '/admin/';
+    window.location.href = '/admin/login.html';
 });
 
 // Clear analytics

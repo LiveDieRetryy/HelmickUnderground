@@ -6,7 +6,7 @@ const ADMIN_PASSWORD = 'HUAdmin';
 function checkAuth() {
     const isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
     if (!isLoggedIn) {
-        window.location.href = '/admin/';
+        window.location.href = '/admin/login.html';
         return;
     }
     showDashboard();
@@ -15,7 +15,7 @@ function checkAuth() {
 // Logout handler
 document.getElementById('logoutBtn')?.addEventListener('click', function() {
     sessionStorage.removeItem('adminLoggedIn');
-    window.location.href = '/admin/';
+    window.location.href = '/admin/login.html';
 });
 
 // Show dashboard

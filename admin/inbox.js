@@ -2,16 +2,16 @@
 function checkAuth() {
     const isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
     if (!isLoggedIn) {
-        window.location.href = '/admin/';
+        window.location.href = '/admin/login.html';
         return false;
     }
     return true;
 }
 
 // Logout
-document.getElementById('logoutBtn').addEventListener('click', () => {
+document.getElementById('logoutBtn')?.addEventListener('click', () => {
     sessionStorage.removeItem('adminLoggedIn');
-    window.location.href = '/admin/';
+    window.location.href = '/admin/login.html';
 });
 
 let allSubmissions = [];
