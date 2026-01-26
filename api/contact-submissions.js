@@ -27,6 +27,17 @@ module.exports = async function handler(req, res) {
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `;
+        
+        // Add notes column if it doesn't exist (for existing databases)
+        await sql`
+            DO $$ 
+            BEGIN 
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                              WHERE table_name='contact_submissions' AND column_name='notes') THEN
+                    ALTER TABLE contact_submissions ADD COLUMN notes TEXT;
+                END IF;
+            END $$;
+        `;
 
         if (req.method === 'POST') {
             const { name, email, phone, services, message, timestamp } = req.body;
