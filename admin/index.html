@@ -11,7 +11,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./sidebar.css">
-    <script defer src="./shared-navbar.js"></script>
     <style>
         body {
             background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%);
@@ -656,6 +655,7 @@
     </div>
 
     <script src="./sidebar.js"></script>
+    <script src="./shared-navbar.js"></script>
     <script>
         // Admin credentials
         const ADMIN_USERNAME = 'admin';
@@ -699,8 +699,8 @@
             document.getElementById('loginContainer').style.display = 'none';
             document.getElementById('dashboardContent').style.display = 'block';
             
-            // Manually trigger navbar load if it hasn't loaded yet
-            if (typeof loadAdminNavbar === 'function' && !document.querySelector('.sidebar')) {
+            // Load navbar after dashboard is visible
+            if (typeof loadAdminNavbar === 'function') {
                 loadAdminNavbar();
             }
             

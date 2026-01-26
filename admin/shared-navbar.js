@@ -91,9 +91,14 @@ function loadAdminNavbar() {
     });
 }
 
-// Load navbar when DOM is ready
-if (document.readyState === 'loading') {
+// Export for manual loading (don't auto-load on dashboard due to login screen)
+if (typeof window !== 'undefined') {
+    window.loadAdminNavbar = loadAdminNavbar;
+}
+
+// Auto-load on other pages (not dashboard)
+if (document.readyState === 'loading' && !document.getElementById('dashboardContent')) {
     document.addEventListener('DOMContentLoaded', loadAdminNavbar);
-} else {
+} else if (!document.getElementById('dashboardContent')) {
     loadAdminNavbar();
 }
