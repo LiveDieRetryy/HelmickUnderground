@@ -109,6 +109,20 @@ module.exports = async function handler(req, res) {
                 });
             }
             
+            if (action === 'get' && id) {
+                // Get single invoice
+                const result = await sql`
+                    SELECT * FROM invoices 
+                    WHERE id = ${id}
+                `;
+                
+                if (result.rows.length === 0) {
+                    return res.status(404).json({ error: 'Invoice not found' });
+                }
+                
+                return res.status(200).json(result.rows[0]);
+            }
+            
             if (action === 'stats') {
                 // Calculate statistics
                 const stats = await sql`
@@ -153,6 +167,46 @@ module.exports = async function handler(req, res) {
 
         if (req.method === 'PUT') {
             const { action, id } = req.query;
+            
+            if (action === 'update' && id) {
+                const { 
+                    invoiceNumber, 
+                    invoiceDate, 
+                    dueDate, 
+                    customer, 
+                    items, 
+                    taxRate, 
+                    subtotal, 
+                    tax, 
+                    total,
+                    status 
+                } = req.body;
+                
+                await sql`
+                    UPDATE invoices 
+                    SET 
+                        invoice_number = ${invoiceNumber},
+                        invoice_date = ${invoiceDate},
+                        due_date = ${dueDate},
+                        customer_name = ${customer.name},
+                        customer_email = ${customer.email || null},
+                        customer_phone = ${customer.phone || null},
+                        customer_address = ${customer.address || null},
+                        items = ${JSON.stringify(items)},
+                        tax_rate = ${taxRate},
+                        subtotal = ${subtotal},
+                        tax = ${tax},
+                        total = ${total},
+                        status = ${status || 'draft'},
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ${id}
+                `;
+                
+                return res.status(200).json({ 
+                    success: true,
+                    message: 'Invoice updated successfully'
+                });
+            }
             
             if (action === 'updateStatus' && id) {
                 const { status } = req.body;

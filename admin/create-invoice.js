@@ -459,14 +459,32 @@ document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
         createdAt: new Date().toISOString()
     };
     
+    // Check if editing existing invoice
+    const urlParams = new URLSearchParams(window.location.search);
+    const invoiceId = urlParams.get('id');
+    
     try {
-        const response = await fetch('/api/invoices?action=create', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(invoiceData)
-        });
+        let response;
+        
+        if (invoiceId) {
+            // Update existing invoice
+            response = await fetch(`/api/invoices?action=update&id=${invoiceId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(invoiceData)
+            });
+        } else {
+            // Create new invoice
+            response = await fetch('/api/invoices?action=create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(invoiceData)
+            });
+        }
         
         if (!response.ok) {
             const error = await response.json();
@@ -484,8 +502,59 @@ document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
 });
 
 // Initialize
-setDefaultDates();
-generateInvoiceNumber();
-loadRates();
-loadProfiles();
-addLineItem(); // Add one empty line item to start
+async function init() {
+    setDefaultDates();
+    await generateInvoiceNumber();
+    await loadRates();
+    loadProfiles();
+    
+    // Check if editing existing invoice
+    const urlParams = new URLSearchParams(window.location.search);
+    const invoiceId = urlParams.get('id');
+    
+    if (invoiceId) {
+        await loadInvoiceForEdit(invoiceId);
+    } else {
+        addLineItem(); // Add one empty line item to start
+    }
+}
+
+// Load invoice data for editing
+async function loadInvoiceForEdit(id) {
+    try {
+        const response = await fetch(`/api/invoices?action=get&id=${id}`);
+        if (!response.ok) throw new Error('Failed to load invoice');
+        
+        const invoice = await response.json();
+        
+        // Populate form fields
+        document.getElementById('invoiceNumber').value = invoice.invoice_number;
+        document.getElementById('invoiceDate').value = invoice.invoice_date;
+        document.getElementById('dueDate').value = invoice.due_date;
+        document.getElementById('customerName').value = invoice.customer_name;
+        document.getElementById('customerEmail').value = invoice.customer_email || '';
+        document.getElementById('customerPhone').value = invoice.customer_phone || '';
+        document.getElementById('customerAddress').value = invoice.customer_address || '';
+        document.getElementById('taxRate').value = invoice.tax_rate || 0;
+        
+        // Clear default line item
+        document.getElementById('lineItemsContainer').innerHTML = '';
+        lineItemCounter = 0;
+        
+        // Load line items
+        const items = JSON.parse(invoice.items);
+        items.forEach(item => {
+            addLineItem(item.description, item.quantity, item.rate);
+        });
+        
+        // Update page title
+        document.querySelector('.page-header h1').textContent = '✏️ Edit Invoice';
+        
+    } catch (error) {
+        console.error('Error loading invoice:', error);
+        alert('Failed to load invoice. Redirecting to create new invoice.');
+        window.location.href = '/admin/create-invoice.html';
+    }
+}
+
+init();

@@ -136,8 +136,8 @@ function viewInvoice(id) {
 
 // Edit invoice
 function editInvoice(id) {
-    // TODO: Implement invoice editor
-    alert('Invoice editor coming soon!');
+    // Redirect to edit page with invoice ID
+    window.location.href = `/admin/create-invoice.html?id=${id}`;
 }
 
 // Delete invoice
