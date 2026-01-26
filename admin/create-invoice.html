@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="sidebar.css">
+    <script src="shared-navbar.js"></script>
     <style>
         body {
             background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
@@ -350,63 +351,6 @@
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- Sidebar Navigation -->
-    <nav class="sidebar" id="sidebar">
-        <div class="sidebar-logo">
-            <h2>Admin Panel</h2>
-        </div>
-        <div class="sidebar-nav">
-            <a href="/admin/" class="sidebar-nav-item">
-                <span class="sidebar-nav-item-icon">📊</span>
-                <span class="sidebar-nav-item-text">Dashboard</span>
-            </a>
-            
-            <div style="padding: 0.75rem 1.5rem 0.25rem; color: rgba(255, 107, 26, 0.7); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Customer Management</div>
-            <a href="/admin/inbox.html" class="sidebar-nav-item">
-                <span class="sidebar-nav-item-icon">📬</span>
-                <span class="sidebar-nav-item-text">Work Requests</span>
-            </a>
-            <a href="/admin/schedule.html" class="sidebar-nav-item">
-                <span class="sidebar-nav-item-icon">📅</span>
-                <span class="sidebar-nav-item-text">Schedule</span>
-            </a>
-            
-            <div style="padding: 0.75rem 1.5rem 0.25rem; color: rgba(255, 107, 26, 0.7); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Financial</div>
-            <a href="/admin/invoices.html" class="sidebar-nav-item">
-                <span class="sidebar-nav-item-icon">🧾</span>
-                <span class="sidebar-nav-item-text">Invoices</span>
-            </a>
-            <a href="/admin/standalone-quote-builder.html" class="sidebar-nav-item">
-                <span class="sidebar-nav-item-icon">📋</span>
-                <span class="sidebar-nav-item-text">Build Quote</span>
-            </a>
-            <a href="/admin/rates.html" class="sidebar-nav-item">
-                <span class="sidebar-nav-item-icon">💰</span>
-                <span class="sidebar-nav-item-text">Rates Management</span>
-            </a>
-            
-            <div style="padding: 0.75rem 1.5rem 0.25rem; color: rgba(255, 107, 26, 0.7); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Content & Analytics</div>
-            <a href="/admin/gallery-manager.html" class="sidebar-nav-item">
-                <span class="sidebar-nav-item-icon">📸</span>
-                <span class="sidebar-nav-item-text">Gallery Manager</span>
-            </a>
-            <a href="/admin/analytics.html" class="sidebar-nav-item">
-                <span class="sidebar-nav-item-icon">📈</span>
-                <span class="sidebar-nav-item-text">Analytics</span>
-            </a>
-            
-            <div style="padding: 0.75rem 1.5rem 0.25rem; color: rgba(255, 107, 26, 0.7); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Settings</div>
-            <a href="/admin/rate-recipients.html" class="sidebar-nav-item">
-                <span class="sidebar-nav-item-icon">📧</span>
-                <span class="sidebar-nav-item-text">Email Recipients</span>
-            </a>
-            
-            <a href="../" class="sidebar-nav-item" style="margin-top: 1.5rem; border-top: 2px solid rgba(255, 107, 26, 0.2); padding-top: 1.5rem;">
-                <span class="sidebar-nav-item-icon">🌐</span>
-                <span class="sidebar-nav-item-text">View Website</span>
-            </a>
-        </div>
-    </nav>
-
     <div class="main-content">
         <div class="page-header">
             <h1>🧾 Create New Invoice</h1>

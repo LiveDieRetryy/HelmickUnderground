@@ -1,0 +1,90 @@
+// Shared Admin Navbar
+function loadAdminNavbar() {
+    const navbarHTML = `
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <h2>Admin Panel</h2>
+            </div>
+            
+            <div class="sidebar-nav">
+                <a href="/admin/" class="sidebar-nav-item">
+                    <span class="sidebar-nav-item-icon">📊</span>
+                    <span class="sidebar-nav-item-text">Dashboard</span>
+                </a>
+                
+                <div style="padding: 0.75rem 1.5rem 0.25rem; color: rgba(255, 107, 26, 0.7); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Customer Management</div>
+                <a href="/admin/inbox.html" class="sidebar-nav-item">
+                    <span class="sidebar-nav-item-icon">📬</span>
+                    <span class="sidebar-nav-item-text">Work Requests</span>
+                </a>
+                <a href="/admin/schedule.html" class="sidebar-nav-item">
+                    <span class="sidebar-nav-item-icon">📅</span>
+                    <span class="sidebar-nav-item-text">Schedule</span>
+                </a>
+                
+                <div style="padding: 0.75rem 1.5rem 0.25rem; color: rgba(255, 107, 26, 0.7); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Financial</div>
+                <a href="/admin/invoices.html" class="sidebar-nav-item">
+                    <span class="sidebar-nav-item-icon">🧾</span>
+                    <span class="sidebar-nav-item-text">Invoices</span>
+                </a>
+                <a href="/admin/standalone-quote-builder.html" class="sidebar-nav-item">
+                    <span class="sidebar-nav-item-icon">📋</span>
+                    <span class="sidebar-nav-item-text">Build Quote</span>
+                </a>
+                <a href="/admin/rates.html" class="sidebar-nav-item">
+                    <span class="sidebar-nav-item-icon">💰</span>
+                    <span class="sidebar-nav-item-text">Rates Management</span>
+                </a>
+                
+                <div style="padding: 0.75rem 1.5rem 0.25rem; color: rgba(255, 107, 26, 0.7); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Content & Analytics</div>
+                <a href="/admin/gallery-manager.html" class="sidebar-nav-item">
+                    <span class="sidebar-nav-item-icon">📸</span>
+                    <span class="sidebar-nav-item-text">Gallery Manager</span>
+                </a>
+                <a href="/admin/analytics.html" class="sidebar-nav-item">
+                    <span class="sidebar-nav-item-icon">📈</span>
+                    <span class="sidebar-nav-item-text">Analytics</span>
+                </a>
+                
+                <div style="padding: 0.75rem 1.5rem 0.25rem; color: rgba(255, 107, 26, 0.7); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Settings</div>
+                <a href="/admin/rate-recipients.html" class="sidebar-nav-item">
+                    <span class="sidebar-nav-item-icon">📧</span>
+                    <span class="sidebar-nav-item-text">Email Recipients</span>
+                </a>
+                
+                <a href="../" class="sidebar-nav-item" style="margin-top: 1.5rem; border-top: 2px solid rgba(255, 107, 26, 0.2); padding-top: 1.5rem;">
+                    <span class="sidebar-nav-item-icon">🌐</span>
+                    <span class="sidebar-nav-item-text">View Website</span>
+                </a>
+            </div>
+
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="btn-logout">
+                    <span>🚪</span>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </nav>
+    `;
+    
+    // Insert navbar at the beginning of body
+    document.body.insertAdjacentHTML('afterbegin', navbarHTML);
+    
+    // Set active nav item based on current page
+    const currentPath = window.location.pathname;
+    document.querySelectorAll('.sidebar-nav-item').forEach(item => {
+        const href = item.getAttribute('href');
+        if (href === currentPath || 
+            (href === '/admin/' && (currentPath === '/admin/' || currentPath === '/admin/index.html')) ||
+            (href !== '/admin/' && href !== '../' && currentPath.includes(href))) {
+            item.classList.add('active');
+        }
+    });
+}
+
+// Load navbar when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadAdminNavbar);
+} else {
+    loadAdminNavbar();
+}
