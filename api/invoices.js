@@ -134,6 +134,7 @@ module.exports = async function handler(req, res) {
                         SUM(CASE WHEN status = 'overdue' THEN 1 ELSE 0 END) as overdue,
                         SUM(total) as total_amount,
                         SUM(CASE WHEN status = 'paid' THEN total ELSE 0 END) as paid_amount,
+                        SUM(CASE WHEN status = 'sent' THEN total ELSE 0 END) as pending_amount,
                         SUM(CASE WHEN status != 'paid' THEN total ELSE 0 END) as outstanding_amount
                     FROM invoices
                 `;
@@ -146,6 +147,7 @@ module.exports = async function handler(req, res) {
                     overdue: parseInt(stats.rows[0].overdue) || 0,
                     totalAmount: parseFloat(stats.rows[0].total_amount) || 0,
                     paidAmount: parseFloat(stats.rows[0].paid_amount) || 0,
+                    pendingAmount: parseFloat(stats.rows[0].pending_amount) || 0,
                     outstandingAmount: parseFloat(stats.rows[0].outstanding_amount) || 0
                 });
             }

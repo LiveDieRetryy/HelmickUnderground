@@ -119,8 +119,8 @@ async function loadStats() {
         const overdueCountEl = document.getElementById('overdueCount');
         
         if (totalInvoicesEl) totalInvoicesEl.textContent = stats.total || 0;
-        if (totalRevenueEl) totalRevenueEl.textContent = `$${(stats.total_amount || 0).toFixed(2)}`;
-        if (pendingAmountEl) pendingAmountEl.textContent = `$${(stats.outstanding_amount || 0).toFixed(2)}`;
+        if (totalRevenueEl) totalRevenueEl.textContent = `$${(stats.paidAmount || 0).toFixed(2)}`;
+        if (pendingAmountEl) pendingAmountEl.textContent = `$${(stats.pendingAmount || 0).toFixed(2)}`;
         if (overdueCountEl) overdueCountEl.textContent = stats.overdue || 0;
     } catch (error) {
         console.error('Error loading stats:', error);
@@ -191,10 +191,10 @@ async function viewInvoice(id) {
         
         const itemsHTML = items.map(item => `
             <tr>
-                <td style="padding: 0.75rem; border-bottom: 1px solid #eee;">${item.description || ''}</td>
-                <td style="padding: 0.75rem; text-align: center; border-bottom: 1px solid #eee;">${item.quantity || 0}</td>
-                <td style="padding: 0.75rem; text-align: right; border-bottom: 1px solid #eee;">$${parseFloat(item.rate || 0).toFixed(2)}</td>
-                <td style="padding: 0.75rem; text-align: right; border-bottom: 1px solid #eee; font-weight: 600;">$${parseFloat(item.amount || 0).toFixed(2)}</td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #eee; color: #333;">${item.description || ''}</td>
+                <td style="padding: 0.75rem; text-align: center; border-bottom: 1px solid #eee; color: #333;">${item.quantity || 0}</td>
+                <td style="padding: 0.75rem; text-align: right; border-bottom: 1px solid #eee; color: #333;">$${parseFloat(item.rate || 0).toFixed(2)}</td>
+                <td style="padding: 0.75rem; text-align: right; border-bottom: 1px solid #eee; font-weight: 600; color: #333;">$${parseFloat(item.amount || 0).toFixed(2)}</td>
             </tr>
         `).join('');
         
