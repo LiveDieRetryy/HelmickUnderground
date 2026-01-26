@@ -256,8 +256,8 @@ async function viewSubmission(id) {
             <div class="detail-value" style="white-space: pre-wrap;">${sub.message}</div>
         </div>
         ${sub.notes ? `
-            <div class="detail-section">
-                <div class="detail-label">Contact Notes</div>
+            <div class="detail-section" data-notes-section="${sub.id}">
+                <div class="detail-label">Contact Notes <button onclick="editNotes(${sub.id}, '${sub.notes.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')" style="background: none; border: none; color: var(--primary-color); cursor: pointer; font-size: 0.9rem; margin-left: 0.5rem;">✏️ Edit</button></div>
                 <div class="detail-value" style="white-space: pre-wrap; background: rgba(255, 107, 26, 0.1); padding: 1rem; border-radius: 8px; border-left: 3px solid var(--primary-color);">${sub.notes}</div>
             </div>
         ` : ''}
@@ -505,7 +505,11 @@ async function saveNotes(id) {
             body: JSON.stringify({ id, status: 'contacted', notes })
         });
 
-        if (!response.ok) throw new Error('Failed to update status');
+        const data = await response.json();
+        
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || 'Failed to update status');
+        }
 
         // Refresh data and close modal
         await fetchSubmissions();
@@ -514,6 +518,75 @@ async function saveNotes(id) {
         console.error('Error updating status:', error);
         alert('Failed to mark as contacted: ' + error.message);
     }
+}
+
+// Edit existing notes
+function editNotes(id, currentNotes) {
+    const notesSection = document.querySelector(`#modalBody [data-notes-section="${id}"]`);
+    if (!notesSection) return;
+    
+    notesSection.innerHTML = `
+        <div class="detail-label">Contact Notes</div>
+        <textarea id="editNotesInput-${id}" style="width: 100%; min-height: 120px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 107, 26, 0.3); border-radius: 8px; padding: 1rem; color: var(--white); font-family: inherit; resize: vertical;">${currentNotes}</textarea>
+        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+            <button onclick="saveEditedNotes(${id})" style="flex: 1; background: linear-gradient(135deg, var(--primary-color) 0%, #ff8c42 100%); color: var(--white); padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">
+                Save Changes
+            </button>
+            <button onclick="cancelEditNotes(${id}, '${currentNotes.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')" style="flex: 0 0 auto; background: rgba(255, 255, 255, 0.1); color: var(--white); padding: 0.75rem 1.5rem; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; font-weight: 700; cursor: pointer;">
+                Cancel
+            </button>
+        </div>
+    `;
+    document.getElementById(`editNotesInput-${id}`).focus();
+}
+
+// Save edited notes
+async function saveEditedNotes(id) {
+    const notesInput = document.getElementById(`editNotesInput-${id}`);
+    const notes = notesInput.value.trim();
+    
+    if (!notes) {
+        alert('Notes cannot be empty.');
+        notesInput.focus();
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/contact-submissions', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id, notes })
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || 'Failed to update notes');
+        }
+
+        // Refresh data and reopen modal to show updated notes
+        await fetchSubmissions();
+        const submission = submissions.find(s => s.id === id);
+        if (submission) {
+            showDetails(submission);
+        }
+    } catch (error) {
+        console.error('Error updating notes:', error);
+        alert('Failed to update notes: ' + error.message);
+    }
+}
+
+// Cancel edit notes
+function cancelEditNotes(id, originalNotes) {
+    const notesSection = document.querySelector(`#modalBody [data-notes-section="${id}"]`);
+    if (!notesSection) return;
+    
+    notesSection.innerHTML = `
+        <div class="detail-label">Contact Notes <button onclick="editNotes(${id}, '${originalNotes.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')" style="background: none; border: none; color: var(--primary-color); cursor: pointer; font-size: 0.9rem; margin-left: 0.5rem;">✏️ Edit</button></div>
+        <div class="detail-value" style="white-space: pre-wrap; background: rgba(255, 107, 26, 0.1); padding: 1rem; border-radius: 8px; border-left: 3px solid var(--primary-color);">${originalNotes}</div>
+    `;
 }
 
 // Close modal on outside click
