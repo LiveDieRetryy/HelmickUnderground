@@ -7,7 +7,7 @@ function loadAdminNavbar() {
             </div>
             
             <div class="sidebar-nav">
-                <a href="/admin/" class="sidebar-nav-item">
+                <a href="/admin/dashboard.html" class="sidebar-nav-item">
                     <span class="sidebar-nav-item-icon">📊</span>
                     <span class="sidebar-nav-item-text">Dashboard</span>
                 </a>
@@ -84,11 +84,20 @@ function loadAdminNavbar() {
     document.querySelectorAll('.sidebar-nav-item').forEach(item => {
         const href = item.getAttribute('href');
         if (href === currentPath || 
-            (href === '/admin/' && (currentPath === '/admin/' || currentPath === '/admin/index.html')) ||
-            (href !== '/admin/' && href !== '../' && currentPath.includes(href))) {
+            (href === '/admin/dashboard.html' && (currentPath === '/admin/dashboard.html' || currentPath === '/admin/')) ||
+            (href !== '/admin/dashboard.html' && href !== '../' && currentPath.includes(href))) {
             item.classList.add('active');
         }
     });
+    
+    // Setup logout button
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+            sessionStorage.removeItem('adminLoggedIn');
+            window.location.href = '/admin/login.html';
+        });
+    }
 }
 
 // Export for manual loading (don't auto-load on dashboard due to login screen)

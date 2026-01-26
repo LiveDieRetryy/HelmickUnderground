@@ -5,7 +5,7 @@
         const isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
         if (!isLoggedIn) {
             // Redirect to login page
-            window.location.href = '/admin/';
+            window.location.href = '/admin/login.html';
             return false;
         }
         return true;
@@ -19,7 +19,7 @@
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function() {
             sessionStorage.removeItem('adminLoggedIn');
-            window.location.href = '/admin/';
+            window.location.href = '/admin/login.html';
         });
     }
 })();
