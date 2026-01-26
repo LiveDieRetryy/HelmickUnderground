@@ -688,20 +688,26 @@
             }
         });
 
-        // Logout handler
-        document.getElementById('logoutBtn')?.addEventListener('click', function() {
-            sessionStorage.removeItem('adminLoggedIn');
-            location.reload();
-        });
-
         // Show dashboard
         async function showDashboard() {
             document.getElementById('loginContainer').style.display = 'none';
             document.getElementById('dashboardContent').style.display = 'block';
             
+            // Wait for next frame to ensure display is rendered
+            await new Promise(resolve => requestAnimationFrame(resolve));
+            
             // Load navbar after dashboard is visible
             if (typeof loadAdminNavbar === 'function') {
                 loadAdminNavbar();
+                
+                // Attach logout handler after navbar is loaded
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', function() {
+                        sessionStorage.removeItem('adminLoggedIn');
+                        location.reload();
+                    });
+                }
             }
             
             await loadDashboardStats();
