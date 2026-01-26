@@ -40,6 +40,10 @@ module.exports = async function handler(req, res) {
                               WHERE table_name='contact_submissions' AND column_name='scheduled_date') THEN
                     ALTER TABLE contact_submissions ADD COLUMN scheduled_date TIMESTAMP;
                 END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                              WHERE table_name='contact_submissions' AND column_name='quote_data') THEN
+                    ALTER TABLE contact_submissions ADD COLUMN quote_data TEXT;
+                END IF;
             END $$;
         `;
 
@@ -82,6 +86,7 @@ module.exports = async function handler(req, res) {
                     status: row.status,
                     notes: row.notes,
                     scheduled_date: row.scheduled_date,
+                    quote_data: row.quote_data,
                     ip: row.ip,
                     timestamp: row.timestamp
                 }));
@@ -99,6 +104,7 @@ module.exports = async function handler(req, res) {
                         SUM(CASE WHEN status = 'acknowledged' THEN 1 ELSE 0 END) as acknowledged,
                         SUM(CASE WHEN status = 'contacted' THEN 1 ELSE 0 END) as contacted,
                         SUM(CASE WHEN status = 'scheduled' THEN 1 ELSE 0 END) as scheduled,
+                        SUM(CASE WHEN status = 'quoted' THEN 1 ELSE 0 END) as quoted,
                         SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
                         SUM(CASE WHEN status = 'declined' THEN 1 ELSE 0 END) as declined,
                         SUM(CASE WHEN DATE(timestamp) = CURRENT_DATE THEN 1 ELSE 0 END) as today
@@ -112,6 +118,7 @@ module.exports = async function handler(req, res) {
                     acknowledged: parseInt(stats.rows[0].acknowledged) || 0,
                     contacted: parseInt(stats.rows[0].contacted) || 0,
                     scheduled: parseInt(stats.rows[0].scheduled) || 0,
+                    quoted: parseInt(stats.rows[0].quoted) || 0,
                     completed: parseInt(stats.rows[0].completed) || 0,
                     declined: parseInt(stats.rows[0].declined) || 0,
                     today: parseInt(stats.rows[0].today) || 0
@@ -130,7 +137,7 @@ module.exports = async function handler(req, res) {
             
             if (action === 'updateStatus' && id) {
                 const { status } = req.query;
-                const validStatuses = ['unread', 'read', 'acknowledged', 'contacted', 'scheduled', 'completed', 'declined'];
+                const validStatuses = ['unread', 'read', 'acknowledged', 'contacted', 'scheduled', 'quoted', 'completed', 'declined'];
                 
                 if (!validStatuses.includes(status)) {
                     return res.status(400).json({ error: 'Invalid status' });
@@ -155,20 +162,26 @@ module.exports = async function handler(req, res) {
         }
 
         if (req.method === 'PUT') {
-            const { id, status, notes, scheduled_date } = req.body;
+            const { id, status, notes, scheduled_date, quote_data } = req.body;
             
             if (!id) {
                 return res.status(400).json({ error: 'ID is required' });
             }
             
-            const validStatuses = ['unread', 'read', 'acknowledged', 'contacted', 'scheduled', 'completed', 'declined'];
+            const validStatuses = ['unread', 'read', 'acknowledged', 'contacted', 'scheduled', 'quoted', 'completed', 'declined'];
             
             if (status && !validStatuses.includes(status)) {
                 return res.status(400).json({ error: 'Invalid status' });
             }
             
             // Build update query dynamically based on what's provided
-            if (status && notes !== undefined && scheduled_date !== undefined) {
+            if (status && quote_data !== undefined) {
+                await sql`
+                    UPDATE contact_submissions 
+                    SET status = ${status}, quote_data = ${quote_data}
+                    WHERE id = ${id}
+                `;
+            } else if (status && notes !== undefined && scheduled_date !== undefined) {
                 await sql`
                     UPDATE contact_submissions 
                     SET status = ${status}, notes = ${notes}, scheduled_date = ${scheduled_date}
@@ -202,6 +215,12 @@ module.exports = async function handler(req, res) {
                 await sql`
                     UPDATE contact_submissions 
                     SET scheduled_date = ${scheduled_date}
+                    WHERE id = ${id}
+                `;
+            } else if (quote_data !== undefined) {
+                await sql`
+                    UPDATE contact_submissions 
+                    SET quote_data = ${quote_data}
                     WHERE id = ${id}
                 `;
             }

@@ -102,9 +102,19 @@ function showCategory(category) {
     document.querySelectorAll('.category-tab').forEach(tab => {
         tab.classList.remove('active');
     });
-    event?.target.classList.add('active');
     
-    renderRates();
+    // Set active based on category
+    const tabs = document.querySelectorAll('.category-tab');
+    if (category === 'baseRates') tabs[0].classList.add('active');
+    else if (category === 'customWork') tabs[1].classList.add('active');
+    else if (category === 'additionalItems') tabs[2].classList.add('active');
+    else if (category === 'custom') tabs[3].classList.add('active');
+    
+    if (category === 'custom') {
+        renderCustomForm();
+    } else {
+        renderRates();
+    }
 }
 
 // Render rates for current category
@@ -126,6 +136,38 @@ function renderRates() {
     `).join('');
 }
 
+// Render custom line item form
+function renderCustomForm() {
+    document.getElementById('ratesContainer').innerHTML = `
+        <div style="background: rgba(255, 107, 26, 0.05); border: 2px solid rgba(255, 107, 26, 0.3); border-radius: 12px; padding: 2rem;">
+            <h3 style="color: var(--primary-color); margin-bottom: 1.5rem; font-size: 1.2rem;">Create Custom Line Item</h3>
+            <div style="display: grid; gap: 1rem;">
+                <div>
+                    <label style="display: block; color: var(--gray); margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 600;">Item Name *</label>
+                    <input type="text" id="customItemName" placeholder="e.g., Special excavation work" style="width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 107, 26, 0.3); border-radius: 8px; padding: 0.75rem; color: var(--white); font-size: 1rem;">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label style="display: block; color: var(--gray); margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 600;">Rate ($) *</label>
+                        <input type="number" id="customItemRate" placeholder="0.00" min="0" step="0.01" style="width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 107, 26, 0.3); border-radius: 8px; padding: 0.75rem; color: var(--white); font-size: 1rem;">
+                    </div>
+                    <div>
+                        <label style="display: block; color: var(--gray); margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 600;">Quantity *</label>
+                        <input type="number" id="customItemQuantity" placeholder="1" min="0" step="0.01" value="1" style="width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 107, 26, 0.3); border-radius: 8px; padding: 0.75rem; color: var(--white); font-size: 1rem;">
+                    </div>
+                </div>
+                <div>
+                    <label style="display: block; color: var(--gray); margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 600;">Description (Optional)</label>
+                    <textarea id="customItemDescription" placeholder="Add any additional details..." style="width: 100%; min-height: 80px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 107, 26, 0.3); border-radius: 8px; padding: 0.75rem; color: var(--white); font-size: 1rem; font-family: inherit; resize: vertical;"></textarea>
+                </div>
+                <button onclick="addCustomLineItem()" style="background: linear-gradient(135deg, var(--primary-color) 0%, #ff8c42 100%); color: var(--white); border: none; padding: 1rem 2rem; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 1rem; transition: all 0.3s ease;">
+                    ➕ Add Custom Item
+                </button>
+            </div>
+        </div>
+    `;
+}
+
 // Add line item
 function addLineItem(id, name, rate) {
     const lineItem = {
@@ -140,6 +182,58 @@ function addLineItem(id, name, rate) {
     lineItems.push(lineItem);
     renderLineItems();
     updateSummary();
+}
+
+// Add custom line item
+function addCustomLineItem() {
+    const name = document.getElementById('customItemName').value.trim();
+    const rate = parseFloat(document.getElementById('customItemRate').value);
+    const quantity = parseFloat(document.getElementById('customItemQuantity').value);
+    const description = document.getElementById('customItemDescription').value.trim();
+    
+    if (!name) {
+        alert('Please enter an item name');
+        return;
+    }
+    
+    if (isNaN(rate) || rate < 0) {
+        alert('Please enter a valid rate');
+        return;
+    }
+    
+    if (isNaN(quantity) || quantity <= 0) {
+        alert('Please enter a valid quantity');
+        return;
+    }
+    
+    const lineItem = {
+        id: Date.now() + Math.random(),
+        rateId: 'custom_' + Date.now(),
+        name: name,
+        rate: rate,
+        quantity: quantity,
+        description: description
+    };
+    
+    lineItems.push(lineItem);
+    renderLineItems();
+    updateSummary();
+    
+    // Clear form
+    document.getElementById('customItemName').value = '';
+    document.getElementById('customItemRate').value = '';
+    document.getElementById('customItemQuantity').value = '1';
+    document.getElementById('customItemDescription').value = '';
+    
+    // Show success message
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '✅ Added!';
+    button.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)';
+    setTimeout(() => {
+        button.innerHTML = originalText;
+        button.style.background = 'linear-gradient(135deg, var(--primary-color) 0%, #ff8c42 100%)';
+    }, 1500);
 }
 
 // Remove line item
@@ -242,17 +336,247 @@ function updateSummary() {
     document.getElementById('grandTotal').textContent = `$${subtotal.toFixed(2)}`;
 }
 
-// Save quote
-async function saveQuote() {
+// Render custom item form
+function renderCustomItemForm() {
+    document.getElementById('ratesContainer').innerHTML = `
+        <div class="custom-item-form">
+            <div>
+                <label>Item Name *</label>
+                <input type="text" id="customItemName" placeholder="e.g., Site Survey, Equipment Rental" />
+            </div>
+            <div>
+                <label>Rate/Price ($) *</label>
+                <input type="number" id="customItemRate" placeholder="0.00" step="0.01" min="0" />
+            </div>
+            <div>
+                <label>Description (Optional)</label>
+                <input type="text" id="customItemDescription" placeholder="Additional details about this item" />
+            </div>
+            <button class="add-item-btn" onclick="addCustomLineItem()">
+                + Add Custom Item to Quote
+            </button>
+        </div>
+    `;
+}
+
+// Add custom line item
+function addCustomLineItem() {
+    const name = document.getElementById('customItemName').value.trim();
+    const rate = parseFloat(document.getElementById('customItemRate').value);
+    const description = document.getElementById('customItemDescription').value.trim();
+    
+    if (!name || !rate || rate <= 0) {
+        alert('Please enter a valid item name and rate');
+        return;
+    }
+    
+    const lineItem = {
+        id: Date.now() + Math.random(),
+        rateId: 'custom',
+        name: name,
+        rate: rate,
+        quantity: 1,
+        description: description
+    };
+    
+    lineItems.push(lineItem);
+    
+    // Clear form
+    document.getElementById('customItemName').value = '';
+    document.getElementById('customItemRate').value = '';
+    document.getElementById('customItemDescription').value = '';
+    
+    renderLineItems();
+    updateSummary();
+    
+    // Switch back to base rates tab
+    showCategory('baseRates');
+}
+
+// Preview quote
+function previewQuote() {
     if (lineItems.length === 0) {
         alert('Please add at least one line item to the quote');
         return;
     }
 
-    if (!confirm('Save this quote and mark the request as "Quoted"?')) {
+    const subtotal = lineItems.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
+    const quoteNotes = document.getElementById('quoteNotes').value;
+    const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    const lineItemsHTML = lineItems.map(item => {
+        const total = item.quantity * item.rate;
+        return `
+            <tr>
+                <td>
+                    <strong>${item.name}</strong>
+                    ${item.description ? `<br><span style="color: #666; font-size: 0.9em;">${item.description}</span>` : ''}
+                </td>
+                <td style="text-align: center;">${item.quantity}</td>
+                <td style="text-align: right;">$${item.rate.toFixed(2)}</td>
+                <td style="text-align: right;"><strong>$${total.toFixed(2)}</strong></td>
+            </tr>
+        `;
+    }).join('');
+
+    document.getElementById('quotePreview').innerHTML = `
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <img src="../logo.png" alt="Helmick Underground" style="max-width: 250px; margin-bottom: 1rem;">
+            <h1 style="margin: 0; font-size: 2rem;">Helmick Underground</h1>
+            <p style="color: #666; margin: 0.5rem 0 0 0;">Underground Utility Installation Services</p>
+        </div>
+
+        <div style="border-top: 3px solid #ff6b1a; border-bottom: 3px solid #ff6b1a; padding: 1.5rem 0; margin: 2rem 0;">
+            <h2 style="margin: 0 0 1rem 0; font-size: 1.5rem;">QUOTE</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <p style="margin: 0.25rem 0; color: #666;"><strong>Date:</strong> ${today}</p>
+                    <p style="margin: 0.25rem 0; color: #666;"><strong>Quote For:</strong> ${currentSubmission.name}</p>
+                </div>
+                <div>
+                    <p style="margin: 0.25rem 0; color: #666;"><strong>Email:</strong> ${currentSubmission.email}</p>
+                    <p style="margin: 0.25rem 0; color: #666;"><strong>Phone:</strong> ${currentSubmission.phone || 'N/A'}</p>
+                </div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th style="text-align: center; width: 100px;">Quantity</th>
+                    <th style="text-align: right; width: 120px;">Rate</th>
+                    <th style="text-align: right; width: 120px;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${lineItemsHTML}
+                <tr class="quote-total-row">
+                    <td colspan="3" style="text-align: right; padding-right: 2rem;">TOTAL:</td>
+                    <td style="text-align: right;">$${subtotal.toFixed(2)}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        ${quoteNotes ? `
+            <div style="background: #fff3e0; border-left: 4px solid #ff6b1a; padding: 1.5rem; margin: 2rem 0; border-radius: 8px;">
+                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem;">Additional Notes:</h3>
+                <p style="margin: 0; color: #333; white-space: pre-wrap;">${quoteNotes}</p>
+            </div>
+        ` : ''}
+
+        <div style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid #ddd; text-align: center; color: #666; font-size: 0.9rem;">
+            <p style="margin: 0.5rem 0;">Thank you for considering Helmick Underground for your project.</p>
+            <p style="margin: 0.5rem 0;">This quote is valid for 30 days from the date above.</p>
+            <p style="margin: 0.5rem 0;">Please contact us if you have any questions or would like to proceed.</p>
+        </div>
+    `;
+
+    document.getElementById('previewModal').classList.add('active');
+}
+
+// Close preview
+function closePreview() {
+    document.getElementById('previewModal').classList.remove('active');
+}
+
+// Confirm and save quote
+async function confirmAndSaveQuote() {
+    closePreview();
+    await saveQuote();
+}
+
+// Preview quote
+function previewQuote() {
+    if (lineItems.length === 0) {
+        alert('Please add at least one line item to the quote');
         return;
     }
 
+    const subtotal = lineItems.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
+    const quoteNotes = document.getElementById('quoteNotes').value;
+    const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    const previewHTML = `
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <img src="../logo.png" alt="Helmick Underground" style="max-width: 200px; margin-bottom: 1rem;">
+            <h1 style="color: #ff6b1a; font-size: 2rem; margin: 0;">Project Quote</h1>
+            <p style="color: #666; margin: 0.5rem 0 0 0;">Date: ${today}</p>
+        </div>
+
+        <div style="background: #f9f9f9; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border-left: 4px solid #ff6b1a;">
+            <h2 style="color: #333; font-size: 1.3rem; margin: 0 0 1rem 0;">Customer Information</h2>
+            <div style="color: #666; line-height: 1.8;">
+                <strong style="color: #333;">${currentSubmission.name}</strong><br>
+                ${currentSubmission.email}<br>
+                ${currentSubmission.phone || 'No phone provided'}
+                ${currentSubmission.services && currentSubmission.services.length > 0 ? `<br><strong style="color: #333;">Services:</strong> ${currentSubmission.services.join(', ')}` : ''}
+            </div>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <h2 style="color: #333; font-size: 1.3rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #ff6b1a;">Quote Details</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f0f0f0;">
+                        <th style="padding: 0.75rem; text-align: left; color: #333; border-bottom: 2px solid #ddd;">Item</th>
+                        <th style="padding: 0.75rem; text-align: center; color: #333; border-bottom: 2px solid #ddd;">Quantity</th>
+                        <th style="padding: 0.75rem; text-align: right; color: #333; border-bottom: 2px solid #ddd;">Rate</th>
+                        <th style="padding: 0.75rem; text-align: right; color: #333; border-bottom: 2px solid #ddd;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${lineItems.map(item => `
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 1rem 0.75rem;">
+                                <strong style="color: #333;">${item.name}</strong>
+                                ${item.description ? `<br><span style="color: #666; font-size: 0.9rem;">${item.description}</span>` : ''}
+                            </td>
+                            <td style="padding: 1rem 0.75rem; text-align: center; color: #666;">${item.quantity}</td>
+                            <td style="padding: 1rem 0.75rem; text-align: right; color: #666;">$${item.rate.toFixed(2)}</td>
+                            <td style="padding: 1rem 0.75rem; text-align: right; color: #333; font-weight: 600;">$${(item.quantity * item.rate).toFixed(2)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+                <tfoot>
+                    <tr style="background: #fff3e6; font-size: 1.3rem; font-weight: 700;">
+                        <td colspan="3" style="padding: 1.25rem 0.75rem; text-align: right; color: #333; border-top: 3px solid #ff6b1a;">Total:</td>
+                        <td style="padding: 1.25rem 0.75rem; text-align: right; color: #ff6b1a; border-top: 3px solid #ff6b1a;">$${subtotal.toFixed(2)}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        ${quoteNotes ? `
+            <div style="background: #f9f9f9; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border-left: 4px solid #ff6b1a;">
+                <h3 style="color: #333; font-size: 1.1rem; margin: 0 0 0.75rem 0;">Additional Notes</h3>
+                <div style="color: #666; white-space: pre-wrap; line-height: 1.6;">${quoteNotes}</div>
+            </div>
+        ` : ''}
+
+        <div style="text-align: center; padding: 2rem 0; border-top: 2px solid #eee; margin-top: 2rem;">
+            <p style="color: #666; margin: 0; font-size: 0.9rem;">Thank you for considering Helmick Underground for your project.</p>
+            <p style="color: #666; margin: 0.5rem 0 0 0; font-size: 0.9rem;">Please contact us if you have any questions.</p>
+        </div>
+    `;
+
+    document.getElementById('quotePreviewContent').innerHTML = previewHTML;
+    document.getElementById('previewModal').style.display = 'block';
+}
+
+// Close preview
+function closePreview() {
+    document.getElementById('previewModal').style.display = 'none';
+}
+
+// Save and send quote
+async function saveAndSendQuote() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '⏳ Sending...';
+    button.disabled = true;
+
+    const subtotal = lineItems.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
     const quoteData = {
         submissionId: submissionId,
         customer: {
@@ -262,56 +586,50 @@ async function saveQuote() {
         },
         lineItems: lineItems,
         notes: document.getElementById('quoteNotes').value,
-        subtotal: lineItems.reduce((sum, item) => sum + (item.quantity * item.rate), 0),
+        subtotal: subtotal,
         createdAt: new Date().toISOString()
     };
 
     try {
-        // Save quote (you can create an API endpoint for this later)
-        // For now, we'll just store it in localStorage and update the submission status
-        
-        // Get existing quotes or create new array
-        const existingQuotes = JSON.parse(localStorage.getItem('quotes') || '[]');
-        existingQuotes.push(quoteData);
-        localStorage.setItem('quotes', JSON.stringify(existingQuotes));
-
-        // Update submission status to "quoted"
+        // Update submission with quote data and change status to "quoted"
         const updateRes = await fetch('/api/contact-submissions', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 id: submissionId,
-                status: 'quoted'
+                status: 'quoted',
+                quote_data: JSON.stringify(quoteData)
             })
         });
 
-        if (!updateRes.ok) throw new Error('Failed to update status');
+        if (!updateRes.ok) throw new Error('Failed to update submission');
 
-        alert('Quote saved successfully! Redirecting to inbox...');
+        // Send quote email via API
+        const emailRes = await fetch('/api/send-quote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                to: currentSubmission.email,
+                customerName: currentSubmission.name,
+                quoteData: quoteData
+            })
+        });
+
+        if (!emailRes.ok) {
+            console.error('Failed to send email, but quote was saved');
+            alert('Quote saved successfully, but failed to send email. You can resend it from the inbox.');
+        } else {
+            alert('Quote sent successfully!');
+        }
+
         window.location.href = '/admin/inbox.html';
 
     } catch (error) {
         console.error('Error saving quote:', error);
         alert('Failed to save quote. Please try again.');
+        button.innerHTML = originalText;
+        button.disabled = false;
     }
-}
-
-// Initialize active tab on category switch
-function showCategory(category) {
-    currentCategory = category;
-    
-    // Update active tab
-    document.querySelectorAll('.category-tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    
-    // Set active based on category
-    const tabs = document.querySelectorAll('.category-tab');
-    if (category === 'baseRates') tabs[0].classList.add('active');
-    else if (category === 'customWork') tabs[1].classList.add('active');
-    else if (category === 'additionalItems') tabs[2].classList.add('active');
-    
-    renderRates();
 }
 
 // Load data on page load

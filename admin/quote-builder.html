@@ -292,6 +292,149 @@
         .category-tab:hover:not(.active) {
             background: rgba(255, 107, 26, 0.1);
         }
+
+        .custom-item-form {
+            display: grid;
+            gap: 1rem;
+            background: rgba(255, 107, 26, 0.05);
+            border: 2px solid rgba(255, 107, 26, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .custom-item-form input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: var(--white);
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .custom-item-form input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .custom-item-form label {
+            color: var(--gray);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .preview-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .preview-modal.active {
+            display: flex;
+        }
+
+        .preview-content {
+            background: white;
+            border-radius: 20px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .preview-actions {
+            position: sticky;
+            top: 0;
+            background: var(--card-dark);
+            padding: 1.5rem;
+            border-bottom: 2px solid rgba(255, 107, 26, 0.3);
+            display: flex;
+            gap: 1rem;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .preview-actions button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-close-preview {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2) !important;
+            color: var(--white);
+        }
+
+        .btn-confirm-quote {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+        }
+
+        .btn-confirm-quote:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(34, 197, 94, 0.4);
+        }
+
+        .quote-preview {
+            padding: 3rem;
+            background: white;
+            color: #000;
+        }
+
+        .quote-preview h1, .quote-preview h2, .quote-preview h3 {
+            color: #ff6b1a;
+        }
+
+        .quote-preview table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+        }
+
+        .quote-preview th {
+            background: #ff6b1a;
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 700;
+        }
+
+        .quote-preview td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .quote-preview tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .quote-total-row {
+            background: #fff3e0 !important;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .quote-total-row td {
+            color: #ff6b1a;
+            border-bottom: 3px solid #ff6b1a !important;
+        }
     </style>
 </head>
 <body>
@@ -380,6 +523,7 @@
                         <button class="category-tab active" onclick="showCategory('baseRates')">Base Rates</button>
                         <button class="category-tab" onclick="showCategory('customWork')">Custom Work</button>
                         <button class="category-tab" onclick="showCategory('additionalItems')">Additional Items</button>
+                        <button class="category-tab" onclick="showCategory('custom')">✏️ Custom</button>
                     </div>
 
                     <div id="ratesContainer" class="rates-grid">
@@ -422,10 +566,45 @@
                         <textarea id="quoteNotes" class="notes-textarea" placeholder="Add any additional notes, terms, or conditions..."></textarea>
                     </div>
 
-                    <button class="save-quote-btn" onclick="saveQuote()">
-                        💾 Save Quote & Mark as Quoted
+                    <button class="save-quote-btn" onclick="previewQuote()">
+                        👁️ Preview Quote
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="preview-modal">
+        <div class="preview-content">
+            <div class="preview-actions">
+                <button class="btn-close-preview" onclick="closePreview()">
+                    ✕ Close Preview
+                </button>
+                <button class="btn-confirm-quote" onclick="confirmAndSaveQuote()">
+                    💾 Confirm & Save Quote
+                </button>
+            </div>
+            <div id="quotePreview" class="quote-preview"></div>
+        </div>
+    </div>
+
+    <!-- Quote Preview Modal -->
+    <div id="previewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 3000; overflow-y: auto; padding: 2rem;">
+        <div style="max-width: 800px; margin: 0 auto; background: white; border-radius: 20px; position: relative;">
+            <button onclick="closePreview()" style="position: absolute; top: 1rem; right: 1rem; background: rgba(220, 20, 60, 0.9); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.5rem; z-index: 1;">×</button>
+            
+            <div id="quotePreviewContent" style="padding: 3rem;">
+                <!-- Quote content will be injected here -->
+            </div>
+            
+            <div style="padding: 2rem 3rem; background: #f5f5f5; border-top: 2px solid #e0e0e0; display: flex; gap: 1rem; border-radius: 0 0 20px 20px;">
+                <button onclick="saveAndSendQuote()" style="flex: 1; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: white; border: none; padding: 1.25rem 2rem; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 1.1rem; transition: all 0.3s ease;">
+                    📧 Save & Send Quote
+                </button>
+                <button onclick="closePreview()" style="background: rgba(0, 0, 0, 0.1); color: #333; border: 2px solid #ccc; padding: 1.25rem 2rem; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 1.1rem;">
+                    Cancel
+                </button>
             </div>
         </div>
     </div>

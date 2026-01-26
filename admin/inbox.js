@@ -271,6 +271,40 @@ async function viewSubmission(id) {
                 <div class="detail-value" style="background: rgba(34, 197, 94, 0.1); padding: 1rem; border-radius: 8px; border-left: 3px solid #22c55e; font-weight: 600;">${new Date(sub.scheduled_date).toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' })}</div>
             </div>
         ` : ''}
+        ${sub.quote_data ? `
+            <div class="detail-section">
+                <div class="detail-label">💰 Quote Details</div>
+                <div style="background: rgba(255, 107, 26, 0.05); padding: 1.5rem; border-radius: 12px; border: 2px solid rgba(255, 107, 26, 0.3);">
+                    ${(() => {
+                        try {
+                            const quote = typeof sub.quote_data === 'string' ? JSON.parse(sub.quote_data) : sub.quote_data;
+                            return `
+                                <div style="margin-bottom: 1rem;">
+                                    <strong style="color: var(--primary-color);">Total: $${quote.subtotal.toFixed(2)}</strong>
+                                </div>
+                                <div style="max-height: 300px; overflow-y: auto;">
+                                    ${quote.lineItems.map(item => `
+                                        <div style="padding: 0.75rem; background: rgba(0, 0, 0, 0.2); border-radius: 8px; margin-bottom: 0.5rem;">
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                                                <strong>${item.name}</strong>
+                                                <span style="color: var(--primary-color); font-weight: 700;">$${(item.quantity * item.rate).toFixed(2)}</span>
+                                            </div>
+                                            <div style="color: var(--gray); font-size: 0.9rem;">
+                                                Qty: ${item.quantity} × $${item.rate.toFixed(2)}
+                                                ${item.description ? `<br>${item.description}` : ''}
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                ${quote.notes ? `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255, 107, 26, 0.2); color: var(--gray); font-size: 0.9rem; white-space: pre-wrap;">${quote.notes}</div>` : ''}
+                            `;
+                        } catch (e) {
+                            return '<span style="color: var(--red);">Error displaying quote data</span>';
+                        }
+                    })()}
+                </div>
+            </div>
+        ` : ''}
         ${sub.ip ? `
             <div class="detail-section">
                 <div class="detail-label">IP Address</div>
