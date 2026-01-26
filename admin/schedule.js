@@ -174,7 +174,12 @@ function showDayAppointments(dateStr, appointments) {
 // View appointment details
 function viewAppointment(id) {
     const appointment = scheduledAppointments.find(a => a.id === id);
-    if (!appointment) return;
+    if (!appointment) {
+        console.log('Appointment not found:', id);
+        return;
+    }
+    
+    console.log('Viewing appointment:', appointment);
     
     const dateTime = new Date(appointment.scheduled_date);
     const dateStr = dateTime.toLocaleDateString('en-US', { 
@@ -185,6 +190,9 @@ function viewAppointment(id) {
         hour: 'numeric',
         minute: '2-digit'
     });
+    
+    // Update modal header
+    document.querySelector('#detailModal .modal-header h2').textContent = 'Appointment Details';
     
     document.getElementById('modalBody').innerHTML = `
         <div class="detail-section">
