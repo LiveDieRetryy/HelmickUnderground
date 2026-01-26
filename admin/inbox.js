@@ -261,6 +261,12 @@ async function viewSubmission(id) {
                 <div class="detail-value" style="white-space: pre-wrap; background: rgba(255, 107, 26, 0.1); padding: 1rem; border-radius: 8px; border-left: 3px solid var(--primary-color);">${sub.notes}</div>
             </div>
         ` : ''}
+        ${sub.scheduled_date ? `
+            <div class="detail-section">
+                <div class="detail-label">📅 Scheduled Meeting</div>
+                <div class="detail-value" style="background: rgba(34, 197, 94, 0.1); padding: 1rem; border-radius: 8px; border-left: 3px solid #22c55e; font-weight: 600;">${new Date(sub.scheduled_date).toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' })}</div>
+            </div>
+        ` : ''}
         ${sub.ip ? `
             <div class="detail-section">
                 <div class="detail-label">IP Address</div>
@@ -280,6 +286,32 @@ async function viewSubmission(id) {
                         Save & Mark as Contacted
                     </button>
                     <button onclick="hideNotesForm(${sub.id})" style="flex: 0 0 auto; background: rgba(255, 255, 255, 0.1); color: var(--white); padding: 0.75rem 1.5rem; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; font-weight: 700; cursor: pointer;">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        ` : sub.status === 'contacted' ? `
+            <button class="btn-send-ack" onclick="showScheduleForm(${sub.id})">
+                <span>📅</span>
+                <span>Schedule Meeting</span>
+            </button>
+            <div id="scheduleForm-${sub.id}" style="display: none; margin-top: 1.5rem; padding: 1.5rem; background: rgba(255, 107, 26, 0.05); border-radius: 12px; border: 2px solid rgba(255, 107, 26, 0.3);">
+                <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Schedule First Meeting</h3>
+                <div style="display: grid; gap: 1rem;">
+                    <div>
+                        <label style="display: block; color: var(--gray); margin-bottom: 0.5rem; font-size: 0.9rem;">Meeting Date</label>
+                        <input type="date" id="scheduleDate-${sub.id}" style="width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 107, 26, 0.3); border-radius: 8px; padding: 0.75rem; color: var(--white); font-family: inherit;">
+                    </div>
+                    <div>
+                        <label style="display: block; color: var(--gray); margin-bottom: 0.5rem; font-size: 0.9rem;">Meeting Time</label>
+                        <input type="time" id="scheduleTime-${sub.id}" style="width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 107, 26, 0.3); border-radius: 8px; padding: 0.75rem; color: var(--white); font-family: inherit;">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button onclick="saveSchedule(${sub.id})" style="flex: 1; background: linear-gradient(135deg, var(--primary-color) 0%, #ff8c42 100%); color: var(--white); padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">
+                        Save & Mark as Scheduled
+                    </button>
+                    <button onclick="hideScheduleForm(${sub.id})" style="flex: 0 0 auto; background: rgba(255, 255, 255, 0.1); color: var(--white); padding: 0.75rem 1.5rem; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; font-weight: 700; cursor: pointer;">
                         Cancel
                     </button>
                 </div>
@@ -455,7 +487,7 @@ async function markAsContacted(id) {
         if (!response.ok) throw new Error('Failed to update status');
 
         // Refresh data and close modal
-        await fetchSubmissions();
+        await loadData();
         closeModal();
     } catch (error) {
         console.error('Error updating status:', error);
@@ -512,7 +544,7 @@ async function saveNotes(id) {
         }
 
         // Refresh data and close modal
-        await fetchSubmissions();
+        await loadData();
         closeModal();
     } catch (error) {
         console.error('Error updating status:', error);
@@ -567,8 +599,8 @@ async function saveEditedNotes(id) {
         }
 
         // Refresh data and reopen modal to show updated notes
-        await fetchSubmissions();
-        const submission = submissions.find(s => s.id === id);
+        await loadData();
+        const submission = allSubmissions.find(s => s.id === id);
         if (submission) {
             showDetails(submission);
         }
@@ -587,6 +619,80 @@ function cancelEditNotes(id, originalNotes) {
         <div class="detail-label">Contact Notes <button onclick="editNotes(${id}, '${originalNotes.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')" style="background: none; border: none; color: var(--primary-color); cursor: pointer; font-size: 0.9rem; margin-left: 0.5rem;">✏️ Edit</button></div>
         <div class="detail-value" style="white-space: pre-wrap; background: rgba(255, 107, 26, 0.1); padding: 1rem; border-radius: 8px; border-left: 3px solid var(--primary-color);">${originalNotes}</div>
     `;
+}
+
+// Show schedule form
+function showScheduleForm(id) {
+    const form = document.getElementById(`scheduleForm-${id}`);
+    const button = form.previousElementSibling;
+    if (form && button) {
+        button.style.display = 'none';
+        form.style.display = 'block';
+        
+        // Set default date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById(`scheduleDate-${id}`).value = today;
+        document.getElementById(`scheduleDate-${id}`).focus();
+    }
+}
+
+// Hide schedule form
+function hideScheduleForm(id) {
+    const form = document.getElementById(`scheduleForm-${id}`);
+    const button = form.previousElementSibling;
+    if (form && button) {
+        form.style.display = 'none';
+        button.style.display = 'flex';
+        document.getElementById(`scheduleDate-${id}`).value = '';
+        document.getElementById(`scheduleTime-${id}`).value = '';
+    }
+}
+
+// Save schedule and mark as scheduled
+async function saveSchedule(id) {
+    const dateInput = document.getElementById(`scheduleDate-${id}`);
+    const timeInput = document.getElementById(`scheduleTime-${id}`);
+    
+    const date = dateInput.value;
+    const time = timeInput.value;
+    
+    if (!date) {
+        alert('Please select a meeting date.');
+        dateInput.focus();
+        return;
+    }
+    
+    if (!time) {
+        alert('Please select a meeting time.');
+        timeInput.focus();
+        return;
+    }
+    
+    // Combine date and time into ISO string
+    const scheduledDate = new Date(`${date}T${time}`).toISOString();
+    
+    try {
+        const response = await fetch('/api/contact-submissions', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id, status: 'scheduled', scheduled_date: scheduledDate })
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || 'Failed to schedule meeting');
+        }
+
+        // Refresh data and close modal
+        await loadData();
+        closeModal();
+    } catch (error) {
+        console.error('Error scheduling meeting:', error);
+        alert('Failed to schedule meeting: ' + error.message);
+    }
 }
 
 // Close modal on outside click

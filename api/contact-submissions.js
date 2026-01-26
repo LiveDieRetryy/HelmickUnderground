@@ -36,6 +36,10 @@ module.exports = async function handler(req, res) {
                               WHERE table_name='contact_submissions' AND column_name='notes') THEN
                     ALTER TABLE contact_submissions ADD COLUMN notes TEXT;
                 END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                              WHERE table_name='contact_submissions' AND column_name='scheduled_date') THEN
+                    ALTER TABLE contact_submissions ADD COLUMN scheduled_date TIMESTAMP;
+                END IF;
             END $$;
         `;
 
@@ -77,6 +81,7 @@ module.exports = async function handler(req, res) {
                     message: row.message,
                     status: row.status,
                     notes: row.notes,
+                    scheduled_date: row.scheduled_date,
                     ip: row.ip,
                     timestamp: row.timestamp
                 }));
@@ -150,7 +155,7 @@ module.exports = async function handler(req, res) {
         }
 
         if (req.method === 'PUT') {
-            const { id, status, notes } = req.body;
+            const { id, status, notes, scheduled_date } = req.body;
             
             if (!id) {
                 return res.status(400).json({ error: 'ID is required' });
@@ -163,7 +168,19 @@ module.exports = async function handler(req, res) {
             }
             
             // Build update query dynamically based on what's provided
-            if (status && notes !== undefined) {
+            if (status && notes !== undefined && scheduled_date !== undefined) {
+                await sql`
+                    UPDATE contact_submissions 
+                    SET status = ${status}, notes = ${notes}, scheduled_date = ${scheduled_date}
+                    WHERE id = ${id}
+                `;
+            } else if (status && scheduled_date !== undefined) {
+                await sql`
+                    UPDATE contact_submissions 
+                    SET status = ${status}, scheduled_date = ${scheduled_date}
+                    WHERE id = ${id}
+                `;
+            } else if (status && notes !== undefined) {
                 await sql`
                     UPDATE contact_submissions 
                     SET status = ${status}, notes = ${notes}
@@ -179,6 +196,12 @@ module.exports = async function handler(req, res) {
                 await sql`
                     UPDATE contact_submissions 
                     SET notes = ${notes}
+                    WHERE id = ${id}
+                `;
+            } else if (scheduled_date !== undefined) {
+                await sql`
+                    UPDATE contact_submissions 
+                    SET scheduled_date = ${scheduled_date}
                     WHERE id = ${id}
                 `;
             }
