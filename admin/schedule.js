@@ -157,7 +157,14 @@ function showDayAppointments(dateStr, appointments) {
     document.querySelectorAll('#appointmentsList .appointment-card').forEach(card => {
         card.addEventListener('click', () => {
             const appointmentId = parseInt(card.getAttribute('data-appointment-id'));
+            console.log('Clicked appointment:', appointmentId);
             viewAppointment(appointmentId);
+        });
+        card.addEventListener('mouseenter', () => {
+            card.style.backgroundColor = 'rgba(255, 107, 26, 0.1)';
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.backgroundColor = '';
         });
     });
     
