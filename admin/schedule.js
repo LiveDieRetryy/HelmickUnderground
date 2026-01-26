@@ -11,6 +11,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 
 let currentDate = new Date();
 let scheduledAppointments = [];
+let currentDayAppointments = []; // Store appointments for currently viewed day
 
 // Load scheduled appointments
 async function loadAppointments() {
@@ -116,6 +117,8 @@ function createDayElement(day, isOtherMonth, year, month, isToday = false) {
 
 // Show all appointments for a specific day
 function showDayAppointments(dateStr, appointments) {
+    currentDayAppointments = appointments; // Store for later access
+    
     const date = new Date(dateStr + 'T00:00:00');
     const dateFormatted = date.toLocaleDateString('en-US', { 
         weekday: 'long', 
@@ -174,10 +177,15 @@ function showDayAppointments(dateStr, appointments) {
 // View appointment details
 function viewAppointment(id) {
     console.log('Looking for appointment with ID:', id);
-    console.log('Available appointments:', scheduledAppointments);
-    console.log('Available IDs:', scheduledAppointments.map(a => a.id));
+    console.log('Current day appointments:', currentDayAppointments);
+    console.log('Available IDs:', currentDayAppointments.map(a => a.id));
     
-    const appointment = scheduledAppointments.find(a => a.id === id);
+    // Search in current day appointments first, then fall back to all appointments
+    let appointment = currentDayAppointments.find(a => a.id === id);
+    if (!appointment) {
+        appointment = scheduledAppointments.find(a => a.id === id);
+    }
+    
     if (!appointment) {
         console.log('Appointment not found:', id);
         alert('Error: Could not find appointment details. ID: ' + id);
