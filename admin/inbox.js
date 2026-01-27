@@ -802,8 +802,19 @@ async function scheduleProject(id) {
     }
     
     try {
-        // Update submission with scheduled date and status
-        const response = await fetch(`/api/contact-submissions?action=updateStatus&id=${id}&status=accepted&scheduled_date=${encodeURIComponent(scheduledDate)}`);
+        // Update submission with scheduled date and status using PUT
+        const response = await fetch('/api/contact-submissions', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                id: id,
+                status: 'accepted',
+                scheduled_date: scheduledDate
+            })
+        });
+        
         if (!response.ok) throw new Error('Failed to schedule project');
         
         // Update local data

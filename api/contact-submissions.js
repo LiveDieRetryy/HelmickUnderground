@@ -105,6 +105,7 @@ module.exports = async function handler(req, res) {
                         SUM(CASE WHEN status = 'contacted' THEN 1 ELSE 0 END) as contacted,
                         SUM(CASE WHEN status = 'scheduled' THEN 1 ELSE 0 END) as scheduled,
                         SUM(CASE WHEN status = 'quoted' THEN 1 ELSE 0 END) as quoted,
+                        SUM(CASE WHEN status = 'accepted' THEN 1 ELSE 0 END) as accepted,
                         SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
                         SUM(CASE WHEN status = 'declined' THEN 1 ELSE 0 END) as declined,
                         SUM(CASE WHEN DATE(timestamp) = CURRENT_DATE THEN 1 ELSE 0 END) as today
@@ -118,6 +119,7 @@ module.exports = async function handler(req, res) {
                     acknowledged: parseInt(stats.rows[0].acknowledged) || 0,
                     contacted: parseInt(stats.rows[0].contacted) || 0,
                     scheduled: parseInt(stats.rows[0].scheduled) || 0,
+                    accepted: parseInt(stats.rows[0].accepted) || 0,
                     quoted: parseInt(stats.rows[0].quoted) || 0,
                     completed: parseInt(stats.rows[0].completed) || 0,
                     declined: parseInt(stats.rows[0].declined) || 0,
@@ -136,18 +138,26 @@ module.exports = async function handler(req, res) {
             }
             
             if (action === 'updateStatus' && id) {
-                const { status } = req.query;
-                const validStatuses = ['unread', 'read', 'acknowledged', 'contacted', 'scheduled', 'quoted', 'completed', 'declined'];
+                const { status, scheduled_date } = req.query;
+                const validStatuses = ['unread', 'read', 'acknowledged', 'contacted', 'scheduled', 'quoted', 'accepted', 'completed', 'declined'];
                 
                 if (!validStatuses.includes(status)) {
                     return res.status(400).json({ error: 'Invalid status' });
                 }
                 
-                await sql`
-                    UPDATE contact_submissions 
-                    SET status = ${status} 
-                    WHERE id = ${id}
-                `;
+                if (scheduled_date) {
+                    await sql`
+                        UPDATE contact_submissions 
+                        SET status = ${status}, scheduled_date = ${scheduled_date}
+                        WHERE id = ${id}
+                    `;
+                } else {
+                    await sql`
+                        UPDATE contact_submissions 
+                        SET status = ${status} 
+                        WHERE id = ${id}
+                    `;
+                }
                 return res.status(200).json({ success: true });
             }
             
@@ -168,7 +178,7 @@ module.exports = async function handler(req, res) {
                 return res.status(400).json({ error: 'ID is required' });
             }
             
-            const validStatuses = ['unread', 'read', 'acknowledged', 'contacted', 'scheduled', 'quoted', 'completed', 'declined'];
+            const validStatuses = ['unread', 'read', 'acknowledged', 'contacted', 'scheduled', 'quoted', 'accepted', 'completed', 'declined'];
             
             if (status && !validStatuses.includes(status)) {
                 return res.status(400).json({ error: 'Invalid status' });
