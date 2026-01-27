@@ -641,12 +641,19 @@ async function downloadInvoicePDF(id) {
         
         let yPos = margin;
         
-        // Logo (top left) - convert to base64 to avoid CORS issues
+        // Logo (top left) - use relative path
         try {
             const logoBase64 = await getLogoBase64();
-            doc.addImage(logoBase64, 'PNG', margin, yPos, 80, 40);
+            if (logoBase64) {
+                doc.addImage(logoBase64, 'PNG', margin, yPos, 100, 50);
+            }
         } catch (e) {
-            console.warn('Logo failed to load:', e);
+            console.error('Logo failed to load:', e);
+            // Fallback: draw company name as text
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Helmick Underground', margin, yPos + 20);
         }
         
         // INVOICE header (top right)
@@ -845,20 +852,25 @@ async function getLogoBase64() {
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.onload = function() {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
             try {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
                 const dataURL = canvas.toDataURL('image/png');
                 resolve(dataURL);
             } catch (e) {
+                console.error('Canvas conversion error:', e);
                 reject(e);
             }
         };
-        img.onerror = reject;
-        img.src = 'https://helmickunderground.com/logo.png';
+        img.onerror = function(e) {
+            console.error('Image load error:', e);
+            reject(e);
+        };
+        // Try local path first, then remote
+        img.src = '/logo.png';
     });
 }
 
