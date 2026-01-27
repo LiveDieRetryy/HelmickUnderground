@@ -623,152 +623,227 @@ async function downloadInvoicePDF(id) {
         const invoice = await response.json();
         const items = typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items;
         
-        // Create a temporary container for the invoice HTML
-        const container = document.createElement('div');
-        container.style.position = 'fixed';
-        container.style.top = '0';
-        container.style.left = '0';
-        container.style.width = '800px';
-        container.style.zIndex = '99999';
-        container.style.background = 'white';
-        container.style.visibility = 'hidden'; // Hidden but still rendered
+        // Get jsPDF from window
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'pt',
+            format: 'letter'
+        });
         
-        // Build compact invoice HTML
-        container.innerHTML = `
-    <div style="padding: 1rem; background: #1a1a1a; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #e5e7eb;">
-        <!-- Header with logo in corner -->
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem;">
-            <tr>
-                <td style="width: 150px; vertical-align: top;">
-                    <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground Logo" style="width: 100px; height: auto;" crossorigin="anonymous">
-                </td>
-                <td style="text-align: right; vertical-align: top;">
-                    <div style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); padding: 0.5rem 1.5rem; display: inline-block;">
-                        <h2 style="color: white; margin: 0; font-size: 1.3rem; font-weight: 700;">INVOICE</h2>
-                    </div>
-                </td>
-            </tr>
-        </table>
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 50;
         
-        <!-- From/Bill To Section -->
-        <div style="background: #2a2a2a; padding: 0.75rem; margin-bottom: 1rem; border-bottom: 2px solid #ff6b1a;">
-            <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                    <td style="width: 50%; vertical-align: top; padding-right: 1rem;">
-                        <h3 style="color: #ff6b1a; margin: 0 0 0.5rem 0; font-size: 0.9rem;">From:</h3>
-                        <p style="margin: 0; line-height: 1.4; color: #ffffff; font-weight: 600; font-size: 0.9rem;">Helmick Underground</p>
-                        <p style="margin: 0.2rem 0; line-height: 1.4; color: #b0b0b0; font-size: 0.85rem;">498 Elbow Creek Rd, Mount Vernon, IA 52314</p>
-                        <p style="margin: 0.2rem 0; line-height: 1.4; color: #b0b0b0; font-size: 0.85rem;">HelmickUnderground@gmail.com</p>
-                    </td>
-                    <td style="width: 50%; vertical-align: top; padding-left: 1rem;">
-                        <h3 style="color: #ff6b1a; margin: 0 0 0.5rem 0; font-size: 0.9rem;">Bill To:</h3>
-                        <p style="margin: 0; line-height: 1.4; color: #ffffff; font-weight: 600; font-size: 0.9rem;">${invoice.customer_name}</p>
-                        ${invoice.customer_address ? `<p style="margin: 0.2rem 0; line-height: 1.4; color: #b0b0b0; font-size: 0.85rem;">${invoice.customer_address}</p>` : ''}
-                        <p style="margin: 0.2rem 0; line-height: 1.4; color: #b0b0b0; font-size: 0.85rem;">${invoice.customer_email}</p>
-                        ${invoice.customer_phone ? `<p style="margin: 0.2rem 0; line-height: 1.4; color: #b0b0b0; font-size: 0.85rem;">${invoice.customer_phone}</p>` : ''}
-                    </td>
-                </tr>
-            </table>
-        </div>
+        // Background
+        doc.setFillColor(26, 26, 26);
+        doc.rect(0, 0, pageWidth, pageHeight, 'F');
         
-        <!-- Invoice Details -->
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem; background: #2a2a2a; border-left: 3px solid #ff6b1a;">
-            <tr>
-                <td style="width: 33.33%; padding: 0.75rem; vertical-align: top;">
-                    <p style="margin: 0; color: #888; font-size: 0.75rem; font-weight: 600;">Invoice Number:</p>
-                    <p style="margin: 0.2rem 0 0 0; color: #ffffff; font-weight: 700; font-size: 1rem;">${invoice.invoice_number}</p>
-                </td>
-                <td style="width: 33.33%; padding: 0.75rem; vertical-align: top;">
-                    <p style="margin: 0; color: #888; font-size: 0.75rem; font-weight: 600;">Invoice Date:</p>
-                    <p style="margin: 0.2rem 0 0 0; color: #ffffff; font-weight: 700; font-size: 1rem;">${new Date(invoice.invoice_date).toLocaleDateString()}</p>
-                </td>
-                <td style="width: 33.33%; padding: 0.75rem; vertical-align: top;">
-                    <p style="margin: 0; color: #888; font-size: 0.75rem; font-weight: 600;">Due Date:</p>
-                    <p style="margin: 0.2rem 0 0 0; color: #ff6b1a; font-weight: 700; font-size: 1rem;">${new Date(invoice.due_date).toLocaleDateString()}</p>
-                </td>
-            </tr>
-        </table>
+        let yPos = margin;
         
-        <!-- Line Items -->
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem; background: #2a2a2a;">
-            <thead>
-                <tr style="background: #333; color: white;">
-                    <th style="padding: 0.6rem; text-align: left; font-weight: 700; font-size: 0.9rem;">Description</th>
-                    <th style="padding: 0.6rem; text-align: center; font-weight: 700; font-size: 0.9rem;">Qty</th>
-                    <th style="padding: 0.6rem; text-align: right; font-weight: 700; font-size: 0.9rem;">Rate</th>
-                    <th style="padding: 0.6rem; text-align: right; font-weight: 700; font-size: 0.9rem;">Amount</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${items.map(item => `
-                    <tr style="border-bottom: 1px solid #404040;">
-                        <td style="padding: 0.6rem; color: #e5e7eb; font-size: 0.9rem;">${item.description}</td>
-                        <td style="padding: 0.6rem; text-align: center; color: #b0b0b0; font-size: 0.9rem;">${item.quantity}</td>
-                        <td style="padding: 0.6rem; text-align: right; color: #b0b0b0; font-size: 0.9rem;">$${item.rate.toFixed(2)}</td>
-                        <td style="padding: 0.6rem; text-align: right; color: #ffffff; font-weight: 600; font-size: 0.9rem;">$${(item.quantity * item.rate).toFixed(2)}</td>
-                    </tr>
-                `).join('')}
-            </tbody>
-            <tfoot>
-                <tr style="border-top: 2px solid #ff6b1a;">
-                    <td colspan="3" style="padding: 0.6rem; text-align: right; font-weight: 600; color: #b0b0b0; font-size: 0.9rem;">Subtotal:</td>
-                    <td style="padding: 0.6rem; text-align: right; font-weight: 600; color: #ffffff; font-size: 0.9rem;">$${parseFloat(invoice.subtotal || 0).toFixed(2)}</td>
-                </tr>
-                ${invoice.tax_rate > 0 ? `
-                <tr>
-                    <td colspan="3" style="padding: 0.4rem 0.6rem; text-align: right; color: #b0b0b0; font-size: 0.9rem;">Tax (${invoice.tax_rate}%):</td>
-                    <td style="padding: 0.4rem 0.6rem; text-align: right; color: #ffffff; font-size: 0.9rem;">$${parseFloat(invoice.tax || 0).toFixed(2)}</td>
-                </tr>
-                ` : ''}
-                <tr style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); color: white;">
-                    <td colspan="3" style="padding: 0.75rem 0.6rem; text-align: right; font-weight: 700; font-size: 1.2rem;">Total Due:</td>
-                    <td style="padding: 0.75rem 0.6rem; text-align: right; font-weight: 700; font-size: 1.2rem;">$${parseFloat(invoice.total).toFixed(2)}</td>
-                </tr>
-            </tfoot>
-        </table>
-    </div>`;
-        
-        document.body.appendChild(container);
-        
-        // Wait for images to load and DOM to fully render
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        
-        const img = container.querySelector('img');
-        if (img && !img.complete) {
-            await new Promise((resolve) => {
-                img.onload = resolve;
-                img.onerror = resolve;
-                setTimeout(resolve, 3000);
-            });
+        // Logo (top left)
+        try {
+            const logoImg = await loadImage('https://helmickunderground.com/logo.png');
+            doc.addImage(logoImg, 'PNG', margin, yPos, 80, 40);
+        } catch (e) {
+            console.warn('Logo failed to load:', e);
         }
         
-        // Make visible just for rendering
-        container.style.visibility = 'visible';
+        // INVOICE header (top right)
+        doc.setFillColor(255, 107, 26);
+        doc.roundedRect(pageWidth - margin - 120, yPos, 120, 35, 3, 3, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('INVOICE', pageWidth - margin - 60, yPos + 23, { align: 'center' });
         
-        // Generate PDF using html2pdf
-        const opt = {
-            margin: 0.5,
-            filename: `Invoice-${invoice.invoice_number}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { 
-                scale: 2, 
-                backgroundColor: '#1a1a1a',
-                useCORS: true,
-                logging: true,
-                allowTaint: true
-            },
-            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-        };
+        yPos += 60;
         
-        await html2pdf().set(opt).from(container).save();
+        // From/Bill To Section
+        doc.setFillColor(42, 42, 42);
+        doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 80, 3, 3, 'F');
         
-        // Remove temporary container
-        document.body.removeChild(container);
+        // Orange bottom border
+        doc.setFillColor(255, 107, 26);
+        doc.rect(margin, yPos + 78, pageWidth - 2 * margin, 2, 'F');
+        
+        // From section
+        doc.setTextColor(255, 107, 26);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('From:', margin + 15, yPos + 20);
+        
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Helmick Underground', margin + 15, yPos + 35);
+        
+        doc.setTextColor(176, 176, 176);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.text('498 Elbow Creek Rd, Mount Vernon, IA 52314', margin + 15, yPos + 48);
+        doc.text('HelmickUnderground@gmail.com', margin + 15, yPos + 61);
+        
+        // Bill To section
+        const midPoint = pageWidth / 2 + 20;
+        doc.setTextColor(255, 107, 26);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Bill To:', midPoint, yPos + 20);
+        
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.text(invoice.customer_name, midPoint, yPos + 35);
+        
+        doc.setTextColor(176, 176, 176);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        let billToY = yPos + 48;
+        if (invoice.customer_address) {
+            doc.text(invoice.customer_address, midPoint, billToY);
+            billToY += 13;
+        }
+        doc.text(invoice.customer_email, midPoint, billToY);
+        if (invoice.customer_phone) {
+            doc.text(invoice.customer_phone, midPoint, billToY + 13);
+        }
+        
+        yPos += 95;
+        
+        // Invoice Details Box
+        doc.setFillColor(42, 42, 42);
+        doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 45, 3, 3, 'F');
+        
+        // Orange left border
+        doc.setFillColor(255, 107, 26);
+        doc.rect(margin, yPos, 3, 45, 'F');
+        
+        const detailWidth = (pageWidth - 2 * margin) / 3;
+        
+        // Invoice Number
+        doc.setTextColor(136, 136, 136);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Invoice Number:', margin + 15, yPos + 15);
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.text(invoice.invoice_number, margin + 15, yPos + 30);
+        
+        // Invoice Date
+        doc.setTextColor(136, 136, 136);
+        doc.setFontSize(8);
+        doc.text('Invoice Date:', margin + detailWidth + 15, yPos + 15);
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.text(new Date(invoice.invoice_date).toLocaleDateString(), margin + detailWidth + 15, yPos + 30);
+        
+        // Due Date
+        doc.setTextColor(136, 136, 136);
+        doc.setFontSize(8);
+        doc.text('Due Date:', margin + detailWidth * 2 + 15, yPos + 15);
+        doc.setTextColor(255, 107, 26);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text(new Date(invoice.due_date).toLocaleDateString(), margin + detailWidth * 2 + 15, yPos + 30);
+        
+        yPos += 60;
+        
+        // Line Items Table
+        doc.setFillColor(42, 42, 42);
+        const tableStartY = yPos;
+        
+        // Table Header
+        doc.setFillColor(51, 51, 51);
+        doc.rect(margin, yPos, pageWidth - 2 * margin, 30, 'F');
+        
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Description', margin + 10, yPos + 18);
+        doc.text('Qty', pageWidth - margin - 220, yPos + 18, { align: 'center' });
+        doc.text('Rate', pageWidth - margin - 140, yPos + 18, { align: 'right' });
+        doc.text('Amount', pageWidth - margin - 10, yPos + 18, { align: 'right' });
+        
+        yPos += 30;
+        
+        // Table Rows
+        doc.setFont('helvetica', 'normal');
+        items.forEach((item, index) => {
+            if (index % 2 === 0) {
+                doc.setFillColor(42, 42, 42);
+                doc.rect(margin, yPos, pageWidth - 2 * margin, 25, 'F');
+            }
+            
+            doc.setTextColor(229, 231, 235);
+            doc.setFontSize(9);
+            doc.text(item.description, margin + 10, yPos + 16);
+            
+            doc.setTextColor(176, 176, 176);
+            doc.text(item.quantity.toString(), pageWidth - margin - 220, yPos + 16, { align: 'center' });
+            doc.text(`$${item.rate.toFixed(2)}`, pageWidth - margin - 140, yPos + 16, { align: 'right' });
+            
+            doc.setTextColor(255, 255, 255);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`$${(item.quantity * item.rate).toFixed(2)}`, pageWidth - margin - 10, yPos + 16, { align: 'right' });
+            doc.setFont('helvetica', 'normal');
+            
+            yPos += 25;
+        });
+        
+        // Orange separator line
+        doc.setDrawColor(255, 107, 26);
+        doc.setLineWidth(2);
+        doc.line(margin, yPos, pageWidth - margin, yPos);
+        
+        yPos += 15;
+        
+        // Subtotal
+        doc.setTextColor(176, 176, 176);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Subtotal:', pageWidth - margin - 150, yPos, { align: 'right' });
+        doc.setTextColor(255, 255, 255);
+        doc.text(`$${parseFloat(invoice.subtotal || 0).toFixed(2)}`, pageWidth - margin - 10, yPos, { align: 'right' });
+        
+        yPos += 20;
+        
+        // Tax (if applicable)
+        if (invoice.tax_rate > 0) {
+            doc.setTextColor(176, 176, 176);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Tax (${invoice.tax_rate}%):`, pageWidth - margin - 150, yPos, { align: 'right' });
+            doc.setTextColor(255, 255, 255);
+            doc.text(`$${parseFloat(invoice.tax || 0).toFixed(2)}`, pageWidth - margin - 10, yPos, { align: 'right' });
+            yPos += 20;
+        }
+        
+        // Total Due
+        doc.setFillColor(255, 107, 26);
+        doc.roundedRect(margin, yPos - 5, pageWidth - 2 * margin, 30, 3, 3, 'F');
+        
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Total Due:', pageWidth - margin - 150, yPos + 13, { align: 'right' });
+        doc.text(`$${parseFloat(invoice.total).toFixed(2)}`, pageWidth - margin - 10, yPos + 13, { align: 'right' });
+        
+        // Save the PDF
+        doc.save(`Invoice-${invoice.invoice_number}.pdf`);
         
     } catch (error) {
         console.error('Error downloading PDF:', error);
         showNotification('Failed to generate PDF', 'error');
     }
+}
+
+// Helper function to load images
+function loadImage(url) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = url;
+    });
 }
 
 // Print invoice
