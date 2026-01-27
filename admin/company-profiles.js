@@ -182,13 +182,6 @@ function saveProfile() {
     });
     
     if (lineItems.length === 0) {
-        contactPerson: document.getElementById('contactPerson').value.trim(),
-        phone: document.getElementById('companyPhone').value.trim(),
-        email: document.getElementById('companyEmail').value.trim(),
-        address: document.getElementById('companyAddress').value.trim(),
-        city: document.getElementById('companyCity').value.trim(),
-        state: document.getElementById('companyState').value.trim().toUpperCase(),
-        zip: document.getElementById('companyZip').value.trim(),
         if (!confirm('No line items added. Save profile anyway?')) {
             return;
         }
@@ -196,6 +189,13 @@ function saveProfile() {
     
     const profileData = {
         name: companyName,
+        contactPerson: document.getElementById('contactPerson').value.trim(),
+        phone: document.getElementById('companyPhone').value.trim(),
+        email: document.getElementById('companyEmail').value.trim(),
+        address: document.getElementById('companyAddress').value.trim(),
+        city: document.getElementById('companyCity').value.trim(),
+        state: document.getElementById('companyState').value.trim().toUpperCase(),
+        zip: document.getElementById('companyZip').value.trim(),
         lineItems,
         updatedAt: new Date().toISOString()
     };
