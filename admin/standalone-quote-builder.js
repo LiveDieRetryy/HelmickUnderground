@@ -583,9 +583,11 @@ async function downloadQuotePDF() {
         }
         
         // QUOTE header
-        doc.setFillColor(255, 107, 26);
-        doc.roundedRect(pageWidth - margin - 120, yPos, 120, 35, 3, 3, 'F');
-        doc.setTextColor(255, 255, 255);
+        doc.setFillColor(255, 255, 255);
+        doc.setDrawColor(255, 107, 26);
+        doc.setLineWidth(2);
+        doc.roundedRect(pageWidth - margin - 120, yPos, 120, 35, 3, 3, 'FD');
+        doc.setTextColor(255, 107, 26);
         doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
         doc.text('QUOTE', pageWidth - margin - 60, yPos + 23, { align: 'center' });
@@ -730,6 +732,21 @@ async function downloadQuotePDF() {
         doc.setFont('helvetica', 'bold');
         doc.text('Total:', pageWidth - margin - 150, yPos + 13, { align: 'right' });
         doc.text(`$${total.toFixed(2)}`, pageWidth - margin - 10, yPos + 13, { align: 'right' });
+        
+        yPos += 50;
+        
+        // Footer
+        doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(1);
+        doc.line(margin, yPos, pageWidth - margin, yPos);
+        yPos += 15;
+        
+        doc.setTextColor(100, 100, 100);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Thank you for your business!', pageWidth / 2, yPos, { align: 'center' });
+        yPos += 12;
+        doc.text('Questions? Contact us at HelmickUnderground@gmail.com', pageWidth / 2, yPos, { align: 'center' });
         
         // Save
         const filename = customerName ? `Quote-${customerName.replace(/[^a-z0-9]/gi, '_')}-${new Date().toISOString().split('T')[0]}.pdf` : `Quote-${new Date().toISOString().split('T')[0]}.pdf`;
