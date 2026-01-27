@@ -409,8 +409,8 @@ async function openSendInvoiceModal(id) {
         `;
 
         const modalHTML = `
-            <div id="sendInvoiceModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 2rem;">
-                <div style="background: var(--card-dark); border-radius: 20px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; border: 2px solid rgba(255, 107, 26, 0.3);">
+            <div id="sendInvoiceModal" onclick="closeSendInvoiceModal()" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 2rem;">
+                <div onclick="event.stopPropagation()" style="background: var(--card-dark); border-radius: 20px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; border: 2px solid rgba(255, 107, 26, 0.3);">
                     <div style="padding: 2rem; border-bottom: 2px solid rgba(255, 107, 26, 0.2);">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <h2 style="color: var(--primary-color); margin: 0;">📧 Send Invoice</h2>
@@ -470,25 +470,97 @@ function closeSendInvoiceModal() {
 async function sendInvoiceEmail(id) {
     const to = document.getElementById('invoiceEmailTo').value;
     const subject = document.getElementById('invoiceEmailSubject').value;
+    const htmlContent = document.getElementById('invoiceEmailPreview').innerHTML;
     
     if (!to) {
-        alert('Please enter recipient email address');
+        showNotification('Please enter recipient email address', 'error');
         return;
     }
     
     try {
-        // You would call your email API here
-        // For now, we'll just update the status to 'sent'
+        // Send email via Resend API
+        const response = await fetch('/api/send-invoice-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                to: to,
+                subject: subject,
+                htmlContent: htmlContent
+            })
+        });
+
+        const result = await response.json();
+        
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || 'Failed to send email');
+        }
+        
+        // Update invoice status to 'sent'
         await updateInvoiceStatus(id, 'sent');
         
-        alert('Invoice email sent successfully!');
+        showNotification('✅ Invoice email sent successfully!', 'success');
         closeSendInvoiceModal();
         loadInvoices();
         
     } catch (error) {
         console.error('Error sending invoice:', error);
-        alert('Failed to send invoice email');
+        showNotification('❌ Failed to send invoice email: ' + error.message, 'error');
     }
+}
+
+// Show notification message
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: ${type === 'success' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        z-index: 100000;
+        animation: slideIn 0.3s ease-out;
+    `;
+    
+    notification.textContent = message;
+    
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
 
 // Download invoice as PDF
