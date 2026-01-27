@@ -48,6 +48,10 @@ module.exports = async function handler(req, res) {
                               WHERE table_name='contact_submissions' AND column_name='invoice_id') THEN
                     ALTER TABLE contact_submissions ADD COLUMN invoice_id BIGINT;
                 END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                              WHERE table_name='contact_submissions' AND column_name='completed_at') THEN
+                    ALTER TABLE contact_submissions ADD COLUMN completed_at TIMESTAMP;
+                END IF;
             END $$;
         `;
 
@@ -93,7 +97,8 @@ module.exports = async function handler(req, res) {
                     quote_data: row.quote_data,
                     invoice_id: row.invoice_id,
                     ip: row.ip,
-                    timestamp: row.timestamp
+                    timestamp: row.timestamp,
+                    completed_at: row.completed_at
                 }));
                 
                 return res.status(200).json(formattedData);
@@ -152,7 +157,14 @@ module.exports = async function handler(req, res) {
                     return res.status(400).json({ error: 'Invalid status' });
                 }
                 
-                if (scheduled_date) {
+                if (status === 'completed') {
+                    // Set completed_at timestamp when marking as completed
+                    await sql`
+                        UPDATE contact_submissions 
+                        SET status = ${status}, completed_at = CURRENT_TIMESTAMP
+                        WHERE id = ${id}
+                    `;
+                } else if (scheduled_date) {
                     await sql`
                         UPDATE contact_submissions 
                         SET status = ${status}, scheduled_date = ${scheduled_date}
@@ -192,7 +204,14 @@ module.exports = async function handler(req, res) {
             }
             
             // Build update query dynamically based on what's provided
-            if (invoice_id !== undefined) {
+            if (status === 'completed') {
+                // Set completed_at timestamp when marking as completed
+                await sql`
+                    UPDATE contact_submissions 
+                    SET status = ${status}, completed_at = CURRENT_TIMESTAMP
+                    WHERE id = ${id}
+                `;
+            } else if (invoice_id !== undefined) {
                 await sql`
                     UPDATE contact_submissions 
                     SET invoice_id = ${invoice_id}

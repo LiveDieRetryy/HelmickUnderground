@@ -176,6 +176,11 @@ function renderSubmissions() {
                     <div class="info-item">
                         <strong>Date:</strong> ${dateStr}
                     </div>
+                    ${sub.status === 'completed' && sub.completed_at ? `
+                    <div class="info-item" style="color: #10b981;">
+                        <strong>✅ Completed:</strong> ${new Date(sub.completed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                    </div>
+                    ` : ''}
                 </div>
                 ${sub.services && sub.services.length > 0 ? `
                     <div class="services-list">
