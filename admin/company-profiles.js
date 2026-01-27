@@ -36,8 +36,15 @@ function displayProfiles() {
                         🗑️
                     </button>
                 </div>
-            </div>
-            <div class="line-items-list">
+            </div>            ${profile.contactPerson || profile.phone || profile.email || profile.address ? `
+                <div class="profile-info">
+                    ${profile.contactPerson ? `<div class="profile-info-row"><span class="profile-info-label">Contact:</span> ${profile.contactPerson}</div>` : ''}
+                    ${profile.phone ? `<div class="profile-info-row"><span class="profile-info-label">Phone:</span> ${profile.phone}</div>` : ''}
+                    ${profile.email ? `<div class="profile-info-row"><span class="profile-info-label">Email:</span> ${profile.email}</div>` : ''}
+                    ${profile.address ? `<div class="profile-info-row"><span class="profile-info-label">Address:</span> ${profile.address}</div>` : ''}
+                    ${profile.city || profile.state || profile.zip ? `<div class="profile-info-row"><span class="profile-info-label"></span> ${[profile.city, profile.state, profile.zip].filter(Boolean).join(', ')}</div>` : ''}
+                </div>
+            ` : ''}            <div class="line-items-list">
                 ${profile.lineItems && profile.lineItems.length > 0 ? 
                     profile.lineItems.map(item => `
                         <div class="line-item">
@@ -61,12 +68,26 @@ function openAddProfileModal() {
     currentEditingIndex = null;
     document.getElementById('modalTitle').textContent = 'Add Company Profile';
     document.getElementById('companyName').value = '';
+    document.getElementById('contactPerson').value = '';
+    document.getElementById('companyPhone').value = '';
+    document.getElementById('companyEmail').value = '';
+    document.getElementById('companyAddress').value = '';
+    document.getElementById('companyCity').value = '';
+    document.getElementById('companyState').value = '';
+    document.getElementById('companyZip').value = '';
     document.getElementById('lineItemsContainer').innerHTML = '';
     addLineItemRow(); // Start with one empty row
     document.getElementById('profileModal').style.display = 'block';
 }
 
-// Open modal to edit existing profile
+// Odocument.getElementById('contactPerson').value = profile.contactPerson || '';
+    document.getElementById('companyPhone').value = profile.phone || '';
+    document.getElementById('companyEmail').value = profile.email || '';
+    document.getElementById('companyAddress').value = profile.address || '';
+    document.getElementById('companyCity').value = profile.city || '';
+    document.getElementById('companyState').value = profile.state || '';
+    document.getElementById('companyZip').value = profile.zip || '';
+    pen modal to edit existing profile
 function editProfile(index) {
     currentEditingIndex = index;
     const profile = companyProfiles[index];
@@ -161,6 +182,13 @@ function saveProfile() {
     });
     
     if (lineItems.length === 0) {
+        contactPerson: document.getElementById('contactPerson').value.trim(),
+        phone: document.getElementById('companyPhone').value.trim(),
+        email: document.getElementById('companyEmail').value.trim(),
+        address: document.getElementById('companyAddress').value.trim(),
+        city: document.getElementById('companyCity').value.trim(),
+        state: document.getElementById('companyState').value.trim().toUpperCase(),
+        zip: document.getElementById('companyZip').value.trim(),
         if (!confirm('No line items added. Save profile anyway?')) {
             return;
         }
