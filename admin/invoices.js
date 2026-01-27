@@ -632,10 +632,14 @@ async function downloadInvoicePDF(id) {
     <title>Invoice ${invoice.invoice_number}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        @page { margin: 0.5in; }
+        @page { 
+            margin: 0.5in; 
+            size: auto;
+        }
         @media print {
             body { margin: 0; padding: 0; font-size: 10pt; }
             .no-print { display: none; }
+            @page { margin: 0.5in; }
         }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; color: #e5e7eb; }
     </style>
