@@ -527,7 +527,7 @@ function printQuote() {
                     <td style="padding: 0.3rem; text-align: right; color: #000; font-size: 0.85rem;">$${tax.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                 </tr>
                 ` : ''}
-                <tr style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%);">
+                <tr style="background: #ff6b1a;">
                     <td style="padding: 0.6rem; text-align: right; font-weight: 700; color: white; font-size: 1.1rem;">Total:</td>
                     <td style="padding: 0.6rem; text-align: right; font-weight: 700; color: white; font-size: 1.1rem;">$${total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                 </tr>
