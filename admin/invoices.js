@@ -580,16 +580,25 @@ async function sendInvoiceEmail(id) {
     }
     
     try {
-        // Send email via Resend API
-        const response = await fetch('/api/send-invoice-email', {
+        // Get invoice data for metadata
+        const invoice = invoices.find(inv => inv.id === id);
+        
+        // Send email via consolidated email API
+        const response = await fetch('/api/send-email', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
+                type: 'invoice',
                 to: to,
                 subject: subject,
-                htmlContent: htmlContent
+                html: htmlContent,
+                name: invoice?.customer_name || to,
+                metadata: {
+                    invoiceId: id,
+                    invoiceNumber: invoice?.invoice_number
+                }
             })
         });
 
