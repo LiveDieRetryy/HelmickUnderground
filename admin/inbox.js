@@ -83,6 +83,7 @@ function updateFilterCounts(stats) {
     const contactedCount = stats.contacted || 0;
     const scheduledCount = stats.scheduled || 0;
     const quotedCount = stats.quoted || 0;
+    const acceptedCount = stats.accepted || 0;
     const completedCount = stats.completed || 0;
     const declinedCount = (stats.declined || 0);
     const todayCount = stats.today || 0;
@@ -96,8 +97,9 @@ function updateFilterCounts(stats) {
     select.options[4].text = `📞 Contacted (${contactedCount})`;
     select.options[5].text = `📅 Scheduled (${scheduledCount})`;
     select.options[6].text = `💰 Quoted (${quotedCount})`;
-    select.options[7].text = `✅ Completed (${completedCount})`;
-    select.options[8].text = `❌ Declined (${declinedCount})`;
+    select.options[7].text = `🎯 Accepted (${acceptedCount})`;
+    select.options[8].text = `✅ Completed (${completedCount})`;
+    select.options[9].text = `❌ Declined (${declinedCount})`;
     
     // Update today count
     document.getElementById('todayCount').innerHTML = `Today: <strong style="color: var(--primary-color);">${todayCount}</strong>`;
@@ -828,11 +830,66 @@ async function scheduleProject(id) {
         closeModal();
         loadData();
         
-        alert('Project scheduled successfully and marked as Accepted!');
+        // Show success notification
+        showNotification('✅ Project scheduled successfully and marked as Accepted!', 'success');
     } catch (error) {
         console.error('Error scheduling project:', error);
-        alert('Failed to schedule project: ' + error.message);
+        showNotification('❌ Failed to schedule project: ' + error.message, 'error');
     }
+}
+
+// Show notification message
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: ${type === 'success' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        z-index: 100000;
+        font-weight: 600;
+        max-width: 400px;
+        animation: slideIn 0.3s ease-out;
+    `;
+    notification.textContent = message;
+    
+    // Add animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
 
 // Close modal on outside click
