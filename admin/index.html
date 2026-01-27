@@ -837,15 +837,29 @@
                 
                 const allSubmissions = await response.json();
                 
+                // DEBUG: Log all submissions to see what we have
+                console.log('=== DASHBOARD DEBUG ===');
+                console.log('Total submissions:', allSubmissions.length);
+                allSubmissions.forEach(s => {
+                    console.log(`ID: ${s.id}, Name: ${s.name}, Status: ${s.status}, Scheduled Date: ${s.scheduled_date}`);
+                });
+                
                 // Use same logic as schedule page - get all scheduled/accepted with dates
                 const appointmentsWithDates = allSubmissions.filter(s => 
                     (s.status === 'scheduled' || s.status === 'accepted') && s.scheduled_date
                 );
                 
+                console.log('Appointments with dates (scheduled OR accepted):', appointmentsWithDates.length);
+                appointmentsWithDates.forEach(a => {
+                    console.log(`  - ${a.name}: status=${a.status}, date=${a.scheduled_date}`);
+                });
+                
                 // Sort by date (earliest first) and take next 5
                 const upcoming = appointmentsWithDates
                     .sort((a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date))
                     .slice(0, 5);
+                
+                console.log('Next 5 upcoming:', upcoming.map(a => `${a.name} (${a.status})`));
                 
                 const container = document.getElementById('upcomingAppointments');
                 
