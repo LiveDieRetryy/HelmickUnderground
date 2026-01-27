@@ -171,11 +171,11 @@ async function updateInvoiceStatus(id, status) {
                     const linkedSub = submissions.find(s => s.invoice_id == id);
                     
                     if (linkedSub) {
-                        // Update submission status to complete
+                        // Update submission status to completed
                         await fetch('/api/contact-submissions', {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ id: linkedSub.id, status: 'complete' })
+                            body: JSON.stringify({ id: linkedSub.id, status: 'completed' })
                         });
                     }
                 }

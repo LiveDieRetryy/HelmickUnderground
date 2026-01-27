@@ -973,11 +973,11 @@ async function markAsPaid(submissionId, invoiceId) {
     }
     
     try {
-        // Update submission status to complete
+        // Update submission status to completed
         const subResponse = await fetch('/api/contact-submissions', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: submissionId, status: 'complete' })
+            body: JSON.stringify({ id: submissionId, status: 'completed' })
         });
         
         if (!subResponse.ok) throw new Error('Failed to update submission status');
