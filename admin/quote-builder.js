@@ -584,7 +584,7 @@ function printQuote() {
             .main-content { flex: 1 0 auto; }
             .bottom-section { flex-shrink: 0; margin-top: auto; }
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; color: #e5e7eb; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: white; color: #333; }
         html, body { height: 100%; margin: 0; }
         .page-wrapper { min-height: 100%; display: flex; flex-direction: column; }
         .main-content { flex: 1 0 auto; }
@@ -593,7 +593,7 @@ function printQuote() {
 </head>
 <body>
     <div class="page-wrapper">
-    <div class="main-content" style="padding: 0.5rem; background: #1a1a1a;">
+    <div class="main-content" style="padding: 0.5rem; background: white;">
         <!-- Header with logo in corner -->
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
             <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground Logo" style="width: 100px; height: auto;">
@@ -605,56 +605,56 @@ function printQuote() {
         </div>
         
         <!-- From/For Section -->
-        <div style="background: #2a2a2a; padding: 0.5rem; margin-bottom: 0.5rem; border-bottom: 2px solid #ff6b1a;">
+        <div style="background: #f5f5f5; padding: 0.5rem; margin-bottom: 0.5rem; border-bottom: 2px solid #ff6b1a; border-radius: 3px;">
             <table style="width: 100%; border-collapse: collapse;">
                 <tr>
                     <td style="width: 50%; vertical-align: top; padding-right: 0.5rem;">
                         <h3 style="color: #ff6b1a; margin: 0 0 0.3rem 0; font-size: 0.85rem;">From:</h3>
-                        <p style="margin: 0; line-height: 1.3; color: #ffffff; font-weight: 600; font-size: 0.85rem;">Helmick Underground</p>
-                        <p style="margin: 0.1rem 0; line-height: 1.3; color: #b0b0b0; font-size: 0.8rem;">498 Elbow Creek Rd, Mount Vernon, IA 52314</p>
-                        <p style="margin: 0.1rem 0; line-height: 1.3; color: #b0b0b0; font-size: 0.8rem;">HelmickUnderground@gmail.com</p>
+                        <p style="margin: 0; line-height: 1.3; color: #000; font-weight: 600; font-size: 0.85rem;">Helmick Underground</p>
+                        <p style="margin: 0.1rem 0; line-height: 1.3; color: #505050; font-size: 0.8rem;">498 Elbow Creek Rd, Mount Vernon, IA 52314</p>
+                        <p style="margin: 0.1rem 0; line-height: 1.3; color: #505050; font-size: 0.8rem;">HelmickUnderground@gmail.com</p>
                     </td>
                     <td style="width: 50%; vertical-align: top; padding-left: 0.5rem;">
                         <h3 style="color: #ff6b1a; margin: 0 0 0.3rem 0; font-size: 0.85rem;">Prepared For:</h3>
-                        <p style="margin: 0; line-height: 1.3; color: #ffffff; font-weight: 600; font-size: 0.85rem;">${currentSubmission.name}</p>
-                        <p style="margin: 0.1rem 0; line-height: 1.3; color: #b0b0b0; font-size: 0.8rem;">${currentSubmission.email}</p>
-                        ${currentSubmission.phone ? `<p style="margin: 0.1rem 0; line-height: 1.3; color: #b0b0b0; font-size: 0.8rem;">${currentSubmission.phone}</p>` : ''}
+                        <p style="margin: 0; line-height: 1.3; color: #000; font-weight: 600; font-size: 0.85rem;">${currentSubmission.name}</p>
+                        <p style="margin: 0.1rem 0; line-height: 1.3; color: #505050; font-size: 0.8rem;">${currentSubmission.email}</p>
+                        ${currentSubmission.phone ? `<p style="margin: 0.1rem 0; line-height: 1.3; color: #505050; font-size: 0.8rem;">${currentSubmission.phone}</p>` : ''}
                     </td>
                 </tr>
             </table>
         </div>
         
         <!-- Quote Details -->
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 0.5rem; background: #2a2a2a; border-left: 3px solid #ff6b1a;">
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 0.5rem; background: #f5f5f5; border-left: 3px solid #ff6b1a; border-radius: 3px;">
             <tr>
                 <td style="width: 50%; padding: 0.5rem; vertical-align: top;">
-                    <p style="margin: 0; color: #888; font-size: 0.7rem; font-weight: 600;">Quote Date:</p>
-                    <p style="margin: 0.1rem 0 0 0; color: #ffffff; font-weight: 700; font-size: 0.9rem;">${new Date().toLocaleDateString()}</p>
+                    <p style="margin: 0; color: #646464; font-size: 0.7rem; font-weight: 600;">Quote Date:</p>
+                    <p style="margin: 0.1rem 0 0 0; color: #000; font-weight: 700; font-size: 0.9rem;">${new Date().toLocaleDateString()}</p>
                 </td>
                 <td style="width: 50%; padding: 0.5rem; vertical-align: top;">
-                    <p style="margin: 0; color: #888; font-size: 0.7rem; font-weight: 600;">Valid Until:</p>
+                    <p style="margin: 0; color: #646464; font-size: 0.7rem; font-weight: 600;">Valid Until:</p>
                     <p style="margin: 0.1rem 0 0 0; color: #ff6b1a; font-weight: 700; font-size: 0.9rem;">${new Date(Date.now() + 30*24*60*60*1000).toLocaleDateString()}</p>
                 </td>
             </tr>
         </table>
         
         <!-- Line Items -->
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 0.5rem; background: #2a2a2a;">
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 0.5rem; background: white; border: 1px solid #e0e0e0;">
             <thead>
-                <tr style="background: #333; color: white;">
-                    <th style="padding: 0.4rem; text-align: left; font-weight: 700; font-size: 0.85rem;">Description</th>
-                    <th style="padding: 0.4rem; text-align: center; font-weight: 700; font-size: 0.85rem;">Qty</th>
-                    <th style="padding: 0.4rem; text-align: right; font-weight: 700; font-size: 0.85rem;">Rate</th>
-                    <th style="padding: 0.4rem; text-align: right; font-weight: 700; font-size: 0.85rem;">Amount</th>
+                <tr style="background: #f5f5f5; color: #333;">
+                    <th style="padding: 0.4rem; text-align: left; font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid #ff6b1a;">Description</th>
+                    <th style="padding: 0.4rem; text-align: center; font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid #ff6b1a;">Qty</th>
+                    <th style="padding: 0.4rem; text-align: right; font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid #ff6b1a;">Rate</th>
+                    <th style="padding: 0.4rem; text-align: right; font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid #ff6b1a;">Amount</th>
                 </tr>
             </thead>
             <tbody>
                 ${lineItems.map(item => `
-                    <tr style="border-bottom: 1px solid #404040;">
-                        <td style="padding: 0.4rem; color: #e5e7eb; font-size: 0.85rem;">${item.name}</td>
-                        <td style="padding: 0.4rem; text-align: center; color: #b0b0b0; font-size: 0.85rem;">${item.quantity.toLocaleString()}</td>
-                        <td style="padding: 0.4rem; text-align: right; color: #b0b0b0; font-size: 0.85rem;">$${item.rate.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                        <td style="padding: 0.4rem; text-align: right; color: #ffffff; font-weight: 600; font-size: 0.85rem;">$${(item.quantity * item.rate).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <tr style="border-bottom: 1px solid #e0e0e0;">
+                        <td style="padding: 0.4rem; color: #333; font-size: 0.85rem;">${item.name}</td>
+                        <td style="padding: 0.4rem; text-align: center; color: #666; font-size: 0.85rem;">${item.quantity.toLocaleString()}</td>
+                        <td style="padding: 0.4rem; text-align: right; color: #666; font-size: 0.85rem;">$${item.rate.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        <td style="padding: 0.4rem; text-align: right; color: #000; font-weight: 600; font-size: 0.85rem;">$${(item.quantity * item.rate).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                     </tr>
                 `).join('')}
             </tbody>
@@ -662,17 +662,11 @@ function printQuote() {
         
         ${notes ? `
         <!-- Notes Section -->
-        <div style="background: #2a2a2a; padding: 0.6rem; margin-top: 0.5rem; border-left: 3px solid #ff6b1a;">
+        <div style="background: #f5f5f5; padding: 0.6rem; margin-top: 0.5rem; border-left: 3px solid #ff6b1a; border-radius: 3px;">
             <h3 style="color: #ff6b1a; margin: 0 0 0.3rem 0; font-size: 0.85rem;">Notes:</h3>
-            <p style="margin: 0; color: #e5e7eb; font-size: 0.8rem; line-height: 1.4; white-space: pre-wrap;">${notes}</p>
+            <p style="margin: 0; color: #333; font-size: 0.8rem; line-height: 1.4; white-space: pre-wrap;">${notes}</p>
         </div>
         ` : ''}
-        
-        <!-- Footer -->
-        <div style="margin-top: 1rem; padding-top: 0.5rem; border-top: 1px solid #404040; text-align: center;">
-            <p style="margin: 0; color: #888; font-size: 0.75rem;">Thank you for your business!</p>
-            <p style="margin: 0.2rem 0; color: #888; font-size: 0.75rem;">Questions? Contact us at HelmickUnderground@gmail.com</p>
-        </div>
     </div>
 </body>
 </html>
@@ -686,18 +680,18 @@ function printQuote() {
     </div>
     
     <!-- Bottom Section with Totals and Footer -->
-    <div class="bottom-section" style="padding: 0.5rem; background: #1a1a1a;">
+    <div class="bottom-section" style="padding: 0.5rem; background: white;">
         <!-- Totals -->
-        <div style="background: #2a2a2a; padding: 0.8rem; border-radius: 8px; margin-bottom: 0.5rem;">
+        <div style="background: #f5f5f5; padding: 0.8rem; border-radius: 8px; margin-bottom: 0.5rem; border: 1px solid #e0e0e0;">
             <table style="width: 100%; border-collapse: collapse;">
-                <tr style="border-bottom: 1px solid #404040;">
-                    <td style="padding: 0.3rem; text-align: right; font-weight: 600; color: #b0b0b0; font-size: 0.85rem;">Subtotal:</td>
-                    <td style="padding: 0.3rem; text-align: right; font-weight: 600; color: #ffffff; font-size: 0.85rem; width: 120px;">$${subtotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <tr style="border-bottom: 1px solid #d0d0d0;">
+                    <td style="padding: 0.3rem; text-align: right; font-weight: 600; color: #666; font-size: 0.85rem;">Subtotal:</td>
+                    <td style="padding: 0.3rem; text-align: right; font-weight: 600; color: #000; font-size: 0.85rem; width: 120px;">$${subtotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                 </tr>
                 ${taxRate > 0 ? `
-                <tr style="border-bottom: 1px solid #404040;">
-                    <td style="padding: 0.3rem; text-align: right; color: #b0b0b0; font-size: 0.85rem;">Tax (${(taxRate * 100).toFixed(0)}%):</td>
-                    <td style="padding: 0.3rem; text-align: right; color: #ffffff; font-size: 0.85rem;">$${tax.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <tr style="border-bottom: 1px solid #d0d0d0;">
+                    <td style="padding: 0.3rem; text-align: right; color: #666; font-size: 0.85rem;">Tax (${(taxRate * 100).toFixed(0)}%):</td>
+                    <td style="padding: 0.3rem; text-align: right; color: #000; font-size: 0.85rem;">$${tax.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                 </tr>
                 ` : ''}
                 <tr style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%);">
@@ -708,9 +702,9 @@ function printQuote() {
         </div>
         
         <!-- Footer -->
-        <div style="padding-top: 0.5rem; border-top: 1px solid #404040; text-align: center;">
-            <p style="margin: 0; color: #888; font-size: 0.75rem;">Thank you for your business!</p>
-            <p style="margin: 0.2rem 0; color: #888; font-size: 0.75rem;">Questions? Contact us at HelmickUnderground@gmail.com</p>
+        <div style="padding-top: 0.5rem; border-top: 1px solid #d0d0d0; text-align: center;">
+            <p style="margin: 0; color: #666; font-size: 0.75rem;">Thank you for your business!</p>
+            <p style="margin: 0.2rem 0; color: #666; font-size: 0.75rem;">Questions? Contact us at HelmickUnderground@gmail.com</p>
         </div>
 ownload quote as PDF
 async function downloadQuotePDF() {
