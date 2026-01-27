@@ -321,11 +321,32 @@ function editInvoice(id) {
 }
 
 // Delete invoice
-async function deleteInvoice(id) {
-    if (!confirm('Are you sure you want to delete this invoice?')) return;
+// Delete invoice with confirmation modal
+let deleteInvoiceId = null;
+
+function deleteInvoice(id) {
+    deleteInvoiceId = id;
+    const modal = document.getElementById('deleteConfirmModal');
+    modal.style.display = 'flex';
+    
+    // Set up confirm button
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    confirmBtn.onclick = confirmDeleteInvoice;
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteConfirmModal');
+    modal.style.display = 'none';
+    deleteInvoiceId = null;
+}
+
+async function confirmDeleteInvoice() {
+    if (!deleteInvoiceId) return;
+    
+    closeDeleteModal();
     
     try {
-        const response = await fetch(`/api/invoices?action=delete&id=${id}`, {
+        const response = await fetch(`/api/invoices?action=delete&id=${deleteInvoiceId}`, {
             method: 'DELETE'
         });
         
