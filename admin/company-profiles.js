@@ -80,20 +80,20 @@ function openAddProfileModal() {
     document.getElementById('profileModal').style.display = 'block';
 }
 
-// Odocument.getElementById('contactPerson').value = profile.contactPerson || '';
-    document.getElementById('companyPhone').value = profile.phone || '';
-    document.getElementById('companyEmail').value = profile.email || '';
-    document.getElementById('companyAddress').value = profile.address || '';
-    document.getElementById('companyCity').value = profile.city || '';
-    document.getElementById('companyState').value = profile.state || '';
-    document.getElementById('companyZip').value = profile.zip || '';
-    pen modal to edit existing profile
+// Open modal to edit existing profile
 function editProfile(index) {
     currentEditingIndex = index;
     const profile = companyProfiles[index];
     
     document.getElementById('modalTitle').textContent = 'Edit Company Profile';
     document.getElementById('companyName').value = profile.name;
+    document.getElementById('contactPerson').value = profile.contactPerson || '';
+    document.getElementById('companyPhone').value = profile.phone || '';
+    document.getElementById('companyEmail').value = profile.email || '';
+    document.getElementById('companyAddress').value = profile.address || '';
+    document.getElementById('companyCity').value = profile.city || '';
+    document.getElementById('companyState').value = profile.state || '';
+    document.getElementById('companyZip').value = profile.zip || '';
     
     // Clear and populate line items
     const container = document.getElementById('lineItemsContainer');
