@@ -578,19 +578,24 @@ function printQuote() {
         @media print {
             body { margin: 0; padding: 0; font-size: 10pt; }
             .no-print { display: none; }
-            @page { margin: 0.5in; }
+            @page { margin: 0.5in; size: portrait; }
+            .page-content { min-height: calc(100vh - 180px); }
+            .totals-footer { position: relative; margin-top: auto; }
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; color: #e5e7eb; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; color: #e5e7eb; display: flex; flex-direction: column; min-height: 100vh; }
+        .page-content { flex: 1; }
+        .totals-footer { margin-top: auto; }
     </style>
 </head>
 <body>
+    <div class="page-content">
     <div style="padding: 0.5rem; background: #1a1a1a;">
         <!-- Header with logo in corner -->
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
             <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground Logo" style="width: 100px; height: auto;">
             <div style="text-align: right;">
-                <div style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); padding: 0.5rem 1.5rem; display: inline-block;">
-                    <h2 style="color: white; margin: 0; font-size: 1.3rem; font-weight: 700;">QUOTE</h2>
+                <div style="background: white; padding: 0.5rem 1.5rem; display: inline-block; border: 3px solid #ff6b1a; border-radius: 8px;">
+                    <h2 style="color: #ff6b1a; margin: 0; font-size: 1.3rem; font-weight: 700;">QUOTE</h2>
                 </div>
             </div>
         </div>
