@@ -538,6 +538,236 @@ function printQuote() {
     }, 250);
 }
 
+// Download quote as PDF
+async function downloadQuotePDF() {
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'pt',
+            format: 'letter'
+        });
+        
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 50;
+        
+        const subtotal = lineItems.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
+        const iowaWork = document.getElementById('iowaWorkCheckbox')?.checked || false;
+        const taxRate = iowaWork ? 0.07 : 0;
+        const tax = subtotal * taxRate;
+        const total = subtotal + tax;
+        
+        const customerName = document.getElementById('customerName')?.value || 'Customer';
+        const customerEmail = document.getElementById('customerEmail')?.value || '';
+        const customerPhone = document.getElementById('customerPhone')?.value || '';
+        
+        // White background
+        doc.setFillColor(255, 255, 255);
+        doc.rect(0, 0, pageWidth, pageHeight, 'F');
+        
+        let yPos = margin;
+        
+        // Logo
+        try {
+            const logoBase64 = await getLogoBase64();
+            if (logoBase64) {
+                doc.addImage(logoBase64, 'PNG', margin, yPos, 100, 50);
+            }
+        } catch (e) {
+            console.error('Logo failed to load:', e);
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Helmick Underground', margin, yPos + 20);
+        }
+        
+        // QUOTE header
+        doc.setFillColor(255, 107, 26);
+        doc.roundedRect(pageWidth - margin - 120, yPos, 120, 35, 3, 3, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('QUOTE', pageWidth - margin - 60, yPos + 23, { align: 'center' });
+        
+        yPos += 60;
+        
+        // From/For Section
+        doc.setFillColor(245, 245, 245);
+        doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 80, 3, 3, 'F');
+        doc.setFillColor(255, 107, 26);
+        doc.rect(margin, yPos + 78, pageWidth - 2 * margin, 2, 'F');
+        
+        // From
+        doc.setTextColor(255, 107, 26);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('From:', margin + 15, yPos + 20);
+        doc.setTextColor(0, 0, 0);
+        doc.text('Helmick Underground', margin + 15, yPos + 35);
+        doc.setTextColor(80, 80, 80);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.text('498 Elbow Creek Rd, Mount Vernon, IA 52314', margin + 15, yPos + 48);
+        doc.text('HelmickUnderground@gmail.com', margin + 15, yPos + 61);
+        
+        // Prepared For
+        const midPoint = pageWidth / 2 + 20;
+        doc.setTextColor(255, 107, 26);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Prepared For:', midPoint, yPos + 20);
+        doc.setTextColor(0, 0, 0);
+        doc.text(customerName, midPoint, yPos + 35);
+        doc.setTextColor(80, 80, 80);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        if (customerEmail) {
+            doc.text(customerEmail, midPoint, yPos + 48);
+        }
+        if (customerPhone) {
+            doc.text(customerPhone, midPoint, yPos + 61);
+        }
+        
+        yPos += 100;
+        
+        // Quote Details
+        doc.setFillColor(245, 245, 245);
+        doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 50, 3, 3, 'F');
+        doc.setFillColor(255, 107, 26);
+        doc.rect(margin, yPos, 3, 50, 'F');
+        
+        const detailWidth = (pageWidth - 2 * margin - 30) / 2;
+        doc.setTextColor(100, 100, 100);
+        doc.setFontSize(8);
+        doc.text('Quote Date:', margin + 15, yPos + 15);
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.text(new Date().toLocaleDateString(), margin + 15, yPos + 30);
+        
+        doc.setTextColor(100, 100, 100);
+        doc.setFontSize(8);
+        doc.text('Valid Until:', margin + detailWidth + 15, yPos + 15);
+        doc.setTextColor(255, 107, 26);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text(new Date(Date.now() + 30*24*60*60*1000).toLocaleDateString(), margin + detailWidth + 15, yPos + 30);
+        
+        yPos += 60;
+        
+        // Line Items Table
+        doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(1);
+        
+        // Table Header
+        doc.setFillColor(240, 240, 240);
+        doc.rect(margin, yPos, pageWidth - 2 * margin, 30, 'FD');
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Description', margin + 10, yPos + 18);
+        doc.text('Qty', pageWidth - margin - 220, yPos + 18, { align: 'center' });
+        doc.text('Rate', pageWidth - margin - 140, yPos + 18, { align: 'right' });
+        doc.text('Amount', pageWidth - margin - 10, yPos + 18, { align: 'right' });
+        
+        yPos += 30;
+        
+        // Table Rows
+        doc.setFont('helvetica', 'normal');
+        lineItems.forEach((item, index) => {
+            if (index % 2 === 0) {
+                doc.setFillColor(250, 250, 250);
+                doc.rect(margin, yPos, pageWidth - 2 * margin, 25, 'F');
+            }
+            
+            doc.setDrawColor(230, 230, 230);
+            doc.line(margin, yPos + 25, pageWidth - margin, yPos + 25);
+            
+            doc.setTextColor(40, 40, 40);
+            doc.setFontSize(9);
+            doc.text(item.name, margin + 10, yPos + 16);
+            doc.setTextColor(80, 80, 80);
+            doc.text(item.quantity.toString(), pageWidth - margin - 220, yPos + 16, { align: 'center' });
+            doc.text(`$${item.rate.toFixed(2)}`, pageWidth - margin - 140, yPos + 16, { align: 'right' });
+            doc.setTextColor(0, 0, 0);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`$${(item.quantity * item.rate).toFixed(2)}`, pageWidth - margin - 10, yPos + 16, { align: 'right' });
+            doc.setFont('helvetica', 'normal');
+            
+            yPos += 25;
+        });
+        
+        // Orange separator
+        doc.setDrawColor(255, 107, 26);
+        doc.setLineWidth(2);
+        doc.line(margin, yPos, pageWidth - margin, yPos);
+        yPos += 15;
+        
+        // Subtotal
+        doc.setTextColor(80, 80, 80);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Subtotal:', pageWidth - margin - 150, yPos, { align: 'right' });
+        doc.setTextColor(0, 0, 0);
+        doc.text(`$${subtotal.toFixed(2)}`, pageWidth - margin - 10, yPos, { align: 'right' });
+        yPos += 20;
+        
+        // Tax
+        if (taxRate > 0) {
+            doc.setTextColor(80, 80, 80);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Tax (${(taxRate * 100).toFixed(0)}%):`, pageWidth - margin - 150, yPos, { align: 'right' });
+            doc.setTextColor(0, 0, 0);
+            doc.text(`$${tax.toFixed(2)}`, pageWidth - margin - 10, yPos, { align: 'right' });
+            yPos += 20;
+        }
+        
+        // Total
+        doc.setFillColor(255, 107, 26);
+        doc.roundedRect(margin, yPos - 5, pageWidth - 2 * margin, 30, 3, 3, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Total:', pageWidth - margin - 150, yPos + 13, { align: 'right' });
+        doc.text(`$${total.toFixed(2)}`, pageWidth - margin - 10, yPos + 13, { align: 'right' });
+        
+        // Save
+        const filename = customerName ? `Quote-${customerName.replace(/[^a-z0-9]/gi, '_')}-${new Date().toISOString().split('T')[0]}.pdf` : `Quote-${new Date().toISOString().split('T')[0]}.pdf`;
+        doc.save(filename);
+        
+    } catch (error) {
+        console.error('Error downloading PDF:', error);
+        showNotification('Failed to generate PDF', 'error');
+    }
+}
+
+// Helper function to convert logo to base64
+async function getLogoBase64() {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function() {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                const dataURL = canvas.toDataURL('image/png');
+                resolve(dataURL);
+            } catch (e) {
+                console.error('Canvas conversion error:', e);
+                reject(e);
+            }
+        };
+        img.onerror = function(e) {
+            console.error('Image load error:', e);
+            reject(e);
+        };
+        img.src = '/logo.png';
+    });
+}
+
 async function sendQuoteEmail() {
     const customerEmail = document.getElementById('customerEmail').value.trim();
     
