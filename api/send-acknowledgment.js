@@ -30,117 +30,55 @@ module.exports = async function handler(req, res) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f4f4;
-        }
-        .email-container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #ffffff;
-        }
-        .header {
-            background: #ffffff;
-            padding: 40px 30px;
-            text-align: center;
-            border-bottom: 3px solid #ff6b1a;
-        }
-        .logo {
-            max-width: 250px;
-            height: auto;
-            margin-bottom: 15px;
-        }
-        .logo-text {
-            color: #ff6b1a;
-            font-size: 32px;
-            font-weight: 900;
-            margin: 0;
-        }
-        .content {
-            padding: 40px 30px;
-            color: #333333;
-            line-height: 1.8;
-        }
-        .greeting {
-            font-size: 24px;
-            font-weight: 700;
-            color: #ff6b1a;
-            margin: 0 0 20px 0;
-        }
-        .message {
-            font-size: 16px;
-            margin-bottom: 25px;
-        }
-        .emergency-note {
-            background-color: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin: 25px 0;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        .emergency-note strong {
-            color: #856404;
-        }
-        .footer {
-            background-color: #1a1a1a;
-            color: #999999;
-            padding: 30px;
-            text-align: center;
-            font-size: 14px;
-        }
-        .footer-text {
-            margin: 5px 0;
-        }
-        .footer-brand {
-            color: #ff6b1a;
-            font-weight: 700;
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
-    </style>
 </head>
-<body>
-    <div class="email-container">
-        <div class="header">
-            <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground Logo" class="logo">
-            <h1 class="logo-text">HELMICK UNDERGROUND</h1>
+<body style="margin: 0; padding: 0; font-family: 'Arial', sans-serif; background-color: #0a0a0a;">
+    <div style="max-width: 650px; margin: 0 auto; background-color: #1a1a1a; color: #e5e7eb;">
+        <!-- Header with Logo -->
+        <div style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); padding: 2.5rem 2rem; text-align: center; border-radius: 12px 12px 0 0;">
+            <div style="background: #000; display: inline-block; padding: 1.5rem 2rem; border-radius: 8px; margin-bottom: 1rem;">
+                <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground Logo" style="max-width: 250px; height: auto;">
+            </div>
+            <h1 style="color: white; margin: 1rem 0 0 0; font-size: 1.8rem; font-weight: 700;">QUOTE REQUEST RECEIVED</h1>
         </div>
         
-        <div class="content">
-            <p class="greeting">Hello ${name},</p>
+        <div style="padding: 2rem; background: #1a1a1a;">
+            <p style="font-size: 1.5rem; font-weight: 700; color: #ff6b1a; margin: 0 0 1.5rem 0;">Hello ${name},</p>
             
-            <p class="message">
+            <p style="font-size: 1rem; margin-bottom: 1.5rem; line-height: 1.8; color: #e5e7eb;">
                 Thank you for contacting Helmick Underground. We have received your request for ${servicesText} and appreciate your interest in our services.
             </p>
             
-            <p class="message">
+            <p style="font-size: 1rem; margin-bottom: 1.5rem; line-height: 1.8; color: #e5e7eb;">
                 Our team is currently reviewing your submission and will be in contact with you within the next 2-3 business days to discuss your project requirements and provide you with a detailed quote.
             </p>
             
-            <div class="emergency-note">
-                <strong>⚠️ Need Immediate Assistance?</strong><br>
-                If your situation requires urgent attention or you have an emergency, please don't hesitate to call us directly at <a href="tel:319-721-9925" style="color: #856404; font-weight: 700;">319-721-9925</a>. We're here to help!
+            <div style="background: #2a2a2a; border-left: 4px solid #ffc107; padding: 1.5rem; margin: 1.5rem 0; border-radius: 8px;">
+                <strong style="color: #ffc107; font-size: 1rem;">⚠️ Need Immediate Assistance?</strong><br>
+                <p style="margin: 0.5rem 0 0 0; color: #e5e7eb; line-height: 1.6;">
+                    If your situation requires urgent attention or you have an emergency, please don't hesitate to call us directly at <a href="tel:319-721-9925" style="color: #ff6b1a; font-weight: 700; text-decoration: none;">319-721-9925</a>. We're here to help!
+                </p>
             </div>
             
-            <p class="message">
+            <p style="font-size: 1rem; margin-bottom: 1.5rem; line-height: 1.8; color: #e5e7eb;">
                 We look forward to working with you and providing the quality underground utility services that Helmick Underground is known for.
             </p>
             
-            <p class="message" style="margin-top: 30px;">
+            <p style="font-size: 1rem; margin-top: 2rem; line-height: 1.8; color: #e5e7eb;">
                 Best regards,<br>
                 <strong style="color: #ff6b1a;">The Helmick Underground Team</strong>
             </p>
         </div>
         
-        <div class="footer">
-            <div class="footer-brand">HELMICK UNDERGROUND</div>
-            <p class="footer-text">Professional Underground Utility Services</p>
-            <p class="footer-text">Trenching • Directional Drilling • Excavating • Utility Locating</p>
-            <p class="footer-text" style="margin-top: 15px; font-size: 12px;">
+        <div style="background: linear-gradient(135deg, #333 0%, #1a1a1a 100%); color: white; padding: 2rem; text-align: center; border-radius: 0 0 12px 12px;">
+            <h3 style="margin: 0 0 1rem 0; color: #ff6b1a; font-size: 1.2rem;">Helmick Underground</h3>
+            <p style="margin: 0.5rem 0; color: #ccc; font-size: 0.95rem;">Professional Underground Utility Services</p>
+            <p style="margin: 0.5rem 0; color: #ccc; font-size: 0.9rem;">Trenching • Directional Drilling • Excavating • Utility Locating</p>
+            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #444;">
+                <p style="margin: 0.5rem 0; color: #fff;">📞 Tommy Helmick: (319) 721-9925</p>
+                <p style="margin: 0.5rem 0; color: #fff;">📧 HelmickUnderground@gmail.com</p>
+                <p style="margin: 0.5rem 0; color: #fff;">🌐 www.helmickunderground.com</p>
+            </div>
+            <p style="margin-top: 1.5rem; font-size: 0.75rem; color: #888;">
                 This is an automated acknowledgment email. Please do not reply to this message.
             </p>
         </div>

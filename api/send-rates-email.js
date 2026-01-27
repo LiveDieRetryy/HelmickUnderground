@@ -33,76 +33,85 @@ export default async function handler(req, res) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
-    <div style="max-width: 800px; margin: 0 auto; background: white; padding: 30px;">
-        <div style="text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid #ff6b1a;">
-            <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground LLC" style="max-width: 300px; margin-bottom: 20px;">
-            <div style="color: #666; font-size: 16px;">
-                <strong style="display: block; font-size: 20px; color: #333; margin-bottom: 8px;">Service Rates & Pricing</strong>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #0a0a0a;">
+    <div style="max-width: 800px; margin: 0 auto; background: #1a1a1a; border-radius: 12px;">
+        <!-- Header -->
+        <div style="text-align: center; padding: 2.5rem 2rem; background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); border-radius: 12px 12px 0 0;">
+            <div style="background: #000; display: inline-block; padding: 1.5rem 2rem; border-radius: 8px; margin-bottom: 1rem;">
+                <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground LLC" style="max-width: 300px;">
+            </div>
+            <div style="color: rgba(255,255,255,0.9); font-size: 1rem;">
+                <strong style="display: block; font-size: 1.5rem; color: white; margin-bottom: 0.5rem; font-weight: 700;">SERVICE RATES & PRICING</strong>
                 Mount Vernon, Iowa<br>
                 Effective: ${today}
             </div>
         </div>
 
-        <h2 style="color: #333; font-size: 24px; margin: 25px 0 15px 0; padding-bottom: 8px; border-bottom: 2px solid #ff6b1a; text-align: center;">Base Rates</h2>
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
-            <thead>
-                <tr>
-                    <th style="background: #ff6b1a; color: white; padding: 12px; text-align: left; font-weight: 700;">Service</th>
-                    <th style="background: #ff6b1a; color: white; padding: 12px; text-align: right; font-weight: 700;">Rate</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${ratesData.baseRates.map((item, index) => `
-                <tr style="background: ${index % 2 === 0 ? '#ffffff' : '#f9f9f9'};">
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.name}</td>
-                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">$${item.rate.toFixed(2)}</td>
-                </tr>
-                `).join('')}
-            </tbody>
-        </table>
+        <div style="padding: 2rem;">
+            <h2 style="color: #ffffff; font-size: 1.5rem; margin: 1.5rem 0 1rem 0; padding-bottom: 0.5rem; border-bottom: 2px solid #ff6b1a; text-align: center;">Base Rates</h2>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem; background: #2a2a2a; border-radius: 8px; overflow: hidden;">
+                <thead>
+                    <tr>
+                        <th style="background: #333; color: white; padding: 1rem; text-align: left; font-weight: 700;">Service</th>
+                        <th style="background: #333; color: white; padding: 1rem; text-align: right; font-weight: 700;">Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${ratesData.baseRates.map((item, index) => `
+                    <tr style="border-bottom: 1px solid #404040;">
+                        <td style="padding: 0.75rem 1rem; color: #e5e7eb;">${item.name}</td>
+                        <td style="padding: 0.75rem 1rem; text-align: right; color: #ffffff; font-weight: 600;">$${item.rate.toFixed(2)}</td>
+                    </tr>
+                    `).join('')}
+                </tbody>
+            </table>
 
-        <h2 style="color: #333; font-size: 24px; margin: 25px 0 15px 0; padding-bottom: 8px; border-bottom: 2px solid #ff6b1a; text-align: center;">Custom Work Per Hour</h2>
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
-            <thead>
-                <tr>
-                    <th style="background: #ff6b1a; color: white; padding: 12px; text-align: left; font-weight: 700;">Service</th>
-                    <th style="background: #ff6b1a; color: white; padding: 12px; text-align: right; font-weight: 700;">Rate</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${ratesData.customWork.map((item, index) => `
-                <tr style="background: ${index % 2 === 0 ? '#ffffff' : '#f9f9f9'};">
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.name}</td>
-                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">$${item.rate.toFixed(2)}</td>
-                </tr>
-                `).join('')}
-            </tbody>
-        </table>
+            <h2 style="color: #ffffff; font-size: 1.5rem; margin: 1.5rem 0 1rem 0; padding-bottom: 0.5rem; border-bottom: 2px solid #ff6b1a; text-align: center;">Custom Work Per Hour</h2>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem; background: #2a2a2a; border-radius: 8px; overflow: hidden;">
+                <thead>
+                    <tr>
+                        <th style="background: #333; color: white; padding: 1rem; text-align: left; font-weight: 700;">Service</th>
+                        <th style="background: #333; color: white; padding: 1rem; text-align: right; font-weight: 700;">Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${ratesData.customWork.map((item, index) => `
+                    <tr style="border-bottom: 1px solid #404040;">
+                        <td style="padding: 0.75rem 1rem; color: #e5e7eb;">${item.name}</td>
+                        <td style="padding: 0.75rem 1rem; text-align: right; color: #ffffff; font-weight: 600;">$${item.rate.toFixed(2)}</td>
+                    </tr>
+                    `).join('')}
+                </tbody>
+            </table>
 
-        <h2 style="color: #333; font-size: 24px; margin: 25px 0 15px 0; padding-bottom: 8px; border-bottom: 2px solid #ff6b1a; text-align: center;">Additional Items</h2>
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
-            <thead>
-                <tr>
-                    <th style="background: #ff6b1a; color: white; padding: 12px; text-align: left; font-weight: 700;">Service</th>
-                    <th style="background: #ff6b1a; color: white; padding: 12px; text-align: right; font-weight: 700;">Rate</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${ratesData.additionalItems.map((item, index) => `
-                <tr style="background: ${index % 2 === 0 ? '#ffffff' : '#f9f9f9'};">
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.name}</td>
-                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">$${item.rate.toFixed(2)}</td>
-                </tr>
-                `).join('')}
-            </tbody>
-        </table>
+            <h2 style="color: #ffffff; font-size: 1.5rem; margin: 1.5rem 0 1rem 0; padding-bottom: 0.5rem; border-bottom: 2px solid #ff6b1a; text-align: center;">Additional Items</h2>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem; background: #2a2a2a; border-radius: 8px; overflow: hidden;">
+                <thead>
+                    <tr>
+                        <th style="background: #333; color: white; padding: 1rem; text-align: left; font-weight: 700;">Service</th>
+                        <th style="background: #333; color: white; padding: 1rem; text-align: right; font-weight: 700;">Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${ratesData.additionalItems.map((item, index) => `
+                    <tr style="border-bottom: 1px solid #404040;">
+                        <td style="padding: 0.75rem 1rem; color: #e5e7eb;">${item.name}</td>
+                        <td style="padding: 0.75rem 1rem; text-align: right; color: #ffffff; font-weight: 600;">$${item.rate.toFixed(2)}</td>
+                    </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
 
-        <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd; text-align: center; color: #666; font-size: 15px;">
-            <p style="margin: 8px 0;"><strong>Contact Information</strong></p>
-            <p style="margin: 8px 0;">Tommy Helmick: 319-721-9925 | Travis Helmick: 319-551-4323</p>
-            <p style="margin: 8px 0;">Email: HelmickUnderground@gmail.com | www.helmickunderground.com</p>
-            <p style="margin-top: 15px; font-size: 14px;">Rates subject to change. Contact us for current pricing and free estimates.</p>
+        <!-- Footer -->
+        <div style="text-align: center; padding: 2rem; background: linear-gradient(135deg, #333 0%, #1a1a1a 100%); color: white; border-radius: 0 0 12px 12px;">
+            <h3 style="margin: 0 0 1rem 0; color: #ff6b1a; font-size: 1.2rem;">Helmick Underground</h3>
+            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #444;">
+                <p style="margin: 0.5rem 0; color: #fff;">📞 Tommy Helmick: (319) 721-9925 | Travis Helmick: (319) 551-4323</p>
+                <p style="margin: 0.5rem 0; color: #fff;">📧 HelmickUnderground@gmail.com</p>
+                <p style="margin: 0.5rem 0; color: #fff;">🌐 www.helmickunderground.com</p>
+            </div>
+            <p style="margin-top: 1.5rem; font-size: 0.85rem; color: #888;">Rates subject to change. Contact us for current pricing and free estimates.</p>
         </div>
     </div>
 </body>

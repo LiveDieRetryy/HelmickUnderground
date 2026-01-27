@@ -32,14 +32,14 @@ module.exports = async function handler(req, res) {
 
         // Build line items HTML
         const lineItemsHTML = quoteData.lineItems.map(item => `
-            <tr style="border-bottom: 1px solid #eee;">
+            <tr style="border-bottom: 1px solid #404040;">
                 <td style="padding: 1rem 0.75rem;">
-                    <strong style="color: #333;">${item.name}</strong>
-                    ${item.description ? `<br><span style="color: #666; font-size: 0.9rem;">${item.description}</span>` : ''}
+                    <strong style="color: #e5e7eb;">${item.name}</strong>
+                    ${item.description ? `<br><span style="color: #b0b0b0; font-size: 0.9rem;">${item.description}</span>` : ''}
                 </td>
-                <td style="padding: 1rem 0.75rem; text-align: center; color: #666;">${item.quantity}</td>
-                <td style="padding: 1rem 0.75rem; text-align: right; color: #666;">$${item.rate.toFixed(2)}</td>
-                <td style="padding: 1rem 0.75rem; text-align: right; color: #333; font-weight: 600;">$${(item.quantity * item.rate).toFixed(2)}</td>
+                <td style="padding: 1rem 0.75rem; text-align: center; color: #b0b0b0;">${item.quantity}</td>
+                <td style="padding: 1rem 0.75rem; text-align: right; color: #b0b0b0;">$${item.rate.toFixed(2)}</td>
+                <td style="padding: 1rem 0.75rem; text-align: right; color: #ffffff; font-weight: 600;">$${(item.quantity * item.rate).toFixed(2)}</td>
             </tr>
         `).join('');
 
@@ -50,27 +50,31 @@ module.exports = async function handler(req, res) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Arial', sans-serif; background-color: #f5f5f5;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 2rem 0;">
+<body style="margin: 0; padding: 0; font-family: 'Arial', sans-serif; background-color: #0a0a0a;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0a0a0a; padding: 2rem 0;">
         <tr>
             <td align="center">
-                <table width="600" cellpadding="0" cellspacing="0" style="background-color: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #1a1a1a; border-radius: 20px; overflow: hidden;">
                     <!-- Header -->
                     <tr>
-                        <td style="text-align: center; padding: 3rem 2rem 2rem 2rem;">
-                            <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground" style="max-width: 200px; margin-bottom: 1rem;">
-                            <h1 style="color: #ff6b1a; font-size: 2rem; margin: 0;">Project Quote</h1>
-                            <p style="color: #666; margin: 0.5rem 0 0 0;">Date: ${today}</p>
+                        <td style="text-align: center; padding: 0; background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); border-radius: 12px 12px 0 0;">
+                            <div style="padding: 2.5rem 2rem;">
+                                <div style="background: #000; display: inline-block; padding: 1.5rem 2rem; border-radius: 8px; margin-bottom: 1rem;">
+                                    <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground" style="max-width: 200px;">
+                                </div>
+                                <h1 style="color: white; font-size: 1.8rem; margin: 1rem 0 0 0; font-weight: 700;">PROJECT QUOTE</h1>
+                                <p style="color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0; font-size: 0.95rem;">Date: ${today}</p>
+                            </div>
                         </td>
                     </tr>
 
                     <!-- Greeting -->
                     <tr>
-                        <td style="padding: 0 2rem;">
-                            <p style="color: #333; font-size: 1.1rem; line-height: 1.6; margin: 0;">
+                        <td style="padding: 2rem; background: #1a1a1a;">
+                            <p style="color: #ffffff; font-size: 1.1rem; line-height: 1.6; margin: 0; font-weight: 600;">
                                 Dear ${customerName},
                             </p>
-                            <p style="color: #666; line-height: 1.6; margin: 1rem 0 2rem 0;">
+                            <p style="color: #b0b0b0; line-height: 1.6; margin: 1rem 0 2rem 0;">
                                 Thank you for considering Helmick Underground for your project. We're pleased to provide you with the following quote:
                             </p>
                         </td>
@@ -78,15 +82,15 @@ module.exports = async function handler(req, res) {
 
                     <!-- Quote Details -->
                     <tr>
-                        <td style="padding: 0 2rem 2rem 2rem;">
-                            <h2 style="color: #333; font-size: 1.3rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #ff6b1a;">Quote Details</h2>
-                            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                        <td style="padding: 0 2rem 2rem 2rem; background: #1a1a1a;">
+                            <h2 style="color: #ffffff; font-size: 1.3rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #ff6b1a;">Quote Details</h2>
+                            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; background: #2a2a2a; border-radius: 8px; overflow: hidden;">
                                 <thead>
-                                    <tr style="background: #f0f0f0;">
-                                        <th style="padding: 0.75rem; text-align: left; color: #333; border-bottom: 2px solid #ddd;">Item</th>
-                                        <th style="padding: 0.75rem; text-align: center; color: #333; border-bottom: 2px solid #ddd;">Qty</th>
-                                        <th style="padding: 0.75rem; text-align: right; color: #333; border-bottom: 2px solid #ddd;">Rate</th>
-                                        <th style="padding: 0.75rem; text-align: right; color: #333; border-bottom: 2px solid #ddd;">Total</th>
+                                    <tr style="background: #333;">
+                                        <th style="padding: 0.75rem; text-align: left; color: white; font-weight: 700;">Item</th>
+                                        <th style="padding: 0.75rem; text-align: center; color: white; font-weight: 700;">Qty</th>
+                                        <th style="padding: 0.75rem; text-align: right; color: white; font-weight: 700;">Rate</th>
+                                        <th style="padding: 0.75rem; text-align: right; color: white; font-weight: 700;">Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -94,18 +98,18 @@ module.exports = async function handler(req, res) {
                                 </tbody>
                                 <tfoot>
                                     <tr style="border-top: 2px solid #ff6b1a;">
-                                        <td colspan="3" style="padding: 1rem 0.75rem; text-align: right; font-weight: 600; color: #666;">Subtotal:</td>
-                                        <td style="padding: 1rem 0.75rem; text-align: right; color: #333; font-weight: 600;">$${subtotal.toFixed(2)}</td>
+                                        <td colspan="3" style="padding: 1rem 0.75rem; text-align: right; font-weight: 600; color: #b0b0b0;">Subtotal:</td>
+                                        <td style="padding: 1rem 0.75rem; text-align: right; color: #ffffff; font-weight: 600;">$${subtotal.toFixed(2)}</td>
                                     </tr>
                                     ${iowaWork && tax > 0 ? `
                                     <tr>
-                                        <td colspan="3" style="padding: 1rem 0.75rem; text-align: right; font-weight: 600; color: #666;">Tax (7% - Iowa):</td>
+                                        <td colspan="3" style="padding: 1rem 0.75rem; text-align: right; font-weight: 600; color: #b0b0b0;">Tax (7% - Iowa):</td>
                                         <td style="padding: 1rem 0.75rem; text-align: right; color: #ff6b1a; font-weight: 600;">$${tax.toFixed(2)}</td>
                                     </tr>
                                     ` : ''}
-                                    <tr style="background: #fff3e6; font-size: 1.3rem; font-weight: 700;">
-                                        <td colspan="3" style="padding: 1.25rem 0.75rem; text-align: right; color: #333; border-top: 3px solid #ff6b1a;">Total:</td>
-                                        <td style="padding: 1.25rem 0.75rem; text-align: right; color: #ff6b1a; border-top: 3px solid #ff6b1a;">$${total.toFixed(2)}</td>
+                                    <tr style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); font-size: 1.3rem; font-weight: 700;">
+                                        <td colspan="3" style="padding: 1.25rem 0.75rem; text-align: right; color: white;">Total:</td>
+                                        <td style="padding: 1.25rem 0.75rem; text-align: right; color: white;">$${total.toFixed(2)}</td>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -115,10 +119,10 @@ module.exports = async function handler(req, res) {
                     ${quoteData.notes ? `
                     <!-- Notes -->
                     <tr>
-                        <td style="padding: 0 2rem 2rem 2rem;">
-                            <div style="background: #f9f9f9; padding: 1.5rem; border-radius: 12px; border-left: 4px solid #ff6b1a;">
-                                <h3 style="color: #333; font-size: 1.1rem; margin: 0 0 0.75rem 0;">Additional Notes</h3>
-                                <div style="color: #666; white-space: pre-wrap; line-height: 1.6;">${quoteData.notes}</div>
+                        <td style="padding: 0 2rem 2rem 2rem; background: #1a1a1a;">
+                            <div style="background: #2a2a2a; padding: 1.5rem; border-radius: 12px; border-left: 4px solid #22c55e;">
+                                <h3 style="color: #ffffff; font-size: 1.1rem; margin: 0 0 0.75rem 0;">Additional Notes</h3>
+                                <div style="color: #e5e7eb; white-space: pre-wrap; line-height: 1.6;">${quoteData.notes}</div>
                             </div>
                         </td>
                     </tr>
@@ -126,11 +130,11 @@ module.exports = async function handler(req, res) {
 
                     <!-- Closing -->
                     <tr>
-                        <td style="padding: 0 2rem 2rem 2rem;">
-                            <p style="color: #666; line-height: 1.6; margin: 1rem 0;">
+                        <td style="padding: 0 2rem 2rem 2rem; background: #1a1a1a;">
+                            <p style="color: #e5e7eb; line-height: 1.6; margin: 1rem 0;">
                                 If you have any questions about this quote or would like to proceed with the project, please don't hesitate to contact us.
                             </p>
-                            <p style="color: #666; line-height: 1.6; margin: 1rem 0 0 0;">
+                            <p style="color: #e5e7eb; line-height: 1.6; margin: 1rem 0 0 0;">
                                 We look forward to working with you!
                             </p>
                         </td>
@@ -138,12 +142,14 @@ module.exports = async function handler(req, res) {
 
                     <!-- Footer -->
                     <tr>
-                        <td style="text-align: center; padding: 2rem; background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); border-top: 2px solid #ff6b1a;">
-                            <p style="color: #ffffff; margin: 0; font-size: 1rem; font-weight: 700;">Helmick Underground</p>
-                            <p style="color: rgba(255, 255, 255, 0.9); margin: 0.5rem 0; font-size: 0.9rem;">Quality Underground Utility Services</p>
-                            <p style="color: #ffffff; margin: 0.75rem 0 0 0; font-size: 0.9rem; font-weight: 600;">📞 Tommy Helmick: (319) 721-9925</p>
-                            <p style="color: #ffffff; margin: 0.25rem 0 0 0; font-size: 0.9rem;">📧 HelmickUnderground@gmail.com</p>
-                            <p style="color: #ffffff; margin: 0.25rem 0 0 0; font-size: 0.9rem;">🌐 www.helmickunderground.com</p>
+                        <td style="text-align: center; padding: 2rem; background: linear-gradient(135deg, #333 0%, #1a1a1a 100%); color: white; border-radius: 0 0 12px 12px;">
+                            <h3 style="margin: 0 0 1rem 0; color: #ff6b1a; font-size: 1.2rem;">Helmick Underground</h3>
+                            <p style="margin: 0.5rem 0; color: #ccc; font-size: 0.95rem;">Quality Underground Utility Services Since 1988</p>
+                            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #444;">
+                                <p style="margin: 0.5rem 0; color: #fff;">📞 Tommy Helmick: (319) 721-9925</p>
+                                <p style="margin: 0.5rem 0; color: #fff;">📧 HelmickUnderground@gmail.com</p>
+                                <p style="margin: 0.5rem 0; color: #fff;">🌐 www.helmickunderground.com</p>
+                            </div>
                         </td>
                     </tr>
                 </table>
