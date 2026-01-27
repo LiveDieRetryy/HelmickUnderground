@@ -623,6 +623,134 @@ async function downloadInvoicePDF(id) {
         const invoice = await response.json();
         const items = typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items;
         
+        // Create a temporary container for the invoice HTML
+        const container = document.createElement('div');
+        container.style.position = 'absolute';
+        container.style.left = '-9999px';
+        container.style.width = '800px';
+        
+        // Build compact invoice HTML
+        container.innerHTML = `
+    <div style="padding: 1rem; background: #1a1a1a; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #e5e7eb;">
+        <!-- Header with logo in corner -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+            <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground Logo" style="width: 100px; height: auto;">
+            <div style="text-align: right;">
+                <div style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); padding: 0.5rem 1.5rem; display: inline-block;">
+                    <h2 style="color: white; margin: 0; font-size: 1.3rem; font-weight: 700;">INVOICE</h2>
+                </div>
+            </div>
+        </div>
+        
+        <!-- From/Bill To Section -->
+        <div style="background: #2a2a2a; padding: 0.75rem; margin-bottom: 1rem; border-bottom: 2px solid #ff6b1a;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="width: 50%; vertical-align: top; padding-right: 1rem;">
+                        <h3 style="color: #ff6b1a; margin: 0 0 0.5rem 0; font-size: 0.9rem;">From:</h3>
+                        <p style="margin: 0; line-height: 1.4; color: #ffffff; font-weight: 600; font-size: 0.9rem;">Helmick Underground</p>
+                        <p style="margin: 0.2rem 0; line-height: 1.4; color: #b0b0b0; font-size: 0.85rem;">498 Elbow Creek Rd, Mount Vernon, IA 52314</p>
+                        <p style="margin: 0.2rem 0; line-height: 1.4; color: #b0b0b0; font-size: 0.85rem;">HelmickUnderground@gmail.com</p>
+                    </td>
+                    <td style="width: 50%; vertical-align: top; padding-left: 1rem;">
+                        <h3 style="color: #ff6b1a; margin: 0 0 0.5rem 0; font-size: 0.9rem;">Bill To:</h3>
+                        <p style="margin: 0; line-height: 1.4; color: #ffffff; font-weight: 600; font-size: 0.9rem;">${invoice.customer_name}</p>
+                        ${invoice.customer_address ? `<p style="margin: 0.2rem 0; line-height: 1.4; color: #b0b0b0; font-size: 0.85rem;">${invoice.customer_address}</p>` : ''}
+                        <p style="margin: 0.2rem 0; line-height: 1.4; color: #b0b0b0; font-size: 0.85rem;">${invoice.customer_email}</p>
+                        ${invoice.customer_phone ? `<p style="margin: 0.2rem 0; line-height: 1.4; color: #b0b0b0; font-size: 0.85rem;">${invoice.customer_phone}</p>` : ''}
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- Invoice Details -->
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem; background: #2a2a2a; border-left: 3px solid #ff6b1a;">
+            <tr>
+                <td style="width: 33.33%; padding: 0.75rem; vertical-align: top;">
+                    <p style="margin: 0; color: #888; font-size: 0.75rem; font-weight: 600;">Invoice Number:</p>
+                    <p style="margin: 0.2rem 0 0 0; color: #ffffff; font-weight: 700; font-size: 1rem;">${invoice.invoice_number}</p>
+                </td>
+                <td style="width: 33.33%; padding: 0.75rem; vertical-align: top;">
+                    <p style="margin: 0; color: #888; font-size: 0.75rem; font-weight: 600;">Invoice Date:</p>
+                    <p style="margin: 0.2rem 0 0 0; color: #ffffff; font-weight: 700; font-size: 1rem;">${new Date(invoice.invoice_date).toLocaleDateString()}</p>
+                </td>
+                <td style="width: 33.33%; padding: 0.75rem; vertical-align: top;">
+                    <p style="margin: 0; color: #888; font-size: 0.75rem; font-weight: 600;">Due Date:</p>
+                    <p style="margin: 0.2rem 0 0 0; color: #ff6b1a; font-weight: 700; font-size: 1rem;">${new Date(invoice.due_date).toLocaleDateString()}</p>
+                </td>
+            </tr>
+        </table>
+        
+        <!-- Line Items -->
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem; background: #2a2a2a;">
+            <thead>
+                <tr style="background: #333; color: white;">
+                    <th style="padding: 0.6rem; text-align: left; font-weight: 700; font-size: 0.9rem;">Description</th>
+                    <th style="padding: 0.6rem; text-align: center; font-weight: 700; font-size: 0.9rem;">Qty</th>
+                    <th style="padding: 0.6rem; text-align: right; font-weight: 700; font-size: 0.9rem;">Rate</th>
+                    <th style="padding: 0.6rem; text-align: right; font-weight: 700; font-size: 0.9rem;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${items.map(item => `
+                    <tr style="border-bottom: 1px solid #404040;">
+                        <td style="padding: 0.6rem; color: #e5e7eb; font-size: 0.9rem;">${item.description}</td>
+                        <td style="padding: 0.6rem; text-align: center; color: #b0b0b0; font-size: 0.9rem;">${item.quantity}</td>
+                        <td style="padding: 0.6rem; text-align: right; color: #b0b0b0; font-size: 0.9rem;">$${item.rate.toFixed(2)}</td>
+                        <td style="padding: 0.6rem; text-align: right; color: #ffffff; font-weight: 600; font-size: 0.9rem;">$${(item.quantity * item.rate).toFixed(2)}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+            <tfoot>
+                <tr style="border-top: 2px solid #ff6b1a;">
+                    <td colspan="3" style="padding: 0.6rem; text-align: right; font-weight: 600; color: #b0b0b0; font-size: 0.9rem;">Subtotal:</td>
+                    <td style="padding: 0.6rem; text-align: right; font-weight: 600; color: #ffffff; font-size: 0.9rem;">$${parseFloat(invoice.subtotal || 0).toFixed(2)}</td>
+                </tr>
+                ${invoice.tax_rate > 0 ? `
+                <tr>
+                    <td colspan="3" style="padding: 0.4rem 0.6rem; text-align: right; color: #b0b0b0; font-size: 0.9rem;">Tax (${invoice.tax_rate}%):</td>
+                    <td style="padding: 0.4rem 0.6rem; text-align: right; color: #ffffff; font-size: 0.9rem;">$${parseFloat(invoice.tax || 0).toFixed(2)}</td>
+                </tr>
+                ` : ''}
+                <tr style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); color: white;">
+                    <td colspan="3" style="padding: 0.75rem 0.6rem; text-align: right; font-weight: 700; font-size: 1.2rem;">Total Due:</td>
+                    <td style="padding: 0.75rem 0.6rem; text-align: right; font-weight: 700; font-size: 1.2rem;">$${parseFloat(invoice.total).toFixed(2)}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>`;
+        
+        document.body.appendChild(container);
+        
+        // Generate PDF using html2pdf
+        const opt = {
+            margin: 0.5,
+            filename: `Invoice-${invoice.invoice_number}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, backgroundColor: '#1a1a1a' },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+        
+        await html2pdf().set(opt).from(container).save();
+        
+        // Remove temporary container
+        document.body.removeChild(container);
+        
+    } catch (error) {
+        console.error('Error downloading PDF:', error);
+        showNotification('Failed to generate PDF', 'error');
+    }
+}
+
+// Print invoice
+async function printInvoice(id) {
+    try {
+        const response = await fetch(`/api/invoices?action=get&id=${id}`);
+        if (!response.ok) throw new Error('Failed to load invoice');
+        
+        const invoice = await response.json();
+        const items = typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items;
+        
         // Build compact print HTML (single-page optimized)
         const printHTML = `
 <!DOCTYPE html>
@@ -749,15 +877,9 @@ async function downloadInvoicePDF(id) {
         printWindow.document.close();
         
     } catch (error) {
-        console.error('Error downloading PDF:', error);
-        showNotification('Failed to generate PDF', 'error');
+        console.error('Error printing invoice:', error);
+        showNotification('Failed to print invoice', 'error');
     }
-}
-
-// Print invoice
-async function printInvoice(id) {
-    // Just call downloadInvoicePDF since they do the same thing
-    await downloadInvoicePDF(id);
 }
 
 // Initialize
