@@ -699,6 +699,13 @@ async function downloadQuotePDF() {
             yPos += 25;
         });
         
+        // Calculate footer position (bottom of page)
+        const footerHeight = 120; // Height needed for totals and footer
+        const footerStartY = pageHeight - margin - footerHeight;
+        
+        // Use whichever is lower: current position or fixed footer position
+        yPos = Math.max(yPos, footerStartY);
+        
         // Orange separator
         doc.setDrawColor(255, 107, 26);
         doc.setLineWidth(2);
