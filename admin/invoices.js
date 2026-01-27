@@ -305,58 +305,58 @@ async function openSendInvoiceModal(id) {
         
         // Create styled HTML email preview
         const emailHTML = `
-            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; background: white; color: #333;">
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; background: #1a1a1a; color: #e5e7eb;">
                 <!-- Header with Logo -->
                 <div style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); padding: 2.5rem 2rem; text-align: center; border-radius: 12px 12px 0 0;">
-                    <div style="background: white; display: inline-block; padding: 1.5rem 2rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <div style="background: #000; display: inline-block; padding: 1.5rem 2rem; border-radius: 8px; margin-bottom: 1rem;">
                         <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground Logo" style="max-width: 250px; height: auto;">
                     </div>
                     <h2 style="color: white; margin: 1rem 0 0 0; font-size: 1.8rem; font-weight: 700;">INVOICE</h2>
                 </div>
 
                 <!-- Company Billing Address -->
-                <div style="background: #f8f9fa; padding: 1.5rem 2rem; border-bottom: 3px solid #ff6b1a;">
+                <div style="background: #2a2a2a; padding: 1.5rem 2rem; border-bottom: 3px solid #ff6b1a;">
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr>
                             <td style="width: 50%; vertical-align: top; padding-right: 1rem;">
                                 <h3 style="color: #ff6b1a; margin: 0 0 0.75rem 0; font-size: 1rem;">From:</h3>
-                                <p style="margin: 0; line-height: 1.6; color: #333; font-weight: 600;">Helmick Underground</p>
-                                <p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">498 Elbow Creek Rd</p>
-                                <p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">Mount Vernon, IA 52314</p>
-                                <p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">HelmickUnderground@gmail.com</p>
+                                <p style="margin: 0; line-height: 1.6; color: #ffffff; font-weight: 600;">Helmick Underground</p>
+                                <p style="margin: 0.25rem 0; line-height: 1.6; color: #b0b0b0;">498 Elbow Creek Rd</p>
+                                <p style="margin: 0.25rem 0; line-height: 1.6; color: #b0b0b0;">Mount Vernon, IA 52314</p>
+                                <p style="margin: 0.25rem 0; line-height: 1.6; color: #b0b0b0;">HelmickUnderground@gmail.com</p>
                             </td>
                             <td style="width: 50%; vertical-align: top; padding-left: 1rem;">
                                 <h3 style="color: #ff6b1a; margin: 0 0 0.75rem 0; font-size: 1rem;">Bill To:</h3>
-                                <p style="margin: 0; line-height: 1.6; color: #333; font-weight: 600;">${invoice.customer_name}</p>
-                                ${invoice.customer_address ? `<p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">${invoice.customer_address}</p>` : ''}
-                                <p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">${invoice.customer_email}</p>
-                                ${invoice.customer_phone ? `<p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">${invoice.customer_phone}</p>` : ''}
+                                <p style="margin: 0; line-height: 1.6; color: #ffffff; font-weight: 600;">${invoice.customer_name}</p>
+                                ${invoice.customer_address ? `<p style="margin: 0.25rem 0; line-height: 1.6; color: #b0b0b0;">${invoice.customer_address}</p>` : ''}
+                                <p style="margin: 0.25rem 0; line-height: 1.6; color: #b0b0b0;">${invoice.customer_email}</p>
+                                ${invoice.customer_phone ? `<p style="margin: 0.25rem 0; line-height: 1.6; color: #b0b0b0;">${invoice.customer_phone}</p>` : ''}
                             </td>
                         </tr>
                     </table>
                 </div>
 
                 <!-- Invoice Details -->
-                <div style="padding: 2rem;">
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #ff6b1a;">
+                <div style="padding: 2rem; background: #1a1a1a;">
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem; background: #2a2a2a; border-radius: 8px; border-left: 4px solid #ff6b1a;">
                         <tr>
                             <td style="width: 33.33%; padding: 1.25rem; vertical-align: top;">
-                                <p style="margin: 0; color: #666; font-size: 0.85rem; font-weight: 600;">Invoice Number:</p>
-                                <p style="margin: 0.25rem 0 0 0; color: #333; font-weight: 700; font-size: 1.1rem;">${invoice.invoice_number}</p>
+                                <p style="margin: 0; color: #888; font-size: 0.85rem; font-weight: 600;">Invoice Number:</p>
+                                <p style="margin: 0.25rem 0 0 0; color: #ffffff; font-weight: 700; font-size: 1.1rem;">${invoice.invoice_number}</p>
                             </td>
                             <td style="width: 33.33%; padding: 1.25rem; vertical-align: top;">
-                                <p style="margin: 0; color: #666; font-size: 0.85rem; font-weight: 600;">Invoice Date:</p>
-                                <p style="margin: 0.25rem 0 0 0; color: #333; font-weight: 700;">${new Date(invoice.invoice_date).toLocaleDateString()}</p>
+                                <p style="margin: 0; color: #888; font-size: 0.85rem; font-weight: 600;">Invoice Date:</p>
+                                <p style="margin: 0.25rem 0 0 0; color: #ffffff; font-weight: 700;">${new Date(invoice.invoice_date).toLocaleDateString()}</p>
                             </td>
                             <td style="width: 33.33%; padding: 1.25rem; vertical-align: top;">
-                                <p style="margin: 0; color: #666; font-size: 0.85rem; font-weight: 600;">Due Date:</p>
+                                <p style="margin: 0; color: #888; font-size: 0.85rem; font-weight: 600;">Due Date:</p>
                                 <p style="margin: 0.25rem 0 0 0; color: #ff6b1a; font-weight: 700;">${new Date(invoice.due_date).toLocaleDateString()}</p>
                             </td>
                         </tr>
                     </table>
 
                     <!-- Line Items Table -->
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem;">
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem; background: #2a2a2a; border-radius: 8px; overflow: hidden;">
                         <thead>
                             <tr style="background: #333; color: white;">
                                 <th style="padding: 1rem; text-align: left; font-weight: 700;">Description</th>
@@ -367,23 +367,23 @@ async function openSendInvoiceModal(id) {
                         </thead>
                         <tbody>
                             ${items.map(item => `
-                                <tr style="border-bottom: 1px solid #e5e7eb;">
-                                    <td style="padding: 1rem; color: #333;">${item.description}</td>
-                                    <td style="padding: 1rem; text-align: center; color: #666;">${item.quantity}</td>
-                                    <td style="padding: 1rem; text-align: right; color: #666;">$${item.rate.toFixed(2)}</td>
-                                    <td style="padding: 1rem; text-align: right; color: #333; font-weight: 600;">$${(item.quantity * item.rate).toFixed(2)}</td>
+                                <tr style="border-bottom: 1px solid #404040;">
+                                    <td style="padding: 1rem; color: #e5e7eb;">${item.description}</td>
+                                    <td style="padding: 1rem; text-align: center; color: #b0b0b0;">${item.quantity}</td>
+                                    <td style="padding: 1rem; text-align: right; color: #b0b0b0;">$${item.rate.toFixed(2)}</td>
+                                    <td style="padding: 1rem; text-align: right; color: #ffffff; font-weight: 600;">$${(item.quantity * item.rate).toFixed(2)}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
                         <tfoot>
-                            <tr style="border-top: 2px solid #333;">
-                                <td colspan="3" style="padding: 1rem; text-align: right; font-weight: 600; color: #666;">Subtotal:</td>
-                                <td style="padding: 1rem; text-align: right; font-weight: 600; color: #333;">$${parseFloat(invoice.subtotal || 0).toFixed(2)}</td>
+                            <tr style="border-top: 2px solid #ff6b1a;">
+                                <td colspan="3" style="padding: 1rem; text-align: right; font-weight: 600; color: #b0b0b0;">Subtotal:</td>
+                                <td style="padding: 1rem; text-align: right; font-weight: 600; color: #ffffff;">$${parseFloat(invoice.subtotal || 0).toFixed(2)}</td>
                             </tr>
                             ${invoice.tax_rate > 0 ? `
                             <tr>
-                                <td colspan="3" style="padding: 0.5rem 1rem; text-align: right; color: #666;">Tax (${invoice.tax_rate}%):</td>
-                                <td style="padding: 0.5rem 1rem; text-align: right; color: #333;">$${parseFloat(invoice.tax || 0).toFixed(2)}</td>
+                                <td colspan="3" style="padding: 0.5rem 1rem; text-align: right; color: #b0b0b0;">Tax (${invoice.tax_rate}%):</td>
+                                <td style="padding: 0.5rem 1rem; text-align: right; color: #ffffff;">$${parseFloat(invoice.tax || 0).toFixed(2)}</td>
                             </tr>
                             ` : ''}
                             <tr style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); color: white;">
@@ -394,8 +394,8 @@ async function openSendInvoiceModal(id) {
                     </table>
 
                     <!-- Thank You Message -->
-                    <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #22c55e; margin-bottom: 2rem;">
-                        <p style="margin: 0; color: #333; line-height: 1.6;">Thank you for choosing <strong style="color: #ff6b1a;">Helmick Underground</strong> for your underground utility needs! We appreciate your business and look forward to serving you again.</p>
+                    <div style="background: #2a2a2a; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #22c55e; margin-bottom: 2rem;">
+                        <p style="margin: 0; color: #e5e7eb; line-height: 1.6;">Thank you for choosing <strong style="color: #ff6b1a;">Helmick Underground</strong> for your underground utility needs! We appreciate your business and look forward to serving you again.</p>
                     </div>
                 </div>
 
