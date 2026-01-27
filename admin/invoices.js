@@ -629,9 +629,9 @@ async function downloadInvoicePDF(id) {
         container.style.top = '0';
         container.style.left = '0';
         container.style.width = '800px';
-        container.style.zIndex = '-9999';
-        container.style.opacity = '0';
-        container.style.pointerEvents = 'none';
+        container.style.zIndex = '99999';
+        container.style.background = 'white';
+        container.style.visibility = 'hidden'; // Hidden but still rendered
         
         // Build compact invoice HTML
         container.innerHTML = `
@@ -730,17 +730,20 @@ async function downloadInvoicePDF(id) {
         
         document.body.appendChild(container);
         
-        // Wait for images to load
+        // Wait for images to load and DOM to fully render
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        
         const img = container.querySelector('img');
-        await new Promise((resolve) => {
-            if (img.complete) {
-                resolve();
-            } else {
+        if (img && !img.complete) {
+            await new Promise((resolve) => {
                 img.onload = resolve;
-                img.onerror = resolve; // Continue even if image fails
-                setTimeout(resolve, 2000); // Fallback timeout
-            }
-        });
+                img.onerror = resolve;
+                setTimeout(resolve, 3000);
+            });
+        }
+        
+        // Make visible just for rendering
+        container.style.visibility = 'visible';
         
         // Generate PDF using html2pdf
         const opt = {
@@ -751,7 +754,8 @@ async function downloadInvoicePDF(id) {
                 scale: 2, 
                 backgroundColor: '#1a1a1a',
                 useCORS: true,
-                logging: false
+                logging: true,
+                allowTaint: true
             },
             jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
         };
