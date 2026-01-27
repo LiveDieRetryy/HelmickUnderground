@@ -635,16 +635,16 @@ async function downloadInvoicePDF(id) {
         const pageHeight = doc.internal.pageSize.getHeight();
         const margin = 50;
         
-        // Background
-        doc.setFillColor(26, 26, 26);
+        // White background (printer-friendly)
+        doc.setFillColor(255, 255, 255);
         doc.rect(0, 0, pageWidth, pageHeight, 'F');
         
         let yPos = margin;
         
-        // Logo (top left)
+        // Logo (top left) - convert to base64 to avoid CORS issues
         try {
-            const logoImg = await loadImage('https://helmickunderground.com/logo.png');
-            doc.addImage(logoImg, 'PNG', margin, yPos, 80, 40);
+            const logoBase64 = await getLogoBase64();
+            doc.addImage(logoBase64, 'PNG', margin, yPos, 80, 40);
         } catch (e) {
             console.warn('Logo failed to load:', e);
         }
@@ -660,7 +660,7 @@ async function downloadInvoicePDF(id) {
         yPos += 60;
         
         // From/Bill To Section
-        doc.setFillColor(42, 42, 42);
+        doc.setFillColor(245, 245, 245);
         doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 80, 3, 3, 'F');
         
         // Orange bottom border
@@ -673,11 +673,11 @@ async function downloadInvoicePDF(id) {
         doc.setFont('helvetica', 'bold');
         doc.text('From:', margin + 15, yPos + 20);
         
-        doc.setTextColor(255, 255, 255);
+        doc.setTextColor(0, 0, 0);
         doc.setFont('helvetica', 'bold');
         doc.text('Helmick Underground', margin + 15, yPos + 35);
         
-        doc.setTextColor(176, 176, 176);
+        doc.setTextColor(80, 80, 80);
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
         doc.text('498 Elbow Creek Rd, Mount Vernon, IA 52314', margin + 15, yPos + 48);
@@ -690,11 +690,11 @@ async function downloadInvoicePDF(id) {
         doc.setFont('helvetica', 'bold');
         doc.text('Bill To:', midPoint, yPos + 20);
         
-        doc.setTextColor(255, 255, 255);
+        doc.setTextColor(0, 0, 0);
         doc.setFont('helvetica', 'bold');
         doc.text(invoice.customer_name, midPoint, yPos + 35);
         
-        doc.setTextColor(176, 176, 176);
+        doc.setTextColor(80, 80, 80);
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
         let billToY = yPos + 48;
@@ -710,7 +710,7 @@ async function downloadInvoicePDF(id) {
         yPos += 95;
         
         // Invoice Details Box
-        doc.setFillColor(42, 42, 42);
+        doc.setFillColor(245, 245, 245);
         doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 45, 3, 3, 'F');
         
         // Orange left border
@@ -720,24 +720,24 @@ async function downloadInvoicePDF(id) {
         const detailWidth = (pageWidth - 2 * margin) / 3;
         
         // Invoice Number
-        doc.setTextColor(136, 136, 136);
+        doc.setTextColor(100, 100, 100);
         doc.setFontSize(8);
         doc.setFont('helvetica', 'bold');
         doc.text('Invoice Number:', margin + 15, yPos + 15);
-        doc.setTextColor(255, 255, 255);
+        doc.setTextColor(0, 0, 0);
         doc.setFontSize(10);
         doc.text(invoice.invoice_number, margin + 15, yPos + 30);
         
         // Invoice Date
-        doc.setTextColor(136, 136, 136);
+        doc.setTextColor(100, 100, 100);
         doc.setFontSize(8);
         doc.text('Invoice Date:', margin + detailWidth + 15, yPos + 15);
-        doc.setTextColor(255, 255, 255);
+        doc.setTextColor(0, 0, 0);
         doc.setFontSize(10);
         doc.text(new Date(invoice.invoice_date).toLocaleDateString(), margin + detailWidth + 15, yPos + 30);
         
         // Due Date
-        doc.setTextColor(136, 136, 136);
+        doc.setTextColor(100, 100, 100);
         doc.setFontSize(8);
         doc.text('Due Date:', margin + detailWidth * 2 + 15, yPos + 15);
         doc.setTextColor(255, 107, 26);
@@ -748,14 +748,14 @@ async function downloadInvoicePDF(id) {
         yPos += 60;
         
         // Line Items Table
-        doc.setFillColor(42, 42, 42);
-        const tableStartY = yPos;
+        doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(1);
         
         // Table Header
-        doc.setFillColor(51, 51, 51);
-        doc.rect(margin, yPos, pageWidth - 2 * margin, 30, 'F');
+        doc.setFillColor(240, 240, 240);
+        doc.rect(margin, yPos, pageWidth - 2 * margin, 30, 'FD');
         
-        doc.setTextColor(255, 255, 255);
+        doc.setTextColor(0, 0, 0);
         doc.setFontSize(9);
         doc.setFont('helvetica', 'bold');
         doc.text('Description', margin + 10, yPos + 18);
@@ -769,19 +769,23 @@ async function downloadInvoicePDF(id) {
         doc.setFont('helvetica', 'normal');
         items.forEach((item, index) => {
             if (index % 2 === 0) {
-                doc.setFillColor(42, 42, 42);
+                doc.setFillColor(250, 250, 250);
                 doc.rect(margin, yPos, pageWidth - 2 * margin, 25, 'F');
             }
             
-            doc.setTextColor(229, 231, 235);
+            // Draw row border
+            doc.setDrawColor(230, 230, 230);
+            doc.line(margin, yPos + 25, pageWidth - margin, yPos + 25);
+            
+            doc.setTextColor(40, 40, 40);
             doc.setFontSize(9);
             doc.text(item.description, margin + 10, yPos + 16);
             
-            doc.setTextColor(176, 176, 176);
+            doc.setTextColor(80, 80, 80);
             doc.text(item.quantity.toString(), pageWidth - margin - 220, yPos + 16, { align: 'center' });
             doc.text(`$${item.rate.toFixed(2)}`, pageWidth - margin - 140, yPos + 16, { align: 'right' });
             
-            doc.setTextColor(255, 255, 255);
+            doc.setTextColor(0, 0, 0);
             doc.setFont('helvetica', 'bold');
             doc.text(`$${(item.quantity * item.rate).toFixed(2)}`, pageWidth - margin - 10, yPos + 16, { align: 'right' });
             doc.setFont('helvetica', 'normal');
@@ -797,21 +801,21 @@ async function downloadInvoicePDF(id) {
         yPos += 15;
         
         // Subtotal
-        doc.setTextColor(176, 176, 176);
+        doc.setTextColor(80, 80, 80);
         doc.setFontSize(9);
         doc.setFont('helvetica', 'bold');
         doc.text('Subtotal:', pageWidth - margin - 150, yPos, { align: 'right' });
-        doc.setTextColor(255, 255, 255);
+        doc.setTextColor(0, 0, 0);
         doc.text(`$${parseFloat(invoice.subtotal || 0).toFixed(2)}`, pageWidth - margin - 10, yPos, { align: 'right' });
         
         yPos += 20;
         
         // Tax (if applicable)
         if (invoice.tax_rate > 0) {
-            doc.setTextColor(176, 176, 176);
+            doc.setTextColor(80, 80, 80);
             doc.setFont('helvetica', 'normal');
             doc.text(`Tax (${invoice.tax_rate}%):`, pageWidth - margin - 150, yPos, { align: 'right' });
-            doc.setTextColor(255, 255, 255);
+            doc.setTextColor(0, 0, 0);
             doc.text(`$${parseFloat(invoice.tax || 0).toFixed(2)}`, pageWidth - margin - 10, yPos, { align: 'right' });
             yPos += 20;
         }
@@ -835,14 +839,26 @@ async function downloadInvoicePDF(id) {
     }
 }
 
-// Helper function to load images
-function loadImage(url) {
+// Helper function to convert logo to base64
+async function getLogoBase64() {
     return new Promise((resolve, reject) => {
         const img = new Image();
-        img.crossOrigin = 'Anonymous';
-        img.onload = () => resolve(img);
+        img.crossOrigin = 'anonymous';
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            try {
+                const dataURL = canvas.toDataURL('image/png');
+                resolve(dataURL);
+            } catch (e) {
+                reject(e);
+            }
+        };
         img.onerror = reject;
-        img.src = url;
+        img.src = 'https://helmickunderground.com/logo.png';
     });
 }
 
