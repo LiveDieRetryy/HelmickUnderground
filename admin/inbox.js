@@ -221,6 +221,7 @@ async function viewSubmission(id) {
                 <option value="contacted" ${sub.status === 'contacted' ? 'selected' : ''}>📞 Contacted</option>
                 <option value="scheduled" ${sub.status === 'scheduled' ? 'selected' : ''}>📅 Scheduled</option>
                 <option value="quoted" ${sub.status === 'quoted' ? 'selected' : ''}>💰 Quoted</option>
+                <option value="accepted" ${sub.status === 'accepted' ? 'selected' : ''}>✔️ Accepted</option>
                 <option value="completed" ${sub.status === 'completed' ? 'selected' : ''}>✅ Completed</option>
                 <option value="declined" ${sub.status === 'declined' ? 'selected' : ''}>❌ Declined</option>
             </select>
@@ -352,6 +353,11 @@ async function viewSubmission(id) {
             <button class="btn-send-ack" onclick="window.location.href='/admin/quote-builder.html?id=${sub.id}'">
                 <span>📝</span>
                 <span>Build Quote</span>
+            </button>
+        ` : sub.status === 'quoted' ? `
+            <button class="btn-send-ack" id="scheduleBtn-${sub.id}" onclick="openScheduleProjectModal(${sub.id})">
+                <span>📅</span>
+                <span>Schedule Project</span>
             </button>
         ` : `
             <button class="btn-send-ack" id="sendAckBtn-${sub.id}" onclick="sendAcknowledgmentEmail(${sub.id})">
@@ -729,6 +735,92 @@ async function saveSchedule(id) {
     } catch (error) {
         console.error('Error scheduling meeting:', error);
         alert('Failed to schedule meeting: ' + error.message);
+    }
+}
+
+// Open schedule project modal
+function openScheduleProjectModal(id) {
+    const submission = allSubmissions.find(s => s.id == id);
+    if (!submission) return;
+    
+    const modal = document.createElement('div');
+    modal.id = 'scheduleModal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+    `;
+    
+    const today = new Date().toISOString().split('T')[0];
+    
+    modal.innerHTML = `
+        <div style="background: var(--card-dark); border: 2px solid rgba(255, 107, 26, 0.3); border-radius: 20px; padding: 2.5rem; max-width: 500px; width: 90%;">
+            <h2 style="color: var(--primary-color); margin: 0 0 1.5rem 0;">📅 Schedule Project</h2>
+            <p style="color: var(--gray); margin-bottom: 1.5rem;">Schedule the start date for ${submission.name}'s project</p>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; color: var(--gray); font-weight: 600; margin-bottom: 0.5rem;">Project Start Date & Time</label>
+                <input type="datetime-local" id="projectStartDate" min="${today}T00:00" style="width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 107, 26, 0.3); color: var(--white); padding: 0.75rem; border-radius: 8px; font-size: 1rem;" required>
+            </div>
+            
+            <div style="display: flex; gap: 1rem;">
+                <button onclick="scheduleProject(${id})" class="btn btn-primary" style="flex: 1;">
+                    ✔️ Confirm Schedule
+                </button>
+                <button onclick="closeScheduleModal()" class="btn btn-secondary" style="flex: 1;">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+// Close schedule modal
+function closeScheduleModal() {
+    const modal = document.getElementById('scheduleModal');
+    if (modal) modal.remove();
+}
+
+// Schedule project and update status to Accepted
+async function scheduleProject(id) {
+    const dateInput = document.getElementById('projectStartDate');
+    const scheduledDate = dateInput.value;
+    
+    if (!scheduledDate) {
+        alert('Please select a date and time');
+        return;
+    }
+    
+    try {
+        // Update submission with scheduled date and status
+        const response = await fetch(`/api/contact-submissions?action=updateStatus&id=${id}&status=accepted&scheduled_date=${encodeURIComponent(scheduledDate)}`);
+        if (!response.ok) throw new Error('Failed to schedule project');
+        
+        // Update local data
+        const sub = allSubmissions.find(s => s.id == id);
+        if (sub) {
+            sub.status = 'accepted';
+            sub.scheduled_date = scheduledDate;
+        }
+        
+        closeScheduleModal();
+        closeModal();
+        loadData();
+        
+        alert('Project scheduled successfully and marked as Accepted!');
+    } catch (error) {
+        console.error('Error scheduling project:', error);
+        alert('Failed to schedule project: ' + error.message);
     }
 }
 
