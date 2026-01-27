@@ -552,6 +552,44 @@ function closePreview() {
     document.getElementById('previewModal').style.display = 'none';
 }
 
+// Print quote
+function printQuote() {
+    const content = document.getElementById('quotePreviewContent').innerHTML;
+    const printWindow = window.open('', '', 'width=800,height=600');
+    
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Quote - Helmick Underground</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    padding: 2rem;
+                    max-width: 800px;
+                    margin: 0 auto;
+                    color: #333;
+                }
+                @media print {
+                    body { padding: 0; }
+                }
+            </style>
+        </head>
+        <body>
+            ${content}
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 250);
+}
+
 // Save and send quote
 async function saveAndSendQuote() {
     const button = event.target;

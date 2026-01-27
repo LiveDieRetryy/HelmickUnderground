@@ -109,6 +109,23 @@ module.exports = async function handler(req, res) {
 
         const data = await response.json();
 
+        // Log to email history
+        try {
+            await fetch(`${req.headers.origin || 'https://helmickunderground.com'}/api/email-history`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'acknowledgment',
+                    email: email,
+                    name: name,
+                    subject: 'Contact Request Received - Helmick Underground'
+                })
+            });
+        } catch (logError) {
+            console.error('Failed to log email history:', logError);
+            // Don't fail the request if logging fails
+        }
+
         return res.status(200).json({ 
             success: true, 
             messageId: data.id,

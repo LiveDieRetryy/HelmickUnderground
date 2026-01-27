@@ -387,6 +387,11 @@ async function viewSubmission(id) {
                 <span>📄</span>
                 <span>Build Invoice</span>
             </button>
+        ` : sub.status === 'invoiced' ? `
+            <button class="btn-send-ack" onclick="markAsPaid(${sub.id}, ${sub.invoice_id})">
+                <span>💰</span>
+                <span>Mark as Paid</span>
+            </button>
         ` : `
             <button class="btn-send-ack" id="sendAckBtn-${sub.id}" onclick="sendAcknowledgmentEmail(${sub.id})">
                 <span>📧</span>
@@ -957,6 +962,43 @@ async function buildInvoiceFromQuote(id) {
     } catch (error) {
         console.error('Error building invoice:', error);
         showNotification('❌ Failed to create invoice: ' + error.message, 'error');
+    }
+}
+
+// Mark submission and invoice as paid
+async function markAsPaid(submissionId, invoiceId) {
+    if (!invoiceId) {
+        showNotification('No invoice linked to this submission', 'error');
+        return;
+    }
+    
+    try {
+        // Update submission status to complete
+        const subResponse = await fetch('/api/contact-submissions', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: submissionId, status: 'complete' })
+        });
+        
+        if (!subResponse.ok) throw new Error('Failed to update submission status');
+        
+        // Update invoice status to paid
+        const invoiceResponse = await fetch(`/api/invoices?action=update&id=${invoiceId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'paid' })
+        });
+        
+        if (!invoiceResponse.ok) throw new Error('Failed to update invoice status');
+        
+        showNotification('✅ Marked as paid successfully!', 'success');
+        
+        // Refresh data and close modal
+        await loadData();
+        closeModal();
+    } catch (error) {
+        console.error('Error marking as paid:', error);
+        showNotification('Failed to mark as paid: ' + error.message, 'error');
     }
 }
 

@@ -656,9 +656,9 @@
                 </a>
                 
                 <div style="padding: 0.5rem 1.5rem 0.15rem; color: rgba(255, 107, 26, 0.7); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Settings</div>
-                <a href="/admin/rate-recipients.html" class="sidebar-nav-item">
+                <a href="/admin/email-history.html" class="sidebar-nav-item">
                     <span class="sidebar-nav-item-icon">📧</span>
-                    <span class="sidebar-nav-item-text">Email Recipients</span>
+                    <span class="sidebar-nav-item-text">Email History</span>
                 </a>
                 
                 <a href="../" class="sidebar-nav-item" style="margin-top: 0.75rem; border-top: 2px solid rgba(255, 107, 26, 0.2); padding-top: 0.75rem;">
@@ -687,20 +687,20 @@
 
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <h3>Total Visits</h3>
-                        <div class="stat-value" id="totalVisits">-</div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Today's Visits</h3>
-                        <div class="stat-value" id="todayVisits">-</div>
-                    </div>
-                    <div class="stat-card">
                         <h3>Unread Requests</h3>
                         <div class="stat-value" id="unreadQuotes">-</div>
                     </div>
                     <div class="stat-card">
-                        <h3>Gallery Items</h3>
-                        <div class="stat-value" id="galleryCount">-</div>
+                        <h3>Pending Quotes</h3>
+                        <div class="stat-value" id="pendingQuotes">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Overdue Invoices</h3>
+                        <div class="stat-value" id="overdueInvoices">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Emails Sent Today</h3>
+                        <div class="stat-value" id="emailsToday">-</div>
                     </div>
                 </div>
 
@@ -799,33 +799,59 @@
         // Load dashboard statistics
         async function loadDashboardStats() {
             try {
-                // Load gallery count
-                const galleryResponse = await fetch('/api/gallery');
-                if (galleryResponse.ok) {
-                    const galleryData = await galleryResponse.json();
-                    const count = galleryData.items ? galleryData.items.length : 0;
-                    document.getElementById('galleryCount').textContent = count;
-                }
-
-                // Load analytics stats
-                const analyticsResponse = await fetch('/api/analytics?action=stats');
-                if (analyticsResponse.ok) {
-                    const stats = await analyticsResponse.json();
-                    document.getElementById('totalVisits').textContent = stats.total || 0;
-                    document.getElementById('todayVisits').textContent = stats.today || 0;
-                }
-
                 // Load quote requests stats
                 const quotesResponse = await fetch('/api/contact-submissions?action=stats');
                 if (quotesResponse.ok) {
                     const quoteStats = await quotesResponse.json();
                     document.getElementById('unreadQuotes').textContent = quoteStats.unread || 0;
+                    
+                    // Count pending quotes (sent status)
+                    const allSubmissionsResponse = await fetch('/api/contact-submissions?action=all');
+                    if (allSubmissionsResponse.ok) {
+                        const allSubmissions = await allSubmissionsResponse.json();
+                        const pendingCount = allSubmissions.filter(s => s.status === 'sent').length;
+                        document.getElementById('pendingQuotes').textContent = pendingCount;
+                    }
                 }
+
+                // Load invoices stats
+                const invoicesResponse = await fetch('/api/invoices?action=all');
+                if (invoicesResponse.ok) {
+                    const invoiceData = await invoicesResponse.json();
+                    const invoices = invoiceData.invoices || [];
+                    
+                    // Count overdue invoices
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const overdueCount = invoices.filter(inv => {
+                        if (inv.status === 'paid') return false;
+                        const dueDate = new Date(inv.due_date);
+                        dueDate.setHours(0, 0, 0, 0);
+                        return dueDate < today;
+                    }).length;
+                    document.getElementById('overdueInvoices').textContent = overdueCount;
+                }
+
+                // Load email history stats
+                const emailResponse = await fetch('/api/email-history?action=all');
+                if (emailResponse.ok) {
+                    const emails = await emailResponse.json();
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const todayEmails = emails.filter(e => {
+                        const emailDate = new Date(e.sent_at);
+                        emailDate.setHours(0, 0, 0, 0);
+                        return emailDate.getTime() === today.getTime();
+                    }).length;
+                    document.getElementById('emailsToday').textContent = todayEmails;
+                }
+
             } catch (error) {
                 console.error('Error loading stats:', error);
-                document.getElementById('totalVisits').textContent = '0';
-                document.getElementById('todayVisits').textContent = '0';
                 document.getElementById('unreadQuotes').textContent = '0';
+                document.getElementById('pendingQuotes').textContent = '0';
+                document.getElementById('overdueInvoices').textContent = '0';
+                document.getElementById('emailsToday').textContent = '0';
             }
         }
 

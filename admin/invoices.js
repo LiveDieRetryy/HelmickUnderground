@@ -161,6 +161,30 @@ async function updateInvoiceStatus(id, status) {
         
         if (!response.ok) throw new Error('Failed to update status');
         
+        // If status changed to paid, update linked submission to complete
+        if (status === 'paid') {
+            try {
+                // Find submission with this invoice_id
+                const subResponse = await fetch('/api/contact-submissions?action=all');
+                if (subResponse.ok) {
+                    const submissions = await subResponse.json();
+                    const linkedSub = submissions.find(s => s.invoice_id == id);
+                    
+                    if (linkedSub) {
+                        // Update submission status to complete
+                        await fetch('/api/contact-submissions', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id: linkedSub.id, status: 'complete' })
+                        });
+                    }
+                }
+            } catch (syncError) {
+                console.error('Failed to sync submission status:', syncError);
+                // Don't fail the whole operation if sync fails
+            }
+        }
+        
         // Reload invoices to update stats
         await loadInvoices();
     } catch (error) {

@@ -209,6 +209,21 @@ export default async function handler(req, res) {
             // Don't fail the whole request if logging fails
         }
 
+        // Log to email history
+        try {
+            await fetch(`${req.headers.origin || 'https://helmickunderground.com'}/api/email-history`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'rates',
+                    email: recipientEmail,
+                    subject: 'Service Rates & Pricing - Helmick Underground'
+                })
+            });
+        } catch (historyError) {
+            console.error('Failed to log email history:', historyError);
+        }
+
         return res.status(200).json({ 
             success: true, 
             message: 'Email sent successfully!',

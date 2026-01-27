@@ -172,6 +172,23 @@ module.exports = async function handler(req, res) {
             return res.status(400).json({ error: error.message || 'Failed to send email', details: error });
         }
 
+        // Log to email history
+        try {
+            await fetch(`${req.headers.origin || 'https://helmickunderground.com'}/api/email-history`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'quote',
+                    email: to,
+                    name: customerName,
+                    subject: `Project Quote from Helmick Underground - ${today}`,
+                    metadata: { subtotal, tax, total, itemCount: quoteData.lineItems?.length }
+                })
+            });
+        } catch (logError) {
+            console.error('Failed to log email history:', logError);
+        }
+
         console.log('Email sent successfully:', data);
         res.status(200).json({ success: true, messageId: data.id });
 
