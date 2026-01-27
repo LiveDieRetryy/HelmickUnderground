@@ -625,22 +625,30 @@ async function downloadInvoicePDF(id) {
         
         // Create a temporary container for the invoice HTML
         const container = document.createElement('div');
-        container.style.position = 'absolute';
-        container.style.left = '-9999px';
+        container.style.position = 'fixed';
+        container.style.top = '0';
+        container.style.left = '0';
         container.style.width = '800px';
+        container.style.zIndex = '-9999';
+        container.style.opacity = '0';
+        container.style.pointerEvents = 'none';
         
         // Build compact invoice HTML
         container.innerHTML = `
     <div style="padding: 1rem; background: #1a1a1a; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #e5e7eb;">
         <!-- Header with logo in corner -->
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-            <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground Logo" style="width: 100px; height: auto;">
-            <div style="text-align: right;">
-                <div style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); padding: 0.5rem 1.5rem; display: inline-block;">
-                    <h2 style="color: white; margin: 0; font-size: 1.3rem; font-weight: 700;">INVOICE</h2>
-                </div>
-            </div>
-        </div>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem;">
+            <tr>
+                <td style="width: 150px; vertical-align: top;">
+                    <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground Logo" style="width: 100px; height: auto;" crossorigin="anonymous">
+                </td>
+                <td style="text-align: right; vertical-align: top;">
+                    <div style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); padding: 0.5rem 1.5rem; display: inline-block;">
+                        <h2 style="color: white; margin: 0; font-size: 1.3rem; font-weight: 700;">INVOICE</h2>
+                    </div>
+                </td>
+            </tr>
+        </table>
         
         <!-- From/Bill To Section -->
         <div style="background: #2a2a2a; padding: 0.75rem; margin-bottom: 1rem; border-bottom: 2px solid #ff6b1a;">
@@ -722,12 +730,29 @@ async function downloadInvoicePDF(id) {
         
         document.body.appendChild(container);
         
+        // Wait for images to load
+        const img = container.querySelector('img');
+        await new Promise((resolve) => {
+            if (img.complete) {
+                resolve();
+            } else {
+                img.onload = resolve;
+                img.onerror = resolve; // Continue even if image fails
+                setTimeout(resolve, 2000); // Fallback timeout
+            }
+        });
+        
         // Generate PDF using html2pdf
         const opt = {
             margin: 0.5,
             filename: `Invoice-${invoice.invoice_number}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, backgroundColor: '#1a1a1a' },
+            html2canvas: { 
+                scale: 2, 
+                backgroundColor: '#1a1a1a',
+                useCORS: true,
+                logging: false
+            },
             jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
         };
         
