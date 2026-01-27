@@ -302,31 +302,112 @@ async function openSendInvoiceModal(id) {
         const items = typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items;
         
         const emailSubject = `Invoice ${invoice.invoice_number} from Helmick Underground`;
-        const emailBody = `Dear ${invoice.customer_name},
+        
+        // Create styled HTML email preview
+        const emailHTML = `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; background: white; color: #333;">
+                <!-- Header with Logo -->
+                <div style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); padding: 2.5rem 2rem; text-align: center; border-radius: 12px 12px 0 0;">
+                    <div style="background: white; display: inline-block; padding: 0.75rem 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <h1 style="margin: 0; color: #ff6b1a; font-size: 1.5rem; font-weight: 900;">HELMICK UNDERGROUND</h1>
+                        <p style="margin: 0.25rem 0 0 0; color: #666; font-size: 0.85rem; font-weight: 600;">SINCE 1988</p>
+                    </div>
+                    <h2 style="color: white; margin: 1rem 0 0 0; font-size: 1.8rem; font-weight: 700;">INVOICE</h2>
+                </div>
 
-Thank you for choosing Helmick Underground for your underground utility needs!
+                <!-- Company Billing Address -->
+                <div style="background: #f8f9fa; padding: 1.5rem 2rem; border-bottom: 3px solid #ff6b1a;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                        <div>
+                            <h3 style="color: #ff6b1a; margin: 0 0 0.75rem 0; font-size: 1rem;">From:</h3>
+                            <p style="margin: 0; line-height: 1.6; color: #333; font-weight: 600;">Helmick Underground</p>
+                            <p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">Tommy Helmick</p>
+                            <p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">1234 Main Street</p>
+                            <p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">Cedar Rapids, IA 52404</p>
+                        </div>
+                        <div>
+                            <h3 style="color: #ff6b1a; margin: 0 0 0.75rem 0; font-size: 1rem;">Bill To:</h3>
+                            <p style="margin: 0; line-height: 1.6; color: #333; font-weight: 600;">${invoice.customer_name}</p>
+                            ${invoice.customer_address ? `<p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">${invoice.customer_address}</p>` : ''}
+                            <p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">${invoice.customer_email}</p>
+                            ${invoice.customer_phone ? `<p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">${invoice.customer_phone}</p>` : ''}
+                        </div>
+                    </div>
+                </div>
 
-Please find your invoice details below:
+                <!-- Invoice Details -->
+                <div style="padding: 2rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 2rem; background: #f8f9fa; padding: 1.25rem; border-radius: 8px; border-left: 4px solid #ff6b1a;">
+                        <div>
+                            <p style="margin: 0; color: #666; font-size: 0.85rem; font-weight: 600;">Invoice Number:</p>
+                            <p style="margin: 0.25rem 0 0 0; color: #333; font-weight: 700; font-size: 1.1rem;">${invoice.invoice_number}</p>
+                        </div>
+                        <div>
+                            <p style="margin: 0; color: #666; font-size: 0.85rem; font-weight: 600;">Invoice Date:</p>
+                            <p style="margin: 0.25rem 0 0 0; color: #333; font-weight: 700;">${new Date(invoice.invoice_date).toLocaleDateString()}</p>
+                        </div>
+                        <div>
+                            <p style="margin: 0; color: #666; font-size: 0.85rem; font-weight: 600;">Due Date:</p>
+                            <p style="margin: 0.25rem 0 0 0; color: #ff6b1a; font-weight: 700;">${new Date(invoice.due_date).toLocaleDateString()}</p>
+                        </div>
+                    </div>
 
-Invoice Number: ${invoice.invoice_number}
-Invoice Date: ${new Date(invoice.invoice_date).toLocaleDateString()}
-Due Date: ${new Date(invoice.due_date).toLocaleDateString()}
-Total Amount Due: $${parseFloat(invoice.total).toFixed(2)}
+                    <!-- Line Items Table -->
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem;">
+                        <thead>
+                            <tr style="background: #333; color: white;">
+                                <th style="padding: 1rem; text-align: left; font-weight: 700;">Description</th>
+                                <th style="padding: 1rem; text-align: center; font-weight: 700;">Qty</th>
+                                <th style="padding: 1rem; text-align: right; font-weight: 700;">Rate</th>
+                                <th style="padding: 1rem; text-align: right; font-weight: 700;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${items.map(item => `
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 1rem; color: #333;">${item.description}</td>
+                                    <td style="padding: 1rem; text-align: center; color: #666;">${item.quantity}</td>
+                                    <td style="padding: 1rem; text-align: right; color: #666;">$${item.rate.toFixed(2)}</td>
+                                    <td style="padding: 1rem; text-align: right; color: #333; font-weight: 600;">$${(item.quantity * item.rate).toFixed(2)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                        <tfoot>
+                            <tr style="border-top: 2px solid #333;">
+                                <td colspan="3" style="padding: 1rem; text-align: right; font-weight: 600; color: #666;">Subtotal:</td>
+                                <td style="padding: 1rem; text-align: right; font-weight: 600; color: #333;">$${parseFloat(invoice.subtotal || 0).toFixed(2)}</td>
+                            </tr>
+                            ${invoice.tax_rate > 0 ? `
+                            <tr>
+                                <td colspan="3" style="padding: 0.5rem 1rem; text-align: right; color: #666;">Tax (${invoice.tax_rate}%):</td>
+                                <td style="padding: 0.5rem 1rem; text-align: right; color: #333;">$${parseFloat(invoice.tax || 0).toFixed(2)}</td>
+                            </tr>
+                            ` : ''}
+                            <tr style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); color: white;">
+                                <td colspan="3" style="padding: 1.25rem 1rem; text-align: right; font-weight: 700; font-size: 1.3rem;">Total Due:</td>
+                                <td style="padding: 1.25rem 1rem; text-align: right; font-weight: 700; font-size: 1.3rem;">$${parseFloat(invoice.total).toFixed(2)}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
 
-${items.map(item => `• ${item.description} - Qty: ${item.quantity} @ $${item.rate.toFixed(2)} = $${(item.quantity * item.rate).toFixed(2)}`).join('\n')}
+                    <!-- Thank You Message -->
+                    <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #22c55e; margin-bottom: 2rem;">
+                        <p style="margin: 0; color: #333; line-height: 1.6;">Thank you for choosing <strong style="color: #ff6b1a;">Helmick Underground</strong> for your underground utility needs! We appreciate your business and look forward to serving you again.</p>
+                    </div>
+                </div>
 
-Subtotal: $${parseFloat(invoice.subtotal || 0).toFixed(2)}
-${invoice.tax_rate > 0 ? `Tax (${invoice.tax_rate}%): $${parseFloat(invoice.tax || 0).toFixed(2)}` : ''}
-Total: $${parseFloat(invoice.total).toFixed(2)}
-
-We appreciate your business and look forward to serving you again!
-
-Best regards,
-Tommy Helmick
-Helmick Underground
-Phone: (319) 721-9925
-Email: HelmickUnderground@gmail.com
-Website: www.helmickunderground.com`;
+                <!-- Footer -->
+                <div style="background: linear-gradient(135deg, #333 0%, #1a1a1a 100%); color: white; padding: 2rem; text-align: center; border-radius: 0 0 12px 12px;">
+                    <h3 style="margin: 0 0 1rem 0; color: #ff6b1a; font-size: 1.2rem;">Helmick Underground</h3>
+                    <p style="margin: 0.5rem 0; color: #ccc; font-size: 0.95rem;">Quality Underground Utility Services Since 1988</p>
+                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #444;">
+                        <p style="margin: 0.5rem 0; color: #fff;">📞 Tommy Helmick: (319) 721-9925</p>
+                        <p style="margin: 0.5rem 0; color: #fff;">📧 HelmickUnderground@gmail.com</p>
+                        <p style="margin: 0.5rem 0; color: #fff;">🌐 www.helmickunderground.com</p>
+                    </div>
+                </div>
+            </div>
+        `;
 
         const modalHTML = `
             <div id="sendInvoiceModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 2rem;">
@@ -350,8 +431,10 @@ Website: www.helmickunderground.com`;
                         </div>
                         
                         <div style="margin-bottom: 1.5rem;">
-                            <label style="display: block; color: var(--gray); font-weight: 600; margin-bottom: 0.5rem;">Message:</label>
-                            <textarea id="invoiceEmailBody" rows="15" style="width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 107, 26, 0.3); color: var(--white); padding: 0.75rem; border-radius: 8px; font-size: 1rem; font-family: monospace; resize: vertical;">${emailBody}</textarea>
+                            <label style="display: block; color: var(--gray); font-weight: 600; margin-bottom: 0.5rem;">Email Preview:</label>
+                            <div id="invoiceEmailPreview" style="width: 100%; background: white; border: 2px solid rgba(255, 107, 26, 0.3); border-radius: 12px; max-height: 500px; overflow-y: auto;">
+                                ${emailHTML}
+                            </div>
                         </div>
                     </div>
                     
@@ -388,7 +471,6 @@ function closeSendInvoiceModal() {
 async function sendInvoiceEmail(id) {
     const to = document.getElementById('invoiceEmailTo').value;
     const subject = document.getElementById('invoiceEmailSubject').value;
-    const body = document.getElementById('invoiceEmailBody').value;
     
     if (!to) {
         alert('Please enter recipient email address');
