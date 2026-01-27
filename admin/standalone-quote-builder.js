@@ -422,17 +422,21 @@ function printQuote() {
             body { margin: 0; padding: 0; font-size: 10pt; }
             .no-print { display: none; }
             @page { margin: 0.5in; size: portrait; }
-            .page-content { min-height: calc(100vh - 180px); }
-            .totals-footer { position: relative; margin-top: auto; }
+            html, body { height: 100%; }
+            .page-wrapper { min-height: 100%; display: flex; flex-direction: column; }
+            .main-content { flex: 1 0 auto; }
+            .bottom-section { flex-shrink: 0; margin-top: auto; }
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; color: #e5e7eb; display: flex; flex-direction: column; min-height: 100vh; }
-        .page-content { flex: 1; }
-        .totals-footer { margin-top: auto; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; color: #e5e7eb; }
+        html, body { height: 100%; margin: 0; }
+        .page-wrapper { min-height: 100%; display: flex; flex-direction: column; }
+        .main-content { flex: 1 0 auto; }
+        .bottom-section { flex-shrink: 0; margin-top: auto; }
     </style>
 </head>
 <body>
-    <div class="page-content">
-    <div style="padding: 0.5rem; background: #1a1a1a;">
+    <div class="page-wrapper">
+    <div class="main-content" style="padding: 0.5rem; background: #1a1a1a;">
         <!-- Header with logo in corner -->
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
             <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground Logo" style="width: 100px; height: auto;">
@@ -497,22 +501,6 @@ function printQuote() {
                     </tr>
                 `).join('')}
             </tbody>
-            <tfoot>
-                <tr style="border-top: 2px solid #ff6b1a;">
-                    <td colspan="3" style="padding: 0.5rem; text-align: right; font-weight: 600; color: #b0b0b0; font-size: 0.85rem;">Subtotal:</td>
-                    <td style="padding: 0.5rem; text-align: right; font-weight: 600; color: #ffffff; font-size: 0.85rem;">$${subtotal.toFixed(2)}</td>
-                </tr>
-                ${taxRate > 0 ? `
-                <tr>
-                    <td colspan="3" style="padding: 0.3rem 0.5rem; text-align: right; color: #b0b0b0; font-size: 0.85rem;">Tax (${(taxRate * 100).toFixed(0)}%):</td>
-                    <td style="padding: 0.3rem 0.5rem; text-align: right; color: #ffffff; font-size: 0.85rem;">$${tax.toFixed(2)}</td>
-                </tr>
-                ` : ''}
-                <tr style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); color: white;">
-                    <td colspan="3" style="padding: 0.6rem 0.5rem; text-align: right; font-weight: 700; font-size: 1.1rem;">Total:</td>
-                    <td style="padding: 0.6rem 0.5rem; text-align: right; font-weight: 700; font-size: 1.1rem;">$${total.toFixed(2)}</td>
-                </tr>
-            </tfoot>
         </table>
         
         ${notes ? `
@@ -522,12 +510,36 @@ function printQuote() {
             <p style="margin: 0; color: #e5e7eb; font-size: 0.8rem; line-height: 1.4; white-space: pre-wrap;">${notes}</p>
         </div>
         ` : ''}
+    </div>
+    
+    <!-- Bottom Section with Totals and Footer -->
+    <div class="bottom-section" style="padding: 0.5rem; background: #1a1a1a;">
+        <!-- Totals -->
+        <div style="background: #2a2a2a; padding: 0.8rem; border-radius: 8px; margin-bottom: 0.5rem;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr style="border-bottom: 1px solid #404040;">
+                    <td style="padding: 0.3rem; text-align: right; font-weight: 600; color: #b0b0b0; font-size: 0.85rem;">Subtotal:</td>
+                    <td style="padding: 0.3rem; text-align: right; font-weight: 600; color: #ffffff; font-size: 0.85rem; width: 120px;">$${subtotal.toFixed(2)}</td>
+                </tr>
+                ${taxRate > 0 ? `
+                <tr style="border-bottom: 1px solid #404040;">
+                    <td style="padding: 0.3rem; text-align: right; color: #b0b0b0; font-size: 0.85rem;">Tax (${(taxRate * 100).toFixed(0)}%):</td>
+                    <td style="padding: 0.3rem; text-align: right; color: #ffffff; font-size: 0.85rem;">$${tax.toFixed(2)}</td>
+                </tr>
+                ` : ''}
+                <tr style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%);">
+                    <td style="padding: 0.6rem; text-align: right; font-weight: 700; color: white; font-size: 1.1rem;">Total:</td>
+                    <td style="padding: 0.6rem; text-align: right; font-weight: 700; color: white; font-size: 1.1rem;">$${total.toFixed(2)}</td>
+                </tr>
+            </table>
+        </div>
         
         <!-- Footer -->
-        <div style="margin-top: 1rem; padding-top: 0.5rem; border-top: 1px solid #404040; text-align: center;">
+        <div style="padding-top: 0.5rem; border-top: 1px solid #404040; text-align: center;">
             <p style="margin: 0; color: #888; font-size: 0.75rem;">Thank you for your business!</p>
             <p style="margin: 0.2rem 0; color: #888; font-size: 0.75rem;">Questions? Contact us at HelmickUnderground@gmail.com</p>
         </div>
+    </div>
     </div>
 </body>
 </html>
