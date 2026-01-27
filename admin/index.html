@@ -687,6 +687,14 @@
 
                 <div class="stats-grid">
                     <div class="stat-card">
+                        <h3>Total Visits</h3>
+                        <div class="stat-value" id="totalVisits">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Today's Visits</h3>
+                        <div class="stat-value" id="todayVisits">-</div>
+                    </div>
+                    <div class="stat-card">
                         <h3>Unread Requests</h3>
                         <div class="stat-value" id="unreadQuotes">-</div>
                     </div>
@@ -799,6 +807,14 @@
         // Load dashboard statistics
         async function loadDashboardStats() {
             try {
+                // Load analytics stats
+                const analyticsResponse = await fetch('/api/analytics?action=stats');
+                if (analyticsResponse.ok) {
+                    const analyticsStats = await analyticsResponse.json();
+                    document.getElementById('totalVisits').textContent = analyticsStats.total || 0;
+                    document.getElementById('todayVisits').textContent = analyticsStats.today || 0;
+                }
+
                 // Load quote requests stats
                 const quotesResponse = await fetch('/api/contact-submissions?action=stats');
                 if (quotesResponse.ok) {
@@ -848,6 +864,8 @@
 
             } catch (error) {
                 console.error('Error loading stats:', error);
+                document.getElementById('totalVisits').textContent = '0';
+                document.getElementById('todayVisits').textContent = '0';
                 document.getElementById('unreadQuotes').textContent = '0';
                 document.getElementById('pendingQuotes').textContent = '0';
                 document.getElementById('overdueInvoices').textContent = '0';
