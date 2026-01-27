@@ -338,13 +338,13 @@ function previewQuote() {
             <tbody>
                 ${lineItems.map(item => `
                     <tr>
-                        <td style="padding: 0.75rem; border-bottom: 1px solid #eee;">
-                            <strong>${item.name}</strong>
+                        <td style="padding: 0.75rem; border-bottom: 1px solid #eee; color: #333;">
+                            <strong style="color: #333;">${item.name}</strong>
                             ${item.description ? `<br><span style="color: #666; font-size: 0.9rem;">${item.description}</span>` : ''}
                         </td>
-                        <td style="padding: 0.75rem; text-align: center; border-bottom: 1px solid #eee;">${item.quantity}</td>
-                        <td style="padding: 0.75rem; text-align: right; border-bottom: 1px solid #eee;">$${item.rate.toFixed(2)}</td>
-                        <td style="padding: 0.75rem; text-align: right; border-bottom: 1px solid #eee; font-weight: 600;">$${(item.quantity * item.rate).toFixed(2)}</td>
+                        <td style="padding: 0.75rem; text-align: center; border-bottom: 1px solid #eee; color: #333;">${item.quantity}</td>
+                        <td style="padding: 0.75rem; text-align: right; border-bottom: 1px solid #eee; color: #333;">$${item.rate.toFixed(2)}</td>
+                        <td style="padding: 0.75rem; text-align: right; border-bottom: 1px solid #eee; font-weight: 600; color: #333;">$${(item.quantity * item.rate).toFixed(2)}</td>
                     </tr>
                 `).join('')}
                 <tr style="border-top: 2px solid #ff6b1a;">

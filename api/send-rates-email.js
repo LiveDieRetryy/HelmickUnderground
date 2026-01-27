@@ -42,7 +42,6 @@ export default async function handler(req, res) {
         <div style="text-align: center; padding: 1.5rem 2rem; background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%);">
             <strong style="display: block; font-size: 1.5rem; color: white; margin-bottom: 0.5rem; font-weight: 700;">SERVICE RATES & PRICING</strong>
             <div style="color: rgba(255,255,255,0.9); font-size: 1rem;">
-                Mount Vernon, Iowa<br>
                 Effective: ${today}
             </div>
         </div>
