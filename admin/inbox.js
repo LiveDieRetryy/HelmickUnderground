@@ -158,6 +158,7 @@ function renderSubmissions() {
                         <option value="contacted" ${sub.status === 'contacted' ? 'selected' : ''}>📞 Contacted</option>
                         <option value="scheduled" ${sub.status === 'scheduled' ? 'selected' : ''}>📅 Scheduled</option>
                         <option value="quoted" ${sub.status === 'quoted' ? 'selected' : ''}>💰 Quoted</option>
+                        <option value="accepted" ${sub.status === 'accepted' ? 'selected' : ''}>🎯 Accepted</option>
                         <option value="completed" ${sub.status === 'completed' ? 'selected' : ''}>✅ Completed</option>
                         <option value="declined" ${sub.status === 'declined' ? 'selected' : ''}>❌ Declined</option>
                     </select>
