@@ -2,6 +2,59 @@
 const ADMIN_USERNAME = 'admin';
 const ADMIN_PASSWORD = 'HUAdmin';
 
+// Notification system
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: ${type === 'success' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        z-index: 100000;
+        animation: slideIn 0.3s ease-out;
+    `;
+    
+    notification.textContent = message;
+    
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
 // Check if user is logged in
 function checkAuth() {
     const isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
@@ -230,13 +283,13 @@ document.getElementById('addItemForm')?.addEventListener('submit', async functio
         if (type === 'image') {
             const file = document.getElementById('itemImageFile').files[0];
             if (!file) {
-                alert('Please select an image');
+                showNotification('Please select an image', 'error');
                 return;
             }
             
             // Check size
             if (file.size > 5 * 1024 * 1024) {
-                alert('Image must be under 5MB');
+                showNotification('Image must be under 5MB', 'error');
                 return;
             }
             
@@ -250,7 +303,7 @@ document.getElementById('addItemForm')?.addEventListener('submit', async functio
             const videoFile = document.getElementById('itemVideoFile').files[0];
             
             if (!videoFile) {
-                alert('Please select a video file');
+                showNotification('Please select a video file', 'error');
                 return;
             }
             
@@ -258,7 +311,7 @@ document.getElementById('addItemForm')?.addEventListener('submit', async functio
             const MAX_SIZE = 100 * 1024 * 1024; // 100MB limit
             
             if (videoFile.size > MAX_SIZE) {
-                alert('Video must be under 100MB');
+                showNotification('Video must be under 100MB', 'error');
                 return;
             }
             
@@ -272,7 +325,7 @@ document.getElementById('addItemForm')?.addEventListener('submit', async functio
             } catch (uploadError) {
                 console.error('Upload error:', uploadError);
                 hideProgress();
-                alert('Upload failed: ' + uploadError.message);
+                showNotification('Upload failed: ' + uploadError.message, 'error');
                 return;
             }
         }
@@ -289,7 +342,7 @@ document.getElementById('addItemForm')?.addEventListener('submit', async functio
         
     } catch (error) {
         console.error('Error adding item:', error);
-        alert('Error adding item: ' + error.message);
+        showNotification('Error adding item: ' + error.message, 'error');
     }
 });
 
@@ -670,11 +723,11 @@ async function saveOrder() {
         if (result.success) {
             loadGalleryItems();
         } else {
-            alert('Failed to reorder items: ' + (result.error || 'Unknown error'));
+            showNotification('Failed to reorder items: ' + (result.error || 'Unknown error'), 'error');
         }
     } catch (error) {
         console.error('Error reordering items:', error);
-        alert('Error reordering items: ' + error.message);
+        showNotification('Error reordering items: ' + error.message, 'error');
     }
 }
 
@@ -710,7 +763,7 @@ async function addGalleryItem(item) {
             }
             
             if (errorMessage.includes('GitHub token not configured')) {
-                alert('⚠️ SETUP REQUIRED:\n\nThe gallery admin needs a GitHub token to work.\n\nPlease follow these steps:\n\n1. Read GITHUB_TOKEN_SETUP.txt in your project folder\n2. Create a GitHub Personal Access Token\n3. Add it to Vercel environment variables\n4. Redeploy\n\nThis is a one-time setup that takes 5 minutes.');
+                showNotification('⚠️ SETUP REQUIRED: The gallery admin needs a GitHub token. Read GITHUB_TOKEN_SETUP.txt for instructions.', 'error');
                 return;
             }
             
@@ -725,11 +778,26 @@ async function addGalleryItem(item) {
     }
 }
 
-// Delete item
-async function deleteItem(id) {
-    if (!confirm('Are you sure you want to delete this item?')) {
-        return;
-    }
+// Delete item with confirmation modal
+let deleteItemId = null;
+
+function openDeleteModal(id) {
+    deleteItemId = id;
+    const modal = document.getElementById('deleteConfirmModal');
+    modal.style.display = 'flex';
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteConfirmModal');
+    modal.style.display = 'none';
+    deleteItemId = null;
+}
+
+async function confirmDeleteItem() {
+    if (!deleteItemId) return;
+    
+    const idToDelete = deleteItemId;
+    closeDeleteModal();
     
     try {
         const response = await fetch('/api/gallery', {
@@ -739,7 +807,7 @@ async function deleteItem(id) {
             },
             body: JSON.stringify({
                 action: 'delete',
-                item: { id: id }
+                item: { id: idToDelete }
             })
         });
         
@@ -751,8 +819,21 @@ async function deleteItem(id) {
         loadGalleryItems();
     } catch (error) {
         console.error('Error deleting item:', error);
-        alert('Error deleting item. Please try again.');
+        showNotification('Error deleting item. Please try again.', 'error');
     }
+}
+
+// Set up delete confirm button
+document.addEventListener('DOMContentLoaded', () => {
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    if (confirmBtn) {
+        confirmBtn.onclick = confirmDeleteItem;
+    }
+});
+
+// Delete item - now opens modal instead
+async function deleteItem(id) {
+    openDeleteModal(id);
 }
 
 // Download JSON file
@@ -859,11 +940,11 @@ document.getElementById('editItemForm').addEventListener('submit', async (e) => 
             closeEditModal();
             loadGalleryItems();
         } else {
-            alert('Failed to update item: ' + (result.error || 'Unknown error'));
+            showNotification('Failed to update item: ' + (result.error || 'Unknown error'), 'error');
         }
     } catch (error) {
         console.error('Error updating item:', error);
-        alert('Error updating item: ' + error.message);
+        showNotification('Error updating item: ' + error.message, 'error');
     }
 });
 

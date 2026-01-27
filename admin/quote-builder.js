@@ -3,6 +3,59 @@ if (!sessionStorage.getItem('adminLoggedIn')) {
     window.location.href = '/admin/login.html';
 }
 
+// Notification system
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: ${type === 'success' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        z-index: 100000;
+        animation: slideIn 0.3s ease-out;
+    `;
+    
+    notification.textContent = message;
+    
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
 // Get submission ID from URL
 const urlParams = new URLSearchParams(window.location.search);
 const submissionId = urlParams.get('id');
@@ -15,7 +68,7 @@ let currentCategory = 'baseRates';
 // Load data
 async function loadData() {
     if (!submissionId) {
-        alert('No submission ID provided');
+        showNotification('No submission ID provided', 'error');
         window.location.href = '/admin/inbox.html';
         return;
     }
@@ -27,7 +80,7 @@ async function loadData() {
         currentSubmission = allSubmissions.find(s => s.id == submissionId);
 
         if (!currentSubmission) {
-            alert('Submission not found');
+            showNotification('Submission not found', 'error');
             window.location.href = '/admin/inbox.html';
             return;
         }
@@ -44,7 +97,7 @@ async function loadData() {
 
     } catch (error) {
         console.error('Error loading data:', error);
-        alert('Failed to load data');
+        showNotification('Failed to load data', 'error');
     }
 }
 
@@ -186,17 +239,17 @@ function addCustomLineItem() {
     const description = document.getElementById('customItemDescription').value.trim();
     
     if (!name) {
-        alert('Please enter an item name');
+        showNotification('Please enter an item name', 'error');
         return;
     }
     
     if (isNaN(rate) || rate < 0) {
-        alert('Please enter a valid rate');
+        showNotification('Please enter a valid rate', 'error');
         return;
     }
     
-    if (isNaN(quantity) || quantity <= 0) {
-        alert('Please enter a valid quantity');
+    if (isNaN(quantity) || quantity < 0) {
+        showNotification('Please enter a valid quantity', 'error');
         return;
     }
     
@@ -375,7 +428,7 @@ function addCustomLineItem() {
     const description = document.getElementById('customItemDescription').value.trim();
     
     if (!name || !rate || rate <= 0) {
-        alert('Please enter a valid item name and rate');
+        showNotification('Please enter a valid item name and rate', 'error');
         return;
     }
     
@@ -405,7 +458,7 @@ function addCustomLineItem() {
 // Preview quote
 function previewQuote() {
     if (lineItems.length === 0) {
-        alert('Please add at least one line item to the quote');
+        showNotification('Please add at least one line item to the quote', 'error');
         return;
     }
 

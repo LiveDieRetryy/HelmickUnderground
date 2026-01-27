@@ -8,25 +8,93 @@ function checkAuth() {
     return true;
 }
 
-// Clear analytics
-document.getElementById('clearBtn').addEventListener('click', async () => {
-    if (!confirm('⚠️ Are you sure you want to delete ALL analytics data? This cannot be undone!')) {
-        return;
-    }
+// Notification system
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: ${type === 'success' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        z-index: 100000;
+        animation: slideIn 0.3s ease-out;
+    `;
     
-    if (!confirm('🚨 FINAL WARNING: This will permanently delete all visit history. Continue?')) {
-        return;
-    }
+    notification.textContent = message;
+    
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Clear analytics modal
+function openClearModal() {
+    document.getElementById('clearConfirmModal').style.display = 'flex';
+}
+
+function closeClearModal() {
+    document.getElementById('clearConfirmModal').style.display = 'none';
+}
+
+async function confirmClearAnalytics() {
+    closeClearModal();
     
     try {
         const response = await fetch('/api/analytics?action=clear', { method: 'POST' });
         if (!response.ok) throw new Error('Failed to clear analytics');
         
-        alert('✅ Analytics cleared successfully!');
+        showNotification('Analytics cleared successfully!', 'success');
         window.location.reload();
     } catch (error) {
         console.error('Error clearing analytics:', error);
-        alert('❌ Failed to clear analytics: ' + error.message);
+        showNotification('Failed to clear analytics: ' + error.message, 'error');
+    }
+}
+
+// Clear analytics button event
+document.getElementById('clearBtn').addEventListener('click', () => {
+    openClearModal();
+});
+
+// Set up confirm button
+document.addEventListener('DOMContentLoaded', () => {
+    const confirmBtn = document.getElementById('confirmClearBtn');
+    if (confirmBtn) {
+        confirmBtn.onclick = confirmClearAnalytics;
     }
 });
 

@@ -3,6 +3,59 @@ if (!sessionStorage.getItem('adminLoggedIn')) {
     window.location.href = '/admin/login.html';
 }
 
+// Notification system
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: ${type === 'success' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        z-index: 100000;
+        animation: slideIn 0.3s ease-out;
+    `;
+    
+    notification.textContent = message;
+    
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
 let currentDate = new Date();
 let scheduledAppointments = [];
 let currentDayAppointments = []; // Store appointments for currently viewed day
@@ -184,7 +237,7 @@ function viewAppointment(id) {
     }
     
     if (!appointment) {
-        alert('Error: Could not find appointment details. ID: ' + id);
+        showNotification('Error: Could not find appointment details. ID: ' + id, 'error');
         return;
     }
     
@@ -388,7 +441,7 @@ async function saveNewAppointment(event) {
 
     } catch (error) {
         console.error('Error creating appointment:', error);
-        alert('Failed to create appointment. Please try again.');
+        showNotification('Failed to create appointment. Please try again.', 'error');
         button.innerHTML = originalText;
         button.disabled = false;
     }

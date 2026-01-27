@@ -2,6 +2,59 @@ let rates = {};
 let lineItems = [];
 let currentCategory = 'baseRates';
 
+// Notification system
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: ${type === 'success' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        z-index: 100000;
+        animation: slideIn 0.3s ease-out;
+    `;
+    
+    notification.textContent = message;
+    
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
 // Load rates data
 async function loadData() {
     try {
@@ -100,17 +153,17 @@ function addCustomLineItem() {
     const description = document.getElementById('customItemDesc').value.trim();
     
     if (!name) {
-        alert('Please enter an item name');
+        showNotification('Please enter an item name', 'error');
         return;
     }
     
     if (!rate || rate <= 0) {
-        alert('Please enter a valid rate');
+        showNotification('Please enter a valid rate', 'error');
         return;
     }
     
     if (!quantity || quantity <= 0) {
-        alert('Please enter a valid quantity');
+        showNotification('Please enter a valid quantity', 'error');
         return;
     }
     
@@ -240,12 +293,12 @@ function previewQuote() {
     const customerServices = document.getElementById('customerServices').value.trim();
     
     if (!customerName) {
-        alert('Please enter a customer name');
+        showNotification('Please enter a customer name', 'error');
         return;
     }
     
     if (lineItems.length === 0) {
-        alert('Please add at least one line item to the quote');
+        showNotification('Please add at least one line item to the quote', 'error');
         return;
     }
     
@@ -380,12 +433,12 @@ async function sendQuoteEmail() {
     const customerEmail = document.getElementById('customerEmail').value.trim();
     
     if (!customerEmail) {
-        alert('Please enter a customer email address in the Customer Information section above.');
+        showNotification('Please enter a customer email address in the Customer Information section above.', 'error');
         return;
     }
     
     if (!customerEmail.includes('@')) {
-        alert('Please enter a valid email address');
+        showNotification('Please enter a valid email address', 'error');
         return;
     }
     
@@ -425,14 +478,14 @@ async function sendQuoteEmail() {
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             console.error('Failed to send email:', response.status, errorData);
-            alert('Failed to send email. Please try again.');
+            showNotification('Failed to send email. Please try again.', 'error');
         } else {
-            alert(`Quote sent successfully to ${customerEmail}!`);
+            showNotification(`Quote sent successfully to ${customerEmail}!`, 'success');
             closePreview();
         }
     } catch (error) {
         console.error('Error sending quote:', error);
-        alert('Failed to send quote email. Please try again.');
+        showNotification('Failed to send quote email. Please try again.', 'error');
     } finally {
         button.innerHTML = originalText;
         button.disabled = false;
