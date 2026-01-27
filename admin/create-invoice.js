@@ -530,8 +530,16 @@ async function init() {
     await loadRates();
     loadProfiles();
     
-    // Check if editing existing invoice
+    // Check if coming from accepted quote
     const urlParams = new URLSearchParams(window.location.search);
+    const fromQuote = urlParams.get('fromQuote');
+    
+    if (fromQuote === 'true') {
+        loadInvoiceFromQuote();
+        return;
+    }
+    
+    // Check if editing existing invoice
     const invoiceId = urlParams.get('id');
     
     if (invoiceId) {
@@ -595,6 +603,54 @@ async function loadInvoiceForEdit(id) {
     } catch (error) {
         console.error('Error loading invoice:', error);
         alert('Failed to load invoice. Redirecting to create new invoice.');
+        window.location.href = '/admin/create-invoice.html';
+    }
+}
+
+// Load invoice from accepted quote
+function loadInvoiceFromQuote() {
+    const dataStr = sessionStorage.getItem('invoiceFromQuote');
+    if (!dataStr) {
+        alert('No quote data found');
+        window.location.href = '/admin/create-invoice.html';
+        return;
+    }
+    
+    try {
+        const data = JSON.parse(dataStr);
+        sessionStorage.removeItem('invoiceFromQuote'); // Clear after loading
+        
+        // Populate customer info
+        document.getElementById('customerName').value = data.customerName || '';
+        document.getElementById('customerEmail').value = data.customerEmail || '';
+        document.getElementById('customerPhone').value = data.customerPhone || '';
+        
+        // Clear default line item
+        const container = document.getElementById('lineItemsContainer');
+        if (container) {
+            container.innerHTML = '';
+        }
+        lineItemCounter = 0;
+        
+        // Load line items from quote
+        if (data.quoteData && data.quoteData.lineItems) {
+            data.quoteData.lineItems.forEach(item => {
+                addLineItem(item.name, item.quantity, item.rate);
+            });
+        }
+        
+        // Update page title
+        const titleEl = document.querySelector('.page-header h1');
+        if (titleEl) {
+            titleEl.innerHTML = '📄 Create Invoice from Quote';
+        }
+        
+        // Auto-calculate totals
+        updateTotals();
+        
+    } catch (error) {
+        console.error('Error loading quote data:', error);
+        alert('Failed to load quote data');
         window.location.href = '/admin/create-invoice.html';
     }
 }

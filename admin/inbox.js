@@ -362,6 +362,11 @@ async function viewSubmission(id) {
                 <span>📅</span>
                 <span>Schedule Project</span>
             </button>
+        ` : sub.status === 'accepted' ? `
+            <button class="btn-send-ack" onclick="buildInvoiceFromQuote(${sub.id})">
+                <span>📄</span>
+                <span>Build Invoice</span>
+            </button>
         ` : `
             <button class="btn-send-ack" id="sendAckBtn-${sub.id}" onclick="sendAcknowledgmentEmail(${sub.id})">
                 <span>📧</span>
@@ -899,6 +904,27 @@ document.getElementById('detailModal').addEventListener('click', (e) => {
         closeModal();
     }
 });
+
+// Build invoice from accepted quote
+function buildInvoiceFromQuote(id) {
+    const sub = allSubmissions.find(s => s.id == id);
+    if (!sub || !sub.quote_data) {
+        alert('No quote data found for this submission');
+        return;
+    }
+    
+    // Store the quote data and customer info in sessionStorage to pass to invoice page
+    const invoiceData = {
+        customerId: sub.id,
+        customerName: sub.name,
+        customerEmail: sub.email,
+        customerPhone: sub.phone,
+        quoteData: typeof sub.quote_data === 'string' ? JSON.parse(sub.quote_data) : sub.quote_data
+    };
+    
+    sessionStorage.setItem('invoiceFromQuote', JSON.stringify(invoiceData));
+    window.location.href = '/admin/create-invoice.html?fromQuote=true';
+}
 
 // Load on page load
 checkAuth();
