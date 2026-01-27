@@ -140,6 +140,39 @@
             margin-bottom: 1rem;
         }
 
+        .email-type-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .email-type-rates {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .email-type-quote {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .email-type-invoice {
+            background: rgba(251, 146, 60, 0.2);
+            color: #fb923c;
+            border: 1px solid rgba(251, 146, 60, 0.3);
+        }
+
+        .email-type-acknowledgment {
+            background: rgba(168, 85, 247, 0.2);
+            color: #c084fc;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
         @media (max-width: 768px) {
             .recipients-table {
                 font-size: 0.85rem;
@@ -195,28 +228,28 @@
     <script>
         async function loadRecipients() {
             try {
-                const response = await fetch('/api/rate-recipients');
+                const response = await fetch('/api/email-history?action=all');
                 const data = await response.json();
                 
                 document.getElementById('loadingMessage').style.display = 'none';
                 
-                if (!data.recipients || data.recipients.length === 0) {
+                if (!data || data.length === 0) {
                     document.getElementById('recipientsContent').innerHTML = `
                         <div class="empty-state">
                             <div class="empty-state-icon">📭</div>
                             <h3>No recipients yet</h3>
-                            <p>When you send rate sheets via email, recipients will appear here.</p>
+                            <p>When you send emails, recipients will appear here.</p>
                         </div>
                     `;
                     return;
                 }
 
                 // Calculate stats
-                const recipients = data.recipients;
-                const uniqueEmails = new Set(recipients.map(r => r.email)).size;
+                const recipients = data;
+                const uniqueEmails = new Set(recipients.map(r => r.recipient_email)).size;
                 const now = new Date();
                 const thisMonth = recipients.filter(r => {
-                    const sentDate = new Date(r.sentAt);
+                    const sentDate = new Date(r.sent_at);
                     return sentDate.getMonth() === now.getMonth() && 
                            sentDate.getFullYear() === now.getFullYear();
                 }).length;
@@ -226,14 +259,16 @@
                 document.getElementById('thisMonth').textContent = thisMonth;
 
                 // Sort by most recent first
-                recipients.sort((a, b) => new Date(b.sentAt) - new Date(a.sentAt));
+                recipients.sort((a, b) => new Date(b.sent_at) - new Date(a.sent_at));
 
                 // Build table
                 let html = `
                     <table class="recipients-table">
                         <thead>
                             <tr>
+                                <th>Email Type</th>
                                 <th>Email Address</th>
+                                <th>Recipient Name</th>
                                 <th>Sent Date</th>
                                 <th>Time</th>
                             </tr>
@@ -242,7 +277,7 @@
                 `;
 
                 recipients.forEach(recipient => {
-                    const date = new Date(recipient.sentAt);
+                    const date = new Date(recipient.sent_at);
                     const dateStr = date.toLocaleDateString('en-US', { 
                         year: 'numeric', 
                         month: 'short', 
@@ -252,10 +287,15 @@
                         hour: '2-digit', 
                         minute: '2-digit' 
                     });
+                    
+                    // Format email type for display
+                    const typeDisplay = recipient.email_type.charAt(0).toUpperCase() + recipient.email_type.slice(1);
 
                     html += `
                         <tr>
-                            <td>${recipient.email}</td>
+                            <td><span class="email-type-badge email-type-${recipient.email_type}">${typeDisplay}</span></td>
+                            <td>${recipient.recipient_email}</td>
+                            <td>${recipient.recipient_name || '-'}</td>
                             <td>${dateStr}</td>
                             <td>${timeStr}</td>
                         </tr>
