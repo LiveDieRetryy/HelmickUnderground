@@ -514,6 +514,28 @@ document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
         }
         
         const result = await response.json();
+        
+        // If this invoice was created from a quote, save the invoice ID back to the submission
+        const fromQuote = urlParams.get('fromQuote');
+        if (fromQuote === 'true' && result.invoiceId) {
+            const submissionId = sessionStorage.getItem('invoiceSubmissionId');
+            if (submissionId) {
+                try {
+                    await fetch('/api/contact-submissions', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            id: parseInt(submissionId), 
+                            invoice_id: result.invoiceId 
+                        })
+                    });
+                    sessionStorage.removeItem('invoiceSubmissionId');
+                } catch (err) {
+                    console.error('Failed to link invoice to submission:', err);
+                }
+            }
+        }
+        
         alert('Invoice saved successfully!');
         window.location.href = '/admin/invoices.html';
         
@@ -619,6 +641,11 @@ function loadInvoiceFromQuote() {
     try {
         const data = JSON.parse(dataStr);
         sessionStorage.removeItem('invoiceFromQuote'); // Clear after loading
+        
+        // Store submission ID for later when saving invoice
+        if (data.submissionId) {
+            sessionStorage.setItem('invoiceSubmissionId', data.submissionId);
+        }
         
         // Populate customer info
         document.getElementById('customerName').value = data.customerName || '';

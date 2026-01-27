@@ -84,6 +84,7 @@ function updateFilterCounts(stats) {
     const scheduledCount = stats.scheduled || 0;
     const quotedCount = stats.quoted || 0;
     const acceptedCount = stats.accepted || 0;
+    const invoicedCount = stats.invoiced || 0;
     const completedCount = stats.completed || 0;
     const declinedCount = (stats.declined || 0);
     const todayCount = stats.today || 0;
@@ -98,8 +99,9 @@ function updateFilterCounts(stats) {
     select.options[5].text = `📅 Scheduled (${scheduledCount})`;
     select.options[6].text = `💰 Quoted (${quotedCount})`;
     select.options[7].text = `🎯 Accepted (${acceptedCount})`;
-    select.options[8].text = `✅ Completed (${completedCount})`;
-    select.options[9].text = `❌ Declined (${declinedCount})`;
+    select.options[8].text = `📄 Invoiced (${invoicedCount})`;
+    select.options[9].text = `✅ Completed (${completedCount})`;
+    select.options[10].text = `❌ Declined (${declinedCount})`;
     
     // Update today count
     document.getElementById('todayCount').innerHTML = `Today: <strong style="color: var(--primary-color);">${todayCount}</strong>`;
@@ -159,6 +161,7 @@ function renderSubmissions() {
                         <option value="scheduled" ${sub.status === 'scheduled' ? 'selected' : ''}>📅 Scheduled</option>
                         <option value="quoted" ${sub.status === 'quoted' ? 'selected' : ''}>💰 Quoted</option>
                         <option value="accepted" ${sub.status === 'accepted' ? 'selected' : ''}>🎯 Accepted</option>
+                        <option value="invoiced" ${sub.status === 'invoiced' ? 'selected' : ''}>📄 Invoiced</option>
                         <option value="completed" ${sub.status === 'completed' ? 'selected' : ''}>✅ Completed</option>
                         <option value="declined" ${sub.status === 'declined' ? 'selected' : ''}>❌ Declined</option>
                     </select>
@@ -225,6 +228,7 @@ async function viewSubmission(id) {
                 <option value="scheduled" ${sub.status === 'scheduled' ? 'selected' : ''}>📅 Scheduled</option>
                 <option value="quoted" ${sub.status === 'quoted' ? 'selected' : ''}>💰 Quoted</option>
                 <option value="accepted" ${sub.status === 'accepted' ? 'selected' : ''}>✔️ Accepted</option>
+                <option value="invoiced" ${sub.status === 'invoiced' ? 'selected' : ''}>📄 Invoiced</option>
                 <option value="completed" ${sub.status === 'completed' ? 'selected' : ''}>✅ Completed</option>
                 <option value="declined" ${sub.status === 'declined' ? 'selected' : ''}>❌ Declined</option>
             </select>
@@ -906,24 +910,38 @@ document.getElementById('detailModal').addEventListener('click', (e) => {
 });
 
 // Build invoice from accepted quote
-function buildInvoiceFromQuote(id) {
+async function buildInvoiceFromQuote(id) {
     const sub = allSubmissions.find(s => s.id == id);
     if (!sub || !sub.quote_data) {
         alert('No quote data found for this submission');
         return;
     }
     
-    // Store the quote data and customer info in sessionStorage to pass to invoice page
-    const invoiceData = {
-        customerId: sub.id,
-        customerName: sub.name,
-        customerEmail: sub.email,
-        customerPhone: sub.phone,
-        quoteData: typeof sub.quote_data === 'string' ? JSON.parse(sub.quote_data) : sub.quote_data
-    };
-    
-    sessionStorage.setItem('invoiceFromQuote', JSON.stringify(invoiceData));
-    window.location.href = '/admin/create-invoice.html?fromQuote=true';
+    try {
+        // Update status to invoiced
+        const response = await fetch('/api/contact-submissions', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id, status: 'invoiced' })
+        });
+        
+        if (!response.ok) throw new Error('Failed to update status');
+        
+        // Store the quote data and customer info in sessionStorage to pass to invoice page
+        const invoiceData = {
+            submissionId: sub.id,
+            customerName: sub.name,
+            customerEmail: sub.email,
+            customerPhone: sub.phone,
+            quoteData: typeof sub.quote_data === 'string' ? JSON.parse(sub.quote_data) : sub.quote_data
+        };
+        
+        sessionStorage.setItem('invoiceFromQuote', JSON.stringify(invoiceData));
+        window.location.href = '/admin/create-invoice.html?fromQuote=true';
+    } catch (error) {
+        console.error('Error building invoice:', error);
+        showNotification('❌ Failed to create invoice: ' + error.message, 'error');
+    }
 }
 
 // Load on page load
