@@ -140,6 +140,20 @@ function loadCompanyProfile() {
     const profile = companyProfiles[index];
     if (!profile) return;
     
+    // Populate customer information fields
+    document.getElementById('customerName').value = profile.name || '';
+    document.getElementById('customerEmail').value = profile.email || '';
+    document.getElementById('customerPhone').value = profile.phone || '';
+    
+    // Build address string
+    let addressParts = [];
+    if (profile.address) addressParts.push(profile.address);
+    
+    let cityStateZip = [profile.city, profile.state, profile.zip].filter(Boolean).join(', ');
+    if (cityStateZip) addressParts.push(cityStateZip);
+    
+    document.getElementById('customerAddress').value = addressParts.join('\n');
+    
     // Clear existing line items
     document.getElementById('lineItemsContainer').innerHTML = '';
     lineItemCounter = 0;
@@ -152,9 +166,6 @@ function loadCompanyProfile() {
             addLineItem(fullDescription, 1, item.price || item.rate || 0);
         });
     }
-    
-    // Set company name
-    document.getElementById('customerName').value = profile.name;
 }
 
 // Load rates data on init
