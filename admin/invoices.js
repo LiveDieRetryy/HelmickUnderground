@@ -343,10 +343,12 @@ function closeDeleteModal() {
 async function confirmDeleteInvoice() {
     if (!deleteInvoiceId) return;
     
+    // Store ID before closing modal (which sets deleteInvoiceId to null)
+    const idToDelete = deleteInvoiceId;
     closeDeleteModal();
     
     try {
-        const response = await fetch(`/api/invoices?action=delete&id=${deleteInvoiceId}`, {
+        const response = await fetch(`/api/invoices?action=delete&id=${idToDelete}`, {
             method: 'DELETE'
         });
         
