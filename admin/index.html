@@ -836,29 +836,16 @@
                 if (!response.ok) throw new Error('Failed to load appointments');
                 
                 const allSubmissions = await response.json();
-                console.log('All submissions:', allSubmissions);
                 
-                const now = new Date();
-                now.setHours(0, 0, 0, 0); // Start of today
+                // Use same logic as schedule page - get all scheduled/accepted with dates
+                const appointmentsWithDates = allSubmissions.filter(s => 
+                    (s.status === 'scheduled' || s.status === 'accepted') && s.scheduled_date
+                );
                 
-                const scheduled = allSubmissions.filter(s => {
-                    const hasSchedule = (s.status === 'scheduled' || s.status === 'accepted') && s.scheduled_date;
-                    if (hasSchedule) {
-                        const aptDate = new Date(s.scheduled_date);
-                        console.log(`Checking appointment: ${s.name}, Status: ${s.status}, Date: ${aptDate}, Is Future: ${aptDate >= now}`);
-                        return aptDate >= now;
-                    }
-                    return false;
-                });
-                
-                console.log('Filtered scheduled appointments:', scheduled);
-                
-                // Sort by date and get next 5
-                const upcoming = scheduled
+                // Sort by date (earliest first) and take next 5
+                const upcoming = appointmentsWithDates
                     .sort((a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date))
                     .slice(0, 5);
-                
-                console.log('Next 5 upcoming:', upcoming);
                 
                 const container = document.getElementById('upcomingAppointments');
                 
