@@ -165,7 +165,7 @@ async function updateInvoiceStatus(id, status) {
         await loadInvoices();
     } catch (error) {
         console.error('Error updating status:', error);
-        alert('Failed to update invoice status');
+        showNotification('Failed to update invoice status', 'error');
         loadInvoices(); // Reload to reset the dropdown
     }
 }
@@ -310,7 +310,7 @@ async function viewInvoice(id) {
         document.body.insertAdjacentHTML('beforeend', modalHTML);
     } catch (error) {
         console.error('Error viewing invoice:', error);
-        alert('Failed to load invoice preview');
+        showNotification('Failed to load invoice preview', 'error');
     }
 }
 
@@ -331,11 +331,11 @@ async function deleteInvoice(id) {
         
         if (!response.ok) throw new Error('Failed to delete invoice');
         
-        alert('Invoice deleted successfully');
+        showNotification('Invoice deleted successfully', 'success');
         loadInvoices();
     } catch (error) {
         console.error('Error deleting invoice:', error);
-        alert('Failed to delete invoice');
+        showNotification('Failed to delete invoice', 'error');
     }
 }
 
@@ -507,7 +507,7 @@ async function openSendInvoiceModal(id) {
         
     } catch (error) {
         console.error('Error opening send invoice modal:', error);
-        alert('Failed to load invoice');
+        showNotification('Failed to load invoice', 'error');
     }
 }
 

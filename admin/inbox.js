@@ -307,6 +307,22 @@ async function viewSubmission(id) {
                 </div>
             </div>
         ` : ''}
+        ${sub.invoice_id ? `
+            <div class="detail-section">
+                <div class="detail-label">💰 Invoice</div>
+                <div style="background: rgba(16, 185, 129, 0.1); padding: 1rem; border-radius: 8px; border-left: 4px solid #10b981; margin-top: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong style="color: #10b981;">Invoice Created</strong>
+                            <div style="color: var(--gray); font-size: 0.9rem; margin-top: 0.25rem;">Invoice ID: ${sub.invoice_id}</div>
+                        </div>
+                        <button onclick="window.location.href='/admin/invoices.html'" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 0.5rem 1rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                            View Invoice
+                        </button>
+                    </div>
+                </div>
+            </div>
+        ` : ''}
         ${sub.ip ? `
             <div class="detail-section">
                 <div class="detail-label">IP Address</div>
@@ -400,7 +416,7 @@ async function deleteSubmission(id) {
         loadData(); // Refresh
     } catch (error) {
         console.error('Error deleting:', error);
-        alert('Failed to delete submission');
+        showNotification('Failed to delete submission', 'error');
     }
 }
 
