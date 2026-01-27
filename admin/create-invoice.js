@@ -673,7 +673,7 @@ function loadInvoiceFromQuote() {
         }
         
         // Auto-calculate totals
-        updateTotals();
+        calculateTotals();
         
     } catch (error) {
         console.error('Error loading quote data:', error);
