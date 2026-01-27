@@ -495,9 +495,9 @@ function printQuote() {
                 ${lineItems.map(item => `
                     <tr style="border-bottom: 1px solid #404040;">
                         <td style="padding: 0.4rem; color: #e5e7eb; font-size: 0.85rem;">${item.name}</td>
-                        <td style="padding: 0.4rem; text-align: center; color: #b0b0b0; font-size: 0.85rem;">${item.quantity}</td>
-                        <td style="padding: 0.4rem; text-align: right; color: #b0b0b0; font-size: 0.85rem;">$${item.rate.toFixed(2)}</td>
-                        <td style="padding: 0.4rem; text-align: right; color: #ffffff; font-weight: 600; font-size: 0.85rem;">$${(item.quantity * item.rate).toFixed(2)}</td>
+                        <td style="padding: 0.4rem; text-align: center; color: #b0b0b0; font-size: 0.85rem;">${item.quantity.toLocaleString()}</td>
+                        <td style="padding: 0.4rem; text-align: right; color: #b0b0b0; font-size: 0.85rem;">$${item.rate.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        <td style="padding: 0.4rem; text-align: right; color: #ffffff; font-weight: 600; font-size: 0.85rem;">$${(item.quantity * item.rate).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                     </tr>
                 `).join('')}
             </tbody>
@@ -519,17 +519,17 @@ function printQuote() {
             <table style="width: 100%; border-collapse: collapse;">
                 <tr style="border-bottom: 1px solid #404040;">
                     <td style="padding: 0.3rem; text-align: right; font-weight: 600; color: #b0b0b0; font-size: 0.85rem;">Subtotal:</td>
-                    <td style="padding: 0.3rem; text-align: right; font-weight: 600; color: #ffffff; font-size: 0.85rem; width: 120px;">$${subtotal.toFixed(2)}</td>
+                    <td style="padding: 0.3rem; text-align: right; font-weight: 600; color: #ffffff; font-size: 0.85rem; width: 120px;">$${subtotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                 </tr>
                 ${taxRate > 0 ? `
                 <tr style="border-bottom: 1px solid #404040;">
                     <td style="padding: 0.3rem; text-align: right; color: #b0b0b0; font-size: 0.85rem;">Tax (${(taxRate * 100).toFixed(0)}%):</td>
-                    <td style="padding: 0.3rem; text-align: right; color: #ffffff; font-size: 0.85rem;">$${tax.toFixed(2)}</td>
+                    <td style="padding: 0.3rem; text-align: right; color: #ffffff; font-size: 0.85rem;">$${tax.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                 </tr>
                 ` : ''}
                 <tr style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%);">
                     <td style="padding: 0.6rem; text-align: right; font-weight: 700; color: white; font-size: 1.1rem;">Total:</td>
-                    <td style="padding: 0.6rem; text-align: right; font-weight: 700; color: white; font-size: 1.1rem;">$${total.toFixed(2)}</td>
+                    <td style="padding: 0.6rem; text-align: right; font-weight: 700; color: white; font-size: 1.1rem;">$${total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                 </tr>
             </table>
         </div>
