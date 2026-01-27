@@ -144,10 +144,14 @@ function loadCompanyProfile() {
     document.getElementById('lineItemsContainer').innerHTML = '';
     lineItemCounter = 0;
     
-    // Add profile's line items
-    profile.lineItems.forEach(item => {
-        addLineItem(item.description, 1, item.rate);
-    });
+    // Add profile's line items with new structure (code, description, price)
+    if (profile.lineItems && profile.lineItems.length > 0) {
+        profile.lineItems.forEach(item => {
+            // Use code + description as the full description
+            const fullDescription = item.code ? `${item.code} - ${item.description}` : item.description;
+            addLineItem(fullDescription, 1, item.price || item.rate || 0);
+        });
+    }
     
     // Set company name
     document.getElementById('customerName').value = profile.name;
