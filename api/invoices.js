@@ -88,6 +88,7 @@ module.exports = async function handler(req, res) {
                 
                 return res.status(200).json({ 
                     success: true, 
+                    invoiceId: result.rows[0].id,
                     id: result.rows[0].id,
                     message: 'Invoice created successfully'
                 });
@@ -206,6 +207,7 @@ module.exports = async function handler(req, res) {
                 
                 return res.status(200).json({ 
                     success: true,
+                    invoiceId: id,
                     message: 'Invoice updated successfully'
                 });
             }
