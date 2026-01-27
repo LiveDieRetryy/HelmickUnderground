@@ -226,7 +226,7 @@
                 
                 const allSubmissions = await response.json();
                 const scheduledAppointments = allSubmissions
-                    .filter(s => s.status === 'scheduled' && s.scheduled_date)
+                    .filter(s => (s.status === 'scheduled' || s.status === 'accepted') && s.scheduled_date)
                     .sort((a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date))
                     .slice(0, 5);
                 
