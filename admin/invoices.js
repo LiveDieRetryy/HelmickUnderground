@@ -350,7 +350,11 @@ async function confirmDeleteInvoice() {
             method: 'DELETE'
         });
         
-        if (!response.ok) throw new Error('Failed to delete invoice');
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('Delete failed:', response.status, errorData);
+            throw new Error(errorData.message || 'Failed to delete invoice');
+        }
         
         showNotification('Invoice deleted successfully', 'success');
         loadInvoices();
