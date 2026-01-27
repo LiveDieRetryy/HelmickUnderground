@@ -57,14 +57,14 @@ module.exports = async function handler(req, res) {
                 <table width="600" cellpadding="0" cellspacing="0" style="background-color: #1a1a1a; border-radius: 20px; overflow: hidden;">
                     <!-- Header -->
                     <tr>
-                        <td style="text-align: center; padding: 0; background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); border-radius: 12px 12px 0 0;">
-                            <div style="padding: 2.5rem 2rem;">
-                                <div style="background: #000; display: inline-block; padding: 1.5rem 2rem; border-radius: 8px; margin-bottom: 1rem;">
-                                    <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground" style="max-width: 200px;">
-                                </div>
-                                <h1 style="color: white; font-size: 1.8rem; margin: 1rem 0 0 0; font-weight: 700;">PROJECT QUOTE</h1>
-                                <p style="color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0; font-size: 0.95rem;">Date: ${today}</p>
-                            </div>
+                        <td style="text-align: center; padding: 2rem 2rem 1rem 2rem; background: #1a1a1a; border-radius: 12px 12px 0 0;">
+                            <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground" style="max-width: 200px; margin-bottom: 1.5rem;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center; padding: 1.5rem 2rem; background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%);">
+                            <h1 style="color: white; font-size: 1.8rem; margin: 0; font-weight: 700;">PROJECT QUOTE</h1>
+                            <p style="color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0; font-size: 0.95rem;">Date: ${today}</p>
                         </td>
                     </tr>
 

@@ -34,11 +34,11 @@ module.exports = async function handler(req, res) {
 <body style="margin: 0; padding: 0; font-family: 'Arial', sans-serif; background-color: #0a0a0a;">
     <div style="max-width: 650px; margin: 0 auto; background-color: #1a1a1a; color: #e5e7eb;">
         <!-- Header with Logo -->
-        <div style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); padding: 2.5rem 2rem; text-align: center; border-radius: 12px 12px 0 0;">
-            <div style="background: #000; display: inline-block; padding: 1.5rem 2rem; border-radius: 8px; margin-bottom: 1rem;">
-                <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground Logo" style="max-width: 250px; height: auto;">
-            </div>
-            <h1 style="color: white; margin: 1rem 0 0 0; font-size: 1.8rem; font-weight: 700;">QUOTE REQUEST RECEIVED</h1>
+        <div style="background: #1a1a1a; padding: 2rem 2rem 1rem 2rem; text-align: center; border-radius: 12px 12px 0 0;">
+            <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground Logo" style="max-width: 250px; height: auto; margin-bottom: 1.5rem;">
+        </div>
+        <div style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); padding: 1.5rem 2rem; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 1.8rem; font-weight: 700;">QUOTE REQUEST RECEIVED</h1>
         </div>
         
         <div style="padding: 2rem; background: #1a1a1a;">
