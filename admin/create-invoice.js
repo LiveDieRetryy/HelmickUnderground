@@ -135,10 +135,17 @@ function loadCompanyProfile() {
     const select = document.getElementById('companyProfile');
     const index = select.value;
     
-    if (index === '') return;
+    if (index === '') {
+        // If no profile selected, show rates section again
+        document.querySelector('.rate-selector').style.display = 'block';
+        return;
+    }
     
     const profile = companyProfiles[index];
     if (!profile) return;
+    
+    // Hide the rates section when a company profile is loaded
+    document.querySelector('.rate-selector').style.display = 'none';
     
     // Populate customer information fields
     document.getElementById('customerName').value = profile.name || '';
