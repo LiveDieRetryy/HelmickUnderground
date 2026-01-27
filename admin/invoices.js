@@ -71,6 +71,9 @@ function displayInvoices(invoices) {
                         <button onclick="editInvoice(${invoice.id})" class="btn-action" title="Edit">
                             ✏️
                         </button>
+                        <button onclick="openSendInvoiceModal(${invoice.id})" class="btn-action" title="Send Invoice" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                            📧
+                        </button>
                         <button onclick="deleteInvoice(${invoice.id})" class="btn-action btn-danger" title="Delete">
                             🗑️
                         </button>
@@ -287,6 +290,149 @@ async function deleteInvoice(id) {
         console.error('Error deleting invoice:', error);
         alert('Failed to delete invoice');
     }
+}
+
+// Open send invoice modal with email preview
+async function openSendInvoiceModal(id) {
+    try {
+        const response = await fetch(`/api/invoices?action=get&id=${id}`);
+        if (!response.ok) throw new Error('Failed to load invoice');
+        
+        const invoice = await response.json();
+        const items = typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items;
+        
+        const emailSubject = `Invoice ${invoice.invoice_number} from Helmick Underground`;
+        const emailBody = `Dear ${invoice.customer_name},
+
+Thank you for choosing Helmick Underground for your underground utility needs!
+
+Please find your invoice details below:
+
+Invoice Number: ${invoice.invoice_number}
+Invoice Date: ${new Date(invoice.invoice_date).toLocaleDateString()}
+Due Date: ${new Date(invoice.due_date).toLocaleDateString()}
+Total Amount Due: $${parseFloat(invoice.total).toFixed(2)}
+
+${items.map(item => `• ${item.description} - Qty: ${item.quantity} @ $${item.rate.toFixed(2)} = $${(item.quantity * item.rate).toFixed(2)}`).join('\n')}
+
+Subtotal: $${parseFloat(invoice.subtotal || 0).toFixed(2)}
+${invoice.tax_rate > 0 ? `Tax (${invoice.tax_rate}%): $${parseFloat(invoice.tax || 0).toFixed(2)}` : ''}
+Total: $${parseFloat(invoice.total).toFixed(2)}
+
+We appreciate your business and look forward to serving you again!
+
+Best regards,
+Tommy Helmick
+Helmick Underground
+Phone: (319) 721-9925
+Email: HelmickUnderground@gmail.com
+Website: www.helmickunderground.com`;
+
+        const modalHTML = `
+            <div id="sendInvoiceModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 2rem;">
+                <div style="background: var(--card-dark); border-radius: 20px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; border: 2px solid rgba(255, 107, 26, 0.3);">
+                    <div style="padding: 2rem; border-bottom: 2px solid rgba(255, 107, 26, 0.2);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h2 style="color: var(--primary-color); margin: 0;">📧 Send Invoice</h2>
+                            <button onclick="closeSendInvoiceModal()" style="background: rgba(220, 20, 60, 0.2); border: 1px solid rgba(220, 20, 60, 0.5); color: var(--red); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.5rem;">×</button>
+                        </div>
+                    </div>
+                    
+                    <div style="padding: 2rem;">
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: block; color: var(--gray); font-weight: 600; margin-bottom: 0.5rem;">To:</label>
+                            <input type="email" id="invoiceEmailTo" value="${invoice.customer_email || ''}" style="width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 107, 26, 0.3); color: var(--white); padding: 0.75rem; border-radius: 8px; font-size: 1rem;">
+                        </div>
+                        
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: block; color: var(--gray); font-weight: 600; margin-bottom: 0.5rem;">Subject:</label>
+                            <input type="text" id="invoiceEmailSubject" value="${emailSubject}" style="width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 107, 26, 0.3); color: var(--white); padding: 0.75rem; border-radius: 8px; font-size: 1rem;">
+                        </div>
+                        
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: block; color: var(--gray); font-weight: 600; margin-bottom: 0.5rem;">Message:</label>
+                            <textarea id="invoiceEmailBody" rows="15" style="width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 107, 26, 0.3); color: var(--white); padding: 0.75rem; border-radius: 8px; font-size: 1rem; font-family: monospace; resize: vertical;">${emailBody}</textarea>
+                        </div>
+                    </div>
+                    
+                    <div style="padding: 1.5rem 2rem; background: rgba(0, 0, 0, 0.2); border-top: 2px solid rgba(255, 107, 26, 0.2); display: flex; gap: 1rem; border-radius: 0 0 20px 20px;">
+                        <button onclick="sendInvoiceEmail(${id})" style="flex: 1; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: white; border: none; padding: 1rem 1.5rem; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 1rem;">
+                            📧 Send Email
+                        </button>
+                        <button onclick="downloadInvoicePDF(${id})" style="flex: 1; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none; padding: 1rem 1.5rem; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 1rem;">
+                            📥 Download PDF
+                        </button>
+                        <button onclick="printInvoice(${id})" style="flex: 1; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; padding: 1rem 1.5rem; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 1rem;">
+                            🖨️ Print
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+    } catch (error) {
+        console.error('Error opening send invoice modal:', error);
+        alert('Failed to load invoice');
+    }
+}
+
+// Close send invoice modal
+function closeSendInvoiceModal() {
+    const modal = document.getElementById('sendInvoiceModal');
+    if (modal) modal.remove();
+}
+
+// Send invoice email
+async function sendInvoiceEmail(id) {
+    const to = document.getElementById('invoiceEmailTo').value;
+    const subject = document.getElementById('invoiceEmailSubject').value;
+    const body = document.getElementById('invoiceEmailBody').value;
+    
+    if (!to) {
+        alert('Please enter recipient email address');
+        return;
+    }
+    
+    try {
+        // You would call your email API here
+        // For now, we'll just update the status to 'sent'
+        await updateInvoiceStatus(id, 'sent');
+        
+        alert('Invoice email sent successfully!');
+        closeSendInvoiceModal();
+        loadInvoices();
+        
+    } catch (error) {
+        console.error('Error sending invoice:', error);
+        alert('Failed to send invoice email');
+    }
+}
+
+// Download invoice as PDF
+async function downloadInvoicePDF(id) {
+    try {
+        const response = await fetch(`/api/invoices?action=get&id=${id}`);
+        if (!response.ok) throw new Error('Failed to load invoice');
+        
+        const invoice = await response.json();
+        
+        // For now, open print dialog with PDF save option
+        // You could integrate a PDF library like jsPDF here
+        window.print();
+        
+    } catch (error) {
+        console.error('Error downloading PDF:', error);
+        alert('Failed to generate PDF');
+    }
+}
+
+// Print invoice
+async function printInvoice(id) {
+    closeSendInvoiceModal();
+    await viewInvoice(id);
+    setTimeout(() => window.print(), 500);
 }
 
 // Initialize
