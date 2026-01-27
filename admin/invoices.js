@@ -316,40 +316,44 @@ async function openSendInvoiceModal(id) {
 
                 <!-- Company Billing Address -->
                 <div style="background: #f8f9fa; padding: 1.5rem 2rem; border-bottom: 3px solid #ff6b1a;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                        <div>
-                            <h3 style="color: #ff6b1a; margin: 0 0 0.75rem 0; font-size: 1rem;">From:</h3>
-                            <p style="margin: 0; line-height: 1.6; color: #333; font-weight: 600;">Helmick Underground</p>
-                            <p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">498 Elbow Creek Rd</p>
-                            <p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">Mount Vernon, IA 52314</p>
-                            <p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">HelmickUnderground@gmail.com</p>
-                        </div>
-                        <div>
-                            <h3 style="color: #ff6b1a; margin: 0 0 0.75rem 0; font-size: 1rem;">Bill To:</h3>
-                            <p style="margin: 0; line-height: 1.6; color: #333; font-weight: 600;">${invoice.customer_name}</p>
-                            ${invoice.customer_address ? `<p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">${invoice.customer_address}</p>` : ''}
-                            <p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">${invoice.customer_email}</p>
-                            ${invoice.customer_phone ? `<p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">${invoice.customer_phone}</p>` : ''}
-                        </div>
-                    </div>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="width: 50%; vertical-align: top; padding-right: 1rem;">
+                                <h3 style="color: #ff6b1a; margin: 0 0 0.75rem 0; font-size: 1rem;">From:</h3>
+                                <p style="margin: 0; line-height: 1.6; color: #333; font-weight: 600;">Helmick Underground</p>
+                                <p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">498 Elbow Creek Rd</p>
+                                <p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">Mount Vernon, IA 52314</p>
+                                <p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">HelmickUnderground@gmail.com</p>
+                            </td>
+                            <td style="width: 50%; vertical-align: top; padding-left: 1rem;">
+                                <h3 style="color: #ff6b1a; margin: 0 0 0.75rem 0; font-size: 1rem;">Bill To:</h3>
+                                <p style="margin: 0; line-height: 1.6; color: #333; font-weight: 600;">${invoice.customer_name}</p>
+                                ${invoice.customer_address ? `<p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">${invoice.customer_address}</p>` : ''}
+                                <p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">${invoice.customer_email}</p>
+                                ${invoice.customer_phone ? `<p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">${invoice.customer_phone}</p>` : ''}
+                            </td>
+                        </tr>
+                    </table>
                 </div>
 
                 <!-- Invoice Details -->
                 <div style="padding: 2rem;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 2rem; background: #f8f9fa; padding: 1.25rem; border-radius: 8px; border-left: 4px solid #ff6b1a;">
-                        <div>
-                            <p style="margin: 0; color: #666; font-size: 0.85rem; font-weight: 600;">Invoice Number:</p>
-                            <p style="margin: 0.25rem 0 0 0; color: #333; font-weight: 700; font-size: 1.1rem;">${invoice.invoice_number}</p>
-                        </div>
-                        <div>
-                            <p style="margin: 0; color: #666; font-size: 0.85rem; font-weight: 600;">Invoice Date:</p>
-                            <p style="margin: 0.25rem 0 0 0; color: #333; font-weight: 700;">${new Date(invoice.invoice_date).toLocaleDateString()}</p>
-                        </div>
-                        <div>
-                            <p style="margin: 0; color: #666; font-size: 0.85rem; font-weight: 600;">Due Date:</p>
-                            <p style="margin: 0.25rem 0 0 0; color: #ff6b1a; font-weight: 700;">${new Date(invoice.due_date).toLocaleDateString()}</p>
-                        </div>
-                    </div>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #ff6b1a;">
+                        <tr>
+                            <td style="width: 33.33%; padding: 1.25rem; vertical-align: top;">
+                                <p style="margin: 0; color: #666; font-size: 0.85rem; font-weight: 600;">Invoice Number:</p>
+                                <p style="margin: 0.25rem 0 0 0; color: #333; font-weight: 700; font-size: 1.1rem;">${invoice.invoice_number}</p>
+                            </td>
+                            <td style="width: 33.33%; padding: 1.25rem; vertical-align: top;">
+                                <p style="margin: 0; color: #666; font-size: 0.85rem; font-weight: 600;">Invoice Date:</p>
+                                <p style="margin: 0.25rem 0 0 0; color: #333; font-weight: 700;">${new Date(invoice.invoice_date).toLocaleDateString()}</p>
+                            </td>
+                            <td style="width: 33.33%; padding: 1.25rem; vertical-align: top;">
+                                <p style="margin: 0; color: #666; font-size: 0.85rem; font-weight: 600;">Due Date:</p>
+                                <p style="margin: 0.25rem 0 0 0; color: #ff6b1a; font-weight: 700;">${new Date(invoice.due_date).toLocaleDateString()}</p>
+                            </td>
+                        </tr>
+                    </table>
 
                     <!-- Line Items Table -->
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem;">
