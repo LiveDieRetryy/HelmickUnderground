@@ -38,7 +38,7 @@ module.exports = async function handler(req, res) {
             <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground Logo" style="max-width: 250px; height: auto; margin-bottom: 1.5rem;">
         </div>
         <div style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); padding: 1.5rem 2rem; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 1.8rem; font-weight: 700;">QUOTE REQUEST RECEIVED</h1>
+            <h1 style="color: white; margin: 0; font-size: 1.8rem; font-weight: 700;">CONTACT REQUEST RECEIVED</h1>
         </div>
         
         <div style="padding: 2rem; background: #1a1a1a;">
@@ -96,7 +96,7 @@ module.exports = async function handler(req, res) {
             body: JSON.stringify({
                 from: 'Helmick Underground <noreply@helmickunderground.com>',
                 to: [email],
-                subject: 'Quote Request Received - Helmick Underground',
+                subject: 'Contact Request Received - Helmick Underground',
                 html: htmlContent,
             })
         });

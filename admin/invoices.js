@@ -623,7 +623,7 @@ async function downloadInvoicePDF(id) {
         const invoice = await response.json();
         const items = typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items;
         
-        // Build the same email HTML for printing
+        // Build compact print HTML (single-page optimized)
         const printHTML = `
 <!DOCTYPE html>
 <html>
@@ -631,105 +631,103 @@ async function downloadInvoicePDF(id) {
     <meta charset="UTF-8">
     <title>Invoice ${invoice.invoice_number}</title>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        @page { margin: 0.5in; }
         @media print {
-            body { margin: 0; padding: 20px; }
+            body { margin: 0; padding: 0; font-size: 10pt; }
+            .no-print { display: none; }
         }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; color: #e5e7eb; }
     </style>
 </head>
 <body>
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 0 auto; background: #1a1a1a; color: #e5e7eb;">
-        <div style="background: #1a1a1a; padding: 2rem 2rem 1rem 2rem; text-align: center;">
-            <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground Logo" style="max-width: 250px; height: auto; margin-bottom: 1.5rem;">
+    <div style="padding: 0.5rem; background: #1a1a1a;">
+        <!-- Header with logo in corner -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+            <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground Logo" style="width: 100px; height: auto;">
+            <div style="text-align: right;">
+                <div style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); padding: 0.5rem 1.5rem; display: inline-block;">
+                    <h2 style="color: white; margin: 0; font-size: 1.3rem; font-weight: 700;">INVOICE</h2>
+                </div>
+            </div>
         </div>
-        <div style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); padding: 1.5rem 2rem; text-align: center;">
-            <h2 style="color: white; margin: 0; font-size: 1.8rem; font-weight: 700;">INVOICE</h2>
-        </div>
-        <div style="background: #2a2a2a; padding: 1.5rem 2rem; border-bottom: 3px solid #ff6b1a;">
+        
+        <!-- From/Bill To Section -->
+        <div style="background: #2a2a2a; padding: 0.5rem; margin-bottom: 0.5rem; border-bottom: 2px solid #ff6b1a;">
             <table style="width: 100%; border-collapse: collapse;">
                 <tr>
-                    <td style="width: 50%; vertical-align: top; padding-right: 1rem;">
-                        <h3 style="color: #ff6b1a; margin: 0 0 0.75rem 0; font-size: 1rem;">From:</h3>
-                        <p style="margin: 0; line-height: 1.6; color: #ffffff; font-weight: 600;">Helmick Underground</p>
-                        <p style="margin: 0.25rem 0; line-height: 1.6; color: #b0b0b0;">498 Elbow Creek Rd</p>
-                        <p style="margin: 0.25rem 0; line-height: 1.6; color: #b0b0b0;">Mount Vernon, IA 52314</p>
-                        <p style="margin: 0.25rem 0; line-height: 1.6; color: #b0b0b0;">HelmickUnderground@gmail.com</p>
+                    <td style="width: 50%; vertical-align: top; padding-right: 0.5rem;">
+                        <h3 style="color: #ff6b1a; margin: 0 0 0.3rem 0; font-size: 0.85rem;">From:</h3>
+                        <p style="margin: 0; line-height: 1.3; color: #ffffff; font-weight: 600; font-size: 0.85rem;">Helmick Underground</p>
+                        <p style="margin: 0.1rem 0; line-height: 1.3; color: #b0b0b0; font-size: 0.8rem;">498 Elbow Creek Rd, Mount Vernon, IA 52314</p>
+                        <p style="margin: 0.1rem 0; line-height: 1.3; color: #b0b0b0; font-size: 0.8rem;">HelmickUnderground@gmail.com</p>
                     </td>
-                    <td style="width: 50%; vertical-align: top; padding-left: 1rem;">
-                        <h3 style="color: #ff6b1a; margin: 0 0 0.75rem 0; font-size: 1rem;">Bill To:</h3>
-                        <p style="margin: 0; line-height: 1.6; color: #ffffff; font-weight: 600;">${invoice.customer_name}</p>
-                        ${invoice.customer_address ? `<p style="margin: 0.25rem 0; line-height: 1.6; color: #b0b0b0;">${invoice.customer_address}</p>` : ''}
-                        <p style="margin: 0.25rem 0; line-height: 1.6; color: #b0b0b0;">${invoice.customer_email}</p>
-                        ${invoice.customer_phone ? `<p style="margin: 0.25rem 0; line-height: 1.6; color: #b0b0b0;">${invoice.customer_phone}</p>` : ''}
+                    <td style="width: 50%; vertical-align: top; padding-left: 0.5rem;">
+                        <h3 style="color: #ff6b1a; margin: 0 0 0.3rem 0; font-size: 0.85rem;">Bill To:</h3>
+                        <p style="margin: 0; line-height: 1.3; color: #ffffff; font-weight: 600; font-size: 0.85rem;">${invoice.customer_name}</p>
+                        ${invoice.customer_address ? `<p style="margin: 0.1rem 0; line-height: 1.3; color: #b0b0b0; font-size: 0.8rem;">${invoice.customer_address}</p>` : ''}
+                        <p style="margin: 0.1rem 0; line-height: 1.3; color: #b0b0b0; font-size: 0.8rem;">${invoice.customer_email}</p>
+                        ${invoice.customer_phone ? `<p style="margin: 0.1rem 0; line-height: 1.3; color: #b0b0b0; font-size: 0.8rem;">${invoice.customer_phone}</p>` : ''}
                     </td>
                 </tr>
             </table>
         </div>
-        <div style="padding: 2rem; background: #1a1a1a;">
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem; background: #2a2a2a; border-radius: 8px; border-left: 4px solid #ff6b1a;">
+        
+        <!-- Invoice Details -->
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 0.5rem; background: #2a2a2a; border-left: 3px solid #ff6b1a;">
+            <tr>
+                <td style="width: 33.33%; padding: 0.5rem; vertical-align: top;">
+                    <p style="margin: 0; color: #888; font-size: 0.7rem; font-weight: 600;">Invoice Number:</p>
+                    <p style="margin: 0.1rem 0 0 0; color: #ffffff; font-weight: 700; font-size: 0.9rem;">${invoice.invoice_number}</p>
+                </td>
+                <td style="width: 33.33%; padding: 0.5rem; vertical-align: top;">
+                    <p style="margin: 0; color: #888; font-size: 0.7rem; font-weight: 600;">Invoice Date:</p>
+                    <p style="margin: 0.1rem 0 0 0; color: #ffffff; font-weight: 700; font-size: 0.9rem;">${new Date(invoice.invoice_date).toLocaleDateString()}</p>
+                </td>
+                <td style="width: 33.33%; padding: 0.5rem; vertical-align: top;">
+                    <p style="margin: 0; color: #888; font-size: 0.7rem; font-weight: 600;">Due Date:</p>
+                    <p style="margin: 0.1rem 0 0 0; color: #ff6b1a; font-weight: 700; font-size: 0.9rem;">${new Date(invoice.due_date).toLocaleDateString()}</p>
+                </td>
+            </tr>
+        </table>
+        
+        <!-- Line Items -->
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 0.5rem; background: #2a2a2a;">
+            <thead>
+                <tr style="background: #333; color: white;">
+                    <th style="padding: 0.4rem; text-align: left; font-weight: 700; font-size: 0.85rem;">Description</th>
+                    <th style="padding: 0.4rem; text-align: center; font-weight: 700; font-size: 0.85rem;">Qty</th>
+                    <th style="padding: 0.4rem; text-align: right; font-weight: 700; font-size: 0.85rem;">Rate</th>
+                    <th style="padding: 0.4rem; text-align: right; font-weight: 700; font-size: 0.85rem;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${items.map(item => `
+                    <tr style="border-bottom: 1px solid #404040;">
+                        <td style="padding: 0.4rem; color: #e5e7eb; font-size: 0.85rem;">${item.description}</td>
+                        <td style="padding: 0.4rem; text-align: center; color: #b0b0b0; font-size: 0.85rem;">${item.quantity}</td>
+                        <td style="padding: 0.4rem; text-align: right; color: #b0b0b0; font-size: 0.85rem;">$${item.rate.toFixed(2)}</td>
+                        <td style="padding: 0.4rem; text-align: right; color: #ffffff; font-weight: 600; font-size: 0.85rem;">$${(item.quantity * item.rate).toFixed(2)}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+            <tfoot>
+                <tr style="border-top: 2px solid #ff6b1a;">
+                    <td colspan="3" style="padding: 0.5rem; text-align: right; font-weight: 600; color: #b0b0b0; font-size: 0.85rem;">Subtotal:</td>
+                    <td style="padding: 0.5rem; text-align: right; font-weight: 600; color: #ffffff; font-size: 0.85rem;">$${parseFloat(invoice.subtotal || 0).toFixed(2)}</td>
+                </tr>
+                ${invoice.tax_rate > 0 ? `
                 <tr>
-                    <td style="width: 33.33%; padding: 1.25rem; vertical-align: top;">
-                        <p style="margin: 0; color: #888; font-size: 0.85rem; font-weight: 600;">Invoice Number:</p>
-                        <p style="margin: 0.25rem 0 0 0; color: #ffffff; font-weight: 700; font-size: 1.1rem;">${invoice.invoice_number}</p>
-                    </td>
-                    <td style="width: 33.33%; padding: 1.25rem; vertical-align: top;">
-                        <p style="margin: 0; color: #888; font-size: 0.85rem; font-weight: 600;">Invoice Date:</p>
-                        <p style="margin: 0.25rem 0 0 0; color: #ffffff; font-weight: 700;">${new Date(invoice.invoice_date).toLocaleDateString()}</p>
-                    </td>
-                    <td style="width: 33.33%; padding: 1.25rem; vertical-align: top;">
-                        <p style="margin: 0; color: #888; font-size: 0.85rem; font-weight: 600;">Due Date:</p>
-                        <p style="margin: 0.25rem 0 0 0; color: #ff6b1a; font-weight: 700;">${new Date(invoice.due_date).toLocaleDateString()}</p>
-                    </td>
+                    <td colspan="3" style="padding: 0.3rem 0.5rem; text-align: right; color: #b0b0b0; font-size: 0.85rem;">Tax (${invoice.tax_rate}%):</td>
+                    <td style="padding: 0.3rem 0.5rem; text-align: right; color: #ffffff; font-size: 0.85rem;">$${parseFloat(invoice.tax || 0).toFixed(2)}</td>
                 </tr>
-            </table>
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem; background: #2a2a2a; border-radius: 8px; overflow: hidden;">
-                <thead>
-                    <tr style="background: #333; color: white;">
-                        <th style="padding: 1rem; text-align: left; font-weight: 700;">Description</th>
-                        <th style="padding: 1rem; text-align: center; font-weight: 700;">Qty</th>
-                        <th style="padding: 1rem; text-align: right; font-weight: 700;">Rate</th>
-                        <th style="padding: 1rem; text-align: right; font-weight: 700;">Amount</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${items.map(item => `
-                        <tr style="border-bottom: 1px solid #404040;">
-                            <td style="padding: 1rem; color: #e5e7eb;">${item.description}</td>
-                            <td style="padding: 1rem; text-align: center; color: #b0b0b0;">${item.quantity}</td>
-                            <td style="padding: 1rem; text-align: right; color: #b0b0b0;">$${item.rate.toFixed(2)}</td>
-                            <td style="padding: 1rem; text-align: right; color: #ffffff; font-weight: 600;">$${(item.quantity * item.rate).toFixed(2)}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-                <tfoot>
-                    <tr style="border-top: 2px solid #ff6b1a;">
-                        <td colspan="3" style="padding: 1rem; text-align: right; font-weight: 600; color: #b0b0b0;">Subtotal:</td>
-                        <td style="padding: 1rem; text-align: right; font-weight: 600; color: #ffffff;">$${parseFloat(invoice.subtotal || 0).toFixed(2)}</td>
-                    </tr>
-                    ${invoice.tax_rate > 0 ? `
-                    <tr>
-                        <td colspan="3" style="padding: 0.5rem 1rem; text-align: right; color: #b0b0b0;">Tax (${invoice.tax_rate}%):</td>
-                        <td style="padding: 0.5rem 1rem; text-align: right; color: #ffffff;">$${parseFloat(invoice.tax || 0).toFixed(2)}</td>
-                    </tr>
-                    ` : ''}
-                    <tr style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); color: white;">
-                        <td colspan="3" style="padding: 1.25rem 1rem; text-align: right; font-weight: 700; font-size: 1.3rem;">Total Due:</td>
-                        <td style="padding: 1.25rem 1rem; text-align: right; font-weight: 700; font-size: 1.3rem;">$${parseFloat(invoice.total).toFixed(2)}</td>
-                    </tr>
-                </tfoot>
-            </table>
-            <div style="background: #2a2a2a; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #22c55e; margin-bottom: 2rem;">
-                <p style="margin: 0; color: #e5e7eb; line-height: 1.6;">Thank you for choosing <strong style="color: #ff6b1a;">Helmick Underground</strong> for your underground utility needs!</p>
-            </div>
-        </div>
-        <div style="background: linear-gradient(135deg, #333 0%, #1a1a1a 100%); color: white; padding: 2rem; text-align: center;">
-            <h3 style="margin: 0 0 1rem 0; color: #ff6b1a; font-size: 1.2rem;">Helmick Underground</h3>
-            <p style="margin: 0.5rem 0; color: #ccc; font-size: 0.95rem;">Quality Underground Utility Services Since 1988</p>
-            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #444;">
-                <p style="margin: 0.5rem 0; color: #fff;">📞 Tommy Helmick: (319) 721-9925</p>
-                <p style="margin: 0.5rem 0; color: #fff;">📧 HelmickUnderground@gmail.com</p>
-                <p style="margin: 0.5rem 0; color: #fff;">🌐 www.helmickunderground.com</p>
-            </div>
-        </div>
+                ` : ''}
+                <tr style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); color: white;">
+                    <td colspan="3" style="padding: 0.6rem 0.5rem; text-align: right; font-weight: 700; font-size: 1.1rem;">Total Due:</td>
+                    <td style="padding: 0.6rem 0.5rem; text-align: right; font-weight: 700; font-size: 1.1rem;">$${parseFloat(invoice.total).toFixed(2)}</td>
+                </tr>
+            </tfoot>
+        </table>
     </div>
     <script>
         window.onload = function() {
