@@ -308,10 +308,7 @@ async function openSendInvoiceModal(id) {
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; background: white; color: #333;">
                 <!-- Header with Logo -->
                 <div style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); padding: 2.5rem 2rem; text-align: center; border-radius: 12px 12px 0 0;">
-                    <div style="background: white; display: inline-block; padding: 0.75rem 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
-                        <h1 style="margin: 0; color: #ff6b1a; font-size: 1.5rem; font-weight: 900;">HELMICK UNDERGROUND</h1>
-                        <p style="margin: 0.25rem 0 0 0; color: #666; font-size: 0.85rem; font-weight: 600;">SINCE 1988</p>
-                    </div>
+                    <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground Logo" style="max-width: 250px; height: auto; margin-bottom: 1rem;">
                     <h2 style="color: white; margin: 1rem 0 0 0; font-size: 1.8rem; font-weight: 700;">INVOICE</h2>
                 </div>
 
@@ -321,9 +318,8 @@ async function openSendInvoiceModal(id) {
                         <div>
                             <h3 style="color: #ff6b1a; margin: 0 0 0.75rem 0; font-size: 1rem;">From:</h3>
                             <p style="margin: 0; line-height: 1.6; color: #333; font-weight: 600;">Helmick Underground</p>
-                            <p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">Tommy Helmick</p>
-                            <p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">1234 Main Street</p>
-                            <p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">Cedar Rapids, IA 52404</p>
+                            <p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">498 Elbow Creek Rd</p>
+                            <p style="margin: 0.25rem 0; line-height: 1.6; color: #666;">Mount Vernon, IA 52314</p>
                         </div>
                         <div>
                             <h3 style="color: #ff6b1a; margin: 0 0 0.75rem 0; font-size: 1rem;">Bill To:</h3>
