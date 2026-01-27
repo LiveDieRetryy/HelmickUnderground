@@ -15,7 +15,7 @@ async function loadAppointments() {
         
         const allSubmissions = await response.json();
         scheduledAppointments = allSubmissions.filter(s => 
-            s.status === 'scheduled' && s.scheduled_date
+            (s.status === 'scheduled' || s.status === 'accepted') && s.scheduled_date
         );
         
         renderCalendar();
