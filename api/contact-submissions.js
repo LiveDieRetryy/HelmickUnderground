@@ -56,14 +56,130 @@ module.exports = async function handler(req, res) {
         `;
 
         if (req.method === 'POST') {
-            const { name, email, phone, services, message, timestamp } = req.body;
+            const { name, email, phone, services, message, timestamp, honeypot, recaptchaToken } = req.body;
             
             // Get client IP
             const ip = req.headers['x-forwarded-for']?.split(',')[0] || 
                       req.headers['x-real-ip'] || 
                       'unknown';
             
-            // Insert new submission
+            // Server-side spam detection
+            let isSpam = false;
+            let spamReasons = [];
+            
+            // Verify reCAPTCHA token
+            if (recaptchaToken) {
+                try {
+                    const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
+                    if (recaptchaSecret) {
+                        const verifyResponse = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: `secret=${recaptchaSecret}&response=${recaptchaToken}&remoteip=${ip}`
+                        });
+                        
+                        const verifyData = await verifyResponse.json();
+                        
+                        if (!verifyData.success) {
+                            isSpam = true;
+                            spamReasons.push('recaptcha_failed');
+                            console.log('reCAPTCHA verification failed:', verifyData['error-codes']);
+                        }
+                    }
+                } catch (err) {
+                    console.error('reCAPTCHA verification error:', err);
+                    // Don't mark as spam on verification error, just log it
+                }
+            } else {
+                // No reCAPTCHA token provided
+                isSpam = true;
+                spamReasons.push('no_recaptcha_token');
+            }
+            
+            // Check honeypot
+            if (honeypot && honeypot.trim() !== '') {
+                isSpam = true;
+                spamReasons.push('honeypot_filled');
+            }
+            
+            // Check for suspicious patterns in name
+            if (name) {
+                // Check for random character strings (like "CbNaPyWmMBgOWIWOrU")
+                const hasRandomPattern = /^[A-Z][a-z][A-Z][a-z][A-Z]/i.test(name) && name.length > 10;
+                const hasNoSpaces = !name.includes(' ') && name.length > 15;
+                const hasRepeatingPattern = /([A-Z][a-z]){5,}/i.test(name);
+                
+                if (hasRandomPattern || hasNoSpaces || hasRepeatingPattern) {
+                    isSpam = true;
+                    spamReasons.push('suspicious_name_pattern');
+                }
+            }
+            
+            // Check for suspicious email patterns
+            if (email) {
+                const suspiciousEmailPatterns = [
+                    /\.\w\.\w\.\w\.\w\./,  // Multiple single chars with dots: a.b.c.d.e
+                    /[a-z]\.[a-z]\.[a-z]\.[a-z]@/i,  // Pattern like: a.b.c.d@
+                    /\d{5,}@/,  // 5+ consecutive numbers before @
+                ];
+                
+                for (const pattern of suspiciousEmailPatterns) {
+                    if (pattern.test(email)) {
+                        isSpam = true;
+                        spamReasons.push('suspicious_email_pattern');
+                        break;
+                    }
+                }
+            }
+            
+            // Check for gibberish in message
+            if (message) {
+                const hasGibberish = /^[A-Z][a-z]{2}[A-Z][a-z]{2}[A-Z]/i.test(message) && message.length < 50;
+                if (hasGibberish) {
+                    isSpam = true;
+                    spamReasons.push('gibberish_message');
+                }
+            }
+            
+            // Rate limiting: Check for multiple submissions from same IP
+            try {
+                const recentSubmissions = await sql`
+                    SELECT COUNT(*) as count 
+                    FROM contact_submissions 
+                    WHERE ip = ${ip} 
+                    AND timestamp > NOW() - INTERVAL '1 hour'
+                `;
+                
+                const submissionCount = parseInt(recentSubmissions.rows[0]?.count || 0);
+                
+                if (submissionCount >= 3) {
+                    isSpam = true;
+                    spamReasons.push('rate_limit_exceeded');
+                }
+            } catch (err) {
+                console.error('Rate limit check error:', err);
+            }
+            
+            // If spam is detected, log it but return success to fool bots
+            if (isSpam) {
+                console.log('Spam submission blocked:', {
+                    ip,
+                    name,
+                    email,
+                    reasons: spamReasons
+                });
+                
+                // Still insert as spam for admin review with special status
+                await sql`
+                    INSERT INTO contact_submissions (name, email, phone, services, message, ip, timestamp, status, notes)
+                    VALUES (${name}, ${email}, ${phone || null}, ${services || []}, ${message}, ${ip}, ${timestamp || new Date().toISOString()}, 'spam', ${`[SPAM] ${spamReasons.join(', ')}`})
+                `;
+                
+                // Return success to fool bots
+                return res.status(200).json({ success: true, id: 0 });
+            }
+            
+            // Insert legitimate submission
             const result = await sql`
                 INSERT INTO contact_submissions (name, email, phone, services, message, ip, timestamp, status)
                 VALUES (${name}, ${email}, ${phone || null}, ${services || []}, ${message}, ${ip}, ${timestamp || new Date().toISOString()}, 'unread')
@@ -119,6 +235,7 @@ module.exports = async function handler(req, res) {
                         SUM(CASE WHEN status = 'invoiced' THEN 1 ELSE 0 END) as invoiced,
                         SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
                         SUM(CASE WHEN status = 'declined' THEN 1 ELSE 0 END) as declined,
+                        SUM(CASE WHEN status = 'spam' THEN 1 ELSE 0 END) as spam,
                         SUM(CASE WHEN DATE(timestamp) = CURRENT_DATE THEN 1 ELSE 0 END) as today
                     FROM contact_submissions
                 `;
@@ -135,6 +252,7 @@ module.exports = async function handler(req, res) {
                     invoiced: parseInt(stats.rows[0].invoiced) || 0,
                     completed: parseInt(stats.rows[0].completed) || 0,
                     declined: parseInt(stats.rows[0].declined) || 0,
+                    spam: parseInt(stats.rows[0].spam) || 0,
                     today: parseInt(stats.rows[0].today) || 0
                 });
             }
@@ -151,7 +269,7 @@ module.exports = async function handler(req, res) {
             
             if (action === 'updateStatus' && id) {
                 const { status, scheduled_date } = req.query;
-                const validStatuses = ['unread', 'read', 'acknowledged', 'contacted', 'scheduled', 'quoted', 'accepted', 'invoiced', 'completed', 'declined'];
+                const validStatuses = ['unread', 'read', 'acknowledged', 'contacted', 'scheduled', 'quoted', 'accepted', 'invoiced', 'completed', 'declined', 'spam'];
                 
                 if (!validStatuses.includes(status)) {
                     return res.status(400).json({ error: 'Invalid status' });
@@ -197,7 +315,7 @@ module.exports = async function handler(req, res) {
                 return res.status(400).json({ error: 'ID is required' });
             }
             
-            const validStatuses = ['unread', 'read', 'acknowledged', 'contacted', 'scheduled', 'quoted', 'accepted', 'invoiced', 'completed', 'declined'];
+            const validStatuses = ['unread', 'read', 'acknowledged', 'contacted', 'scheduled', 'quoted', 'accepted', 'invoiced', 'completed', 'declined', 'spam'];
             
             if (status && !validStatuses.includes(status)) {
                 return res.status(400).json({ error: 'Invalid status' });

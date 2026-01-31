@@ -14,6 +14,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
     
+    <!-- Google reCAPTCHA -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    
     <!-- ContactPage Schema -->
     <script type="application/ld+json">
     {
@@ -114,6 +117,10 @@
                     <input type="hidden" name="subject" value="New Quote Request - Helmick Underground">
                     <input type="hidden" name="from_name" value="Helmick Underground Website">
                     
+                    <!-- Honeypot field - hidden from real users, but bots will fill it -->
+                    <input type="text" name="website" id="website" style="position: absolute; left: -9999px; width: 1px; height: 1px;" tabindex="-1" autocomplete="off" aria-hidden="true">
+                    <input type="hidden" name="form_timestamp" id="form_timestamp">
+                    
                     <div class="form-row">
                         <div class="form-group">
                             <label for="name">Name *</label>
@@ -179,6 +186,12 @@
                         <label for="message">Project Details *</label>
                         <textarea id="message" name="message" rows="4" required></textarea>
                     </div>
+                    
+                    <!-- reCAPTCHA Widget - Replace YOUR_SITE_KEY with your actual key -->
+                    <div class="form-group" style="display: flex; justify-content: center; margin: 1.5rem 0;">
+                        <div class="g-recaptcha" data-sitekey="YOUR_SITE_KEY_HERE"></div>
+                    </div>
+                    
                     <button type="submit" class="btn btn-primary">Send Message</button>
                 </form>
                 <div id="formMessage" class="form-message"></div>

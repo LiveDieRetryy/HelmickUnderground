@@ -87,6 +87,7 @@ function updateFilterCounts(stats) {
     const invoicedCount = stats.invoiced || 0;
     const completedCount = stats.completed || 0;
     const declinedCount = (stats.declined || 0);
+    const spamCount = (stats.spam || 0);
     const todayCount = stats.today || 0;
     
     // Update select options with counts
@@ -102,6 +103,13 @@ function updateFilterCounts(stats) {
     select.options[8].text = `📄 Invoiced (${invoicedCount})`;
     select.options[9].text = `✅ Completed (${completedCount})`;
     select.options[10].text = `❌ Declined (${declinedCount})`;
+    select.options[11].text = `🚫 Spam (${spamCount})`;
+    
+    // Show/hide delete all spam button
+    const deleteSpamBtn = document.getElementById('deleteAllSpamBtn');
+    if (deleteSpamBtn) {
+        deleteSpamBtn.style.display = spamCount > 0 ? 'block' : 'none';
+    }
     
     // Update today count
     document.getElementById('todayCount').innerHTML = `Today: <strong style="color: var(--primary-color);">${todayCount}</strong>`;
@@ -164,6 +172,7 @@ function renderSubmissions() {
                         <option value="invoiced" ${sub.status === 'invoiced' ? 'selected' : ''}>📄 Invoiced</option>
                         <option value="completed" ${sub.status === 'completed' ? 'selected' : ''}>✅ Completed</option>
                         <option value="declined" ${sub.status === 'declined' ? 'selected' : ''}>❌ Declined</option>
+                        <option value="spam" ${sub.status === 'spam' ? 'selected' : ''}>🚫 Spam</option>
                     </select>
                 </div>
                 <div class="submission-info">
@@ -236,6 +245,7 @@ async function viewSubmission(id) {
                 <option value="invoiced" ${sub.status === 'invoiced' ? 'selected' : ''}>📄 Invoiced</option>
                 <option value="completed" ${sub.status === 'completed' ? 'selected' : ''}>✅ Completed</option>
                 <option value="declined" ${sub.status === 'declined' ? 'selected' : ''}>❌ Declined</option>
+                <option value="spam" ${sub.status === 'spam' ? 'selected' : ''}>🚫 Spam</option>
             </select>
         </div>
         <div class="detail-section">
@@ -427,6 +437,35 @@ async function deleteSubmission(id) {
     } catch (error) {
         console.error('Error deleting:', error);
         showNotification('Failed to delete submission', 'error');
+    }
+}
+
+// Delete all spam submissions
+async function deleteAllSpam() {
+    const spamSubmissions = allSubmissions.filter(sub => sub.status === 'spam');
+    
+    if (spamSubmissions.length === 0) {
+        alert('No spam submissions to delete.');
+        return;
+    }
+    
+    if (!confirm(`Are you sure you want to delete all ${spamSubmissions.length} spam submission(s)? This cannot be undone.`)) {
+        return;
+    }
+
+    try {
+        // Delete all spam submissions
+        const deletePromises = spamSubmissions.map(sub => 
+            fetch(`/api/contact-submissions?action=delete&id=${sub.id}`)
+        );
+        
+        await Promise.all(deletePromises);
+        
+        alert(`Successfully deleted ${spamSubmissions.length} spam submission(s).`);
+        loadData(); // Refresh
+    } catch (error) {
+        console.error('Error deleting spam:', error);
+        alert('Failed to delete some spam submissions. Please try again.');
     }
 }
 

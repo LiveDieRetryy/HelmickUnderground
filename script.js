@@ -75,6 +75,13 @@ window.addEventListener('scroll', () => {
 const contactForm = document.getElementById('contactForm');
 
 if (contactForm) {
+    // Set form load timestamp for spam detection
+    const formLoadTime = Date.now();
+    const timestampField = document.getElementById('form_timestamp');
+    if (timestampField) {
+        timestampField.value = formLoadTime.toString();
+    }
+    
     contactForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -89,6 +96,56 @@ if (contactForm) {
         // Get form data
         const formData = new FormData(contactForm);
         
+        // Anti-spam checks
+        const honeypot = formData.get('website');
+        const formTimestamp = formData.get('form_timestamp');
+        const submitTime = Date.now();
+        const timeDiff = formTimestamp ? (submitTime - parseInt(formTimestamp)) / 1000 : 0;
+        
+        // Check reCAPTCHA
+        const recaptchaResponse = grecaptcha.getResponse();
+        if (!recaptchaResponse) {
+            formMessage.innerHTML = `
+                <div style="background: rgba(220, 38, 38, 0.2); border: 2px solid #dc2626; color: #ff6b6b; padding: 1.5rem; border-radius: 12px; margin-top: 1.5rem; text-align: center;">
+                    <strong>✗ Please complete the reCAPTCHA</strong><br>
+                    Verify that you're not a robot.
+                </div>
+            `;
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalBtnText;
+            return;
+        }
+        
+        // Check honeypot - if filled, it's a bot
+        if (honeypot && honeypot.trim() !== '') {
+            console.log('Spam detected: honeypot filled');
+            // Fake success to fool bots
+            formMessage.innerHTML = `
+                <div style="background: rgba(34, 197, 94, 0.2); border: 2px solid #22c55e; color: #22c55e; padding: 1.5rem; border-radius: 12px; margin-top: 1.5rem; text-align: center;">
+                    <strong>✓ Message Sent Successfully!</strong><br>
+                    We'll get back to you soon.
+                </div>
+            `;
+            contactForm.reset();
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalBtnText;
+            return;
+        }
+        
+        // Check if form was submitted too quickly (less than 3 seconds = likely bot)
+        if (timeDiff > 0 && timeDiff < 3) {
+            console.log('Spam detected: submitted too quickly');
+            formMessage.innerHTML = `
+                <div style="background: rgba(220, 38, 38, 0.2); border: 2px solid #dc2626; color: #ff6b6b; padding: 1.5rem; border-radius: 12px; margin-top: 1.5rem; text-align: center;">
+                    <strong>✗ Please take a moment to review your information</strong><br>
+                    The form was submitted too quickly.
+                </div>
+            `;
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalBtnText;
+            return;
+        }
+        
         // Prepare data for our API
         const servicesSelected = Array.from(formData.getAll('services'));
         const submissionData = {
@@ -97,7 +154,9 @@ if (contactForm) {
             phone: formData.get('phone'),
             services: servicesSelected,
             message: formData.get('message'),
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            honeypot: honeypot, // Send to server for logging
+            recaptchaToken: recaptchaResponse
         };
         
         try {
