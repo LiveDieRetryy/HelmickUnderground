@@ -132,8 +132,8 @@ if (contactForm) {
             return;
         }
         
-        // Check if form was submitted too quickly (less than 3 seconds = likely bot)
-        if (timeDiff > 0 && timeDiff < 3) {
+        // Check if form was submitted too quickly (less than 2 seconds = likely bot)
+        if (timeDiff > 0 && timeDiff < 2) {
             console.log('Spam detected: submitted too quickly');
             formMessage.innerHTML = `
                 <div style="background: rgba(220, 38, 38, 0.2); border: 2px solid #dc2626; color: #ff6b6b; padding: 1.5rem; border-radius: 12px; margin-top: 1.5rem; text-align: center;">
@@ -160,11 +160,26 @@ if (contactForm) {
         };
         
         try {
+            // Create clean FormData for Web3Forms (without spam protection fields)
+            const web3FormData = new FormData();
+            web3FormData.append('access_key', formData.get('access_key'));
+            web3FormData.append('subject', formData.get('subject'));
+            web3FormData.append('from_name', formData.get('from_name'));
+            web3FormData.append('name', formData.get('name'));
+            web3FormData.append('email', formData.get('email'));
+            web3FormData.append('phone', formData.get('phone'));
+            web3FormData.append('message', formData.get('message'));
+            // Add services as comma-separated string
+            const services = Array.from(formData.getAll('services')).join(', ');
+            if (services) {
+                web3FormData.append('services', services);
+            }
+            
             // Send to both Web3Forms (for email) and our API (for admin inbox)
             const [web3Response, apiResponse] = await Promise.all([
                 fetch('https://api.web3forms.com/submit', {
                     method: 'POST',
-                    body: formData
+                    body: web3FormData
                 }),
                 fetch('/api/contact-submissions', {
                     method: 'POST',
