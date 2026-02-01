@@ -67,34 +67,33 @@ module.exports = async function handler(req, res) {
             let isSpam = false;
             let spamReasons = [];
             
-            // Verify reCAPTCHA token
-            if (recaptchaToken) {
+            // Verify reCAPTCHA token (only if secret key is configured)
+            const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
+            if (recaptchaToken && recaptchaSecret) {
                 try {
-                    const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
-                    if (recaptchaSecret) {
-                        const verifyResponse = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                            body: `secret=${recaptchaSecret}&response=${recaptchaToken}&remoteip=${ip}`
-                        });
-                        
-                        const verifyData = await verifyResponse.json();
-                        
-                        if (!verifyData.success) {
-                            isSpam = true;
-                            spamReasons.push('recaptcha_failed');
-                            console.log('reCAPTCHA verification failed:', verifyData['error-codes']);
-                        }
+                    const verifyResponse = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `secret=${recaptchaSecret}&response=${recaptchaToken}&remoteip=${ip}`
+                    });
+                    
+                    const verifyData = await verifyResponse.json();
+                    
+                    if (!verifyData.success) {
+                        isSpam = true;
+                        spamReasons.push('recaptcha_failed');
+                        console.log('reCAPTCHA verification failed:', verifyData['error-codes']);
                     }
                 } catch (err) {
                     console.error('reCAPTCHA verification error:', err);
                     // Don't mark as spam on verification error, just log it
                 }
-            } else {
-                // No reCAPTCHA token provided
+            } else if (!recaptchaToken) {
+                // No reCAPTCHA token provided - mark as spam
                 isSpam = true;
                 spamReasons.push('no_recaptcha_token');
             }
+            // If no secret key configured, skip server-side verification (rely on client-side only)
             
             // Check honeypot
             if (honeypot && honeypot.trim() !== '') {
