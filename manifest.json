@@ -1,0 +1,17 @@
+{
+  "name": "Helmick Underground LLC",
+  "short_name": "Helmick Underground",
+  "description": "Professional underground utility contractor serving Eastern Iowa since 1988",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#ff6b1a",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
