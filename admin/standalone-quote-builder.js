@@ -90,16 +90,12 @@ function showCategory(category) {
         return;
     }
     
-    container.innerHTML = `
-        <div class="rates-grid">
-            ${categoryRates.map(rate => `
-                <button class="rate-button" onclick="addLineItem('${rate.id}', '${rate.name.replace(/'/g, "\\'")}', ${rate.rate})">
-                    <span class="rate-name">${rate.name}</span>
-                    <span class="rate-price">$${rate.rate.toFixed(2)}</span>
-                </button>
-            `).join('')}
-        </div>
-    `;
+    container.innerHTML = categoryRates.map(rate => `
+        <button class="rate-button" onclick="addLineItem('${rate.id}', '${rate.name.replace(/'/g, "\\'")}', ${rate.rate})">
+            <span class="rate-name">${rate.name}</span>
+            <span class="rate-price">$${rate.rate.toFixed(2)}</span>
+        </button>
+    `).join('');
 }
 
 function renderCustomForm() {
