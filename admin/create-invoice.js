@@ -110,13 +110,18 @@ function loadProfiles() {
     const saved = localStorage.getItem('customers');
     const customers = saved ? JSON.parse(saved) : [];
     
-    // Convert customers to profile format (only those with custom line items)
-    companyProfiles = customers
-        .filter(customer => customer.customLineItems && customer.customLineItems.length > 0)
-        .map(customer => ({
-            name: customer.name,
-            lineItems: customer.customLineItems
-        }));
+    // Convert all customers to profile format
+    companyProfiles = customers.map(customer => ({
+        name: customer.name,
+        email: customer.email,
+        phone: customer.phone,
+        address: customer.address,
+        city: customer.city,
+        state: customer.state,
+        zip: customer.zip,
+        contactPerson: customer.contactPerson,
+        lineItems: customer.customLineItems || []
+    }));
     
     updateProfileDropdown();
 }
@@ -125,7 +130,7 @@ function loadProfiles() {
 function updateProfileDropdown() {
     const select = document.getElementById('companyProfile');
     if (companyProfiles.length === 0) {
-        select.innerHTML = '<option value="">-- No customers with custom line items --</option>';
+        select.innerHTML = '<option value="">-- No customers found --</option>';
     } else {
         select.innerHTML = '<option value="">-- Select a customer --</option>' +
             companyProfiles.map((profile, index) => 
@@ -247,16 +252,11 @@ function loadCompanyProfile() {
     const index = select.value;
     
     if (index === '') {
-        // If no profile selected, show rates section again
-        document.querySelector('.rate-selector').style.display = 'block';
         return;
     }
     
     const profile = companyProfiles[index];
     if (!profile) return;
-    
-    // Hide the rates section when a company profile is loaded
-    document.querySelector('.rate-selector').style.display = 'none';
     
     // Populate customer information fields
     document.getElementById('customerName').value = profile.name || '';
@@ -272,17 +272,22 @@ function loadCompanyProfile() {
     
     document.getElementById('customerAddress').value = addressParts.join('\n');
     
-    // Clear existing line items
-    document.getElementById('lineItemsContainer').innerHTML = '';
-    lineItemCounter = 0;
-    
-    // Add profile's line items with new structure (code, description, price)
+    // If customer has custom line items, add them
     if (profile.lineItems && profile.lineItems.length > 0) {
+        // Clear existing line items
+        document.getElementById('lineItemsContainer').innerHTML = '';
+        lineItemCounter = 0;
+        
         profile.lineItems.forEach(item => {
-            // Use code + description as the full description
-            const fullDescription = item.code ? `${item.code} - ${item.description}` : item.description;
-            addLineItem(fullDescription, 1, item.price || item.rate || 0);
+            const description = item.description || item.name || '';
+            const rate = item.rate || item.price || 0;
+            addLineItem(description, 1, rate);
         });
+        
+        showNotification(`Loaded ${profile.name} with ${profile.lineItems.length} custom line items`, 'success');
+    } else {
+        showNotification(`Customer information loaded for ${profile.name}`, 'success');
+    }
     }
 }
 
