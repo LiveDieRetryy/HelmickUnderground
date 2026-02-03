@@ -268,8 +268,6 @@ function createInvoiceForCustomer(index) {
         zip: customer.zip,
         customLineItems: customer.customLineItems || []
     }));
-        zip: customer.zip
-    }));
     
     // Redirect to invoice creation page
     window.location.href = 'create-invoice.html';
