@@ -60,6 +60,32 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
+// Populate customer information from customer database
+function populateCustomerInfo(customer) {
+    // Fill in all customer fields
+    if (customer.name) {
+        document.getElementById('customerName').value = customer.name;
+    }
+    if (customer.contactPerson) {
+        // Create a combined name with contact person
+        const currentName = document.getElementById('customerName').value;
+        document.getElementById('customerName').value = currentName + (customer.contactPerson ? ` - Attn: ${customer.contactPerson}` : '');
+    }
+    if (customer.phone) {
+        document.getElementById('customerPhone').value = customer.phone;
+    }
+    if (customer.email) {
+        document.getElementById('customerEmail').value = customer.email;
+    }
+    if (customer.address) {
+        const fullAddress = `${customer.address}, ${customer.city}, ${customer.state} ${customer.zip}`;
+        document.getElementById('customerAddress').value = fullAddress;
+    }
+    
+    // Show success notification
+    showNotification(`Customer information loaded for ${customer.name}`, 'success');
+}
+
 // Load company profiles from localStorage
 function loadProfiles() {
     const saved = localStorage.getItem('companyProfiles');
@@ -606,6 +632,18 @@ async function init() {
     await generateInvoiceNumber();
     await loadRates();
     loadProfiles();
+    
+    // Check if coming from customer database
+    const customerData = sessionStorage.getItem('invoiceCustomer');
+    if (customerData) {
+        try {
+            const customer = JSON.parse(customerData);
+            populateCustomerInfo(customer);
+            sessionStorage.removeItem('invoiceCustomer'); // Clear after loading
+        } catch (error) {
+            console.error('Error loading customer data:', error);
+        }
+    }
     
     // Check if coming from accepted quote
     const urlParams = new URLSearchParams(window.location.search);
