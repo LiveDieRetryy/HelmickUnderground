@@ -200,6 +200,11 @@ function openAddCustomerModal() {
     document.getElementById('modalTitle').textContent = 'Add Customer';
     document.getElementById('customerForm').reset();
     document.getElementById('customerState').value = 'IA'; // Default to Iowa
+    
+    // Clear line items table
+    const tableBody = document.getElementById('customLineItemsTable');
+    tableBody.innerHTML = '<tr><td colspan="3" style="padding: 2rem; text-align: center; color: var(--gray);">No custom line items added yet</td></tr>';
+    
     document.getElementById('customerModal').style.display = 'block';
 }
 
@@ -221,14 +226,16 @@ function editCustomer(index) {
     document.getElementById('preferredContact').value = customer.preferredContact || 'phone';
     document.getElementById('customerNotes').value = customer.notes || '';
     
-    // Populate custom line items
+    // Populate custom line items table
+    const tableBody = document.getElementById('customLineItemsTable');
+    tableBody.innerHTML = '';
+    
     if (customer.customLineItems && customer.customLineItems.length > 0) {
-        const lineItemsText = customer.customLineItems
-            .map(item => `${item.description} - ${item.rate}`)
-            .join('\n');
-        document.getElementById('customLineItems').value = lineItemsText;
+        customer.customLineItems.forEach(item => {
+            addCustomLineItemRow(item.description, item.rate);
+        });
     } else {
-        document.getElementById('customLineItems').value = '';
+        tableBody.innerHTML = '<tr><td colspan="3" style="padding: 2rem; text-align: center; color: var(--gray);">No custom line items added yet</td></tr>';
     }
     
     document.getElementById('customerModal').style.display = 'block';
@@ -277,24 +284,23 @@ function createInvoiceForCustomer(index) {
 document.getElementById('customerForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    // Parse custom line items
-    const lineItemsText = document.getElementById('customLineItems').value.trim();
+    // Parse custom line items from table
     const customLineItems = [];
+    const rows = document.querySelectorAll('#customLineItemsTable tr');
     
-    if (lineItemsText) {
-        const lines = lineItemsText.split('\n').filter(line => line.trim());
-        for (const line of lines) {
-            const parts = line.split('-').map(p => p.trim());
-            if (parts.length === 2) {
-                const description = parts[0];
-                const rate = parseFloat(parts[1]);
-                
-                if (description && !isNaN(rate)) {
-                    customLineItems.push({ description, rate });
-                }
+    rows.forEach(row => {
+        const descInput = row.querySelector('.line-item-input:not(.line-item-rate)');
+        const rateInput = row.querySelector('.line-item-rate');
+        
+        if (descInput && rateInput) {
+            const description = descInput.value.trim();
+            const rate = parseFloat(rateInput.value);
+            
+            if (description && !isNaN(rate) && rate > 0) {
+                customLineItems.push({ description, rate });
             }
         }
-    }
+    });
     
     const customerData = {
         type: document.getElementById('customerType').value,
@@ -393,6 +399,46 @@ window.addEventListener('click', function(e) {
         closeCustomerModal();
     }
 });
+
+// Add a new line item row to the table
+function addCustomLineItemRow(description = '', rate = '') {
+    const tableBody = document.getElementById('customLineItemsTable');
+    
+    // Remove empty state message if present
+    if (tableBody.querySelector('td[colspan="3"]')) {
+        tableBody.innerHTML = '';
+    }
+    
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td style="padding: 0.75rem;">
+            <input type="text" class="line-item-input" placeholder="Enter description..." value="${description}" required>
+        </td>
+        <td style="padding: 0.75rem;">
+            <input type="number" class="line-item-input line-item-rate" placeholder="0.00" step="0.01" min="0" value="${rate}" required>
+        </td>
+        <td style="padding: 0.75rem; text-align: center;">
+            <button type="button" class="delete-line-item-btn" onclick="removeCustomLineItemRow(this)">
+                🗑️ Delete
+            </button>
+        </td>
+    `;
+    
+    tableBody.appendChild(row);
+}
+
+// Remove a line item row from the table
+function removeCustomLineItemRow(btn) {
+    const row = btn.closest('tr');
+    const tableBody = document.getElementById('customLineItemsTable');
+    
+    row.remove();
+    
+    // If no rows left, show empty state
+    if (tableBody.querySelectorAll('tr').length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="3" style="padding: 2rem; text-align: center; color: var(--gray);">No custom line items added yet</td></tr>';
+    }
+}
 
 // Initialize on page load
 loadCustomers();

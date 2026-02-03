@@ -71,10 +71,13 @@ function showCategory(category) {
     currentCategory = category;
     
     // Update tab styling
-    document.querySelectorAll('.category-tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    event.target.classList.add('active');
+    const tabs = document.querySelectorAll('.category-tab');
+    tabs.forEach(tab => tab.classList.remove('active'));
+    
+    if (category === 'baseRates') tabs[0].classList.add('active');
+    else if (category === 'customWork') tabs[1].classList.add('active');
+    else if (category === 'additionalItems') tabs[2].classList.add('active');
+    else if (category === 'custom') tabs[3].classList.add('active');
     
     const container = document.getElementById('ratesContainer');
     
