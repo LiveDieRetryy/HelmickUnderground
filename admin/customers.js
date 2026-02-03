@@ -6,6 +6,160 @@ if (!sessionStorage.getItem('adminLoggedIn')) {
 let customers = [];
 let currentEditingIndex = null;
 
+// Notification system
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: ${type === 'success' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : type === 'info' ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        z-index: 100000;
+        animation: slideIn 0.3s ease-out;
+    `;
+    
+    notification.textContent = message;
+    
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    `;
+    if (!document.querySelector('style[data-notification]')) {
+        style.setAttribute('data-notification', 'true');
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+    }, 4000);
+}
+
+// Import customers from existing invoices
+async function importFromInvoices() {
+    if (!confirm('This will import unique customers from your existing invoices. Duplicate names will be skipped. Continue?')) {
+        return;
+    }
+    
+    try {
+        showNotification('Importing customers from invoices...', 'info');
+        
+        const response = await fetch('/api/invoices?action=all');
+        if (!response.ok) throw new Error('Failed to load invoices');
+        
+        const data = await response.json();
+        const invoices = data.invoices || [];
+        
+        let importedCount = 0;
+        let skippedCount = 0;
+        
+        invoices.forEach(invoice => {
+            // Check if customer already exists
+            const exists = customers.some(c => 
+                c.name.toLowerCase() === invoice.customer_name.toLowerCase()
+            );
+            
+            if (!exists && invoice.customer_name) {
+                // Parse address if it exists
+                let address = '', city = '', state = '', zip = '';
+                if (invoice.customer_address) {
+                    const addressParts = invoice.customer_address.split(',');
+                    address = addressParts[0]?.trim() || '';
+                    if (addressParts.length > 1) {
+                        const cityStateParts = addressParts[1]?.trim().split(' ');
+                        city = cityStateParts.slice(0, -2).join(' ') || '';
+                        state = cityStateParts[cityStateParts.length - 2] || '';
+                        zip = cityStateParts[cityStateParts.length - 1] || '';
+                    }
+                }
+                
+                // Determine customer type based on name patterns
+                let type = 'residential';
+                const nameLower = invoice.customer_name.toLowerCase();
+                if (nameLower.includes('llc') || nameLower.includes('inc') || nameLower.includes('corp') || nameLower.includes('company')) {
+                    type = 'commercial';
+                } else if (nameLower.includes('city') || nameLower.includes('county') || nameLower.includes('township')) {
+                    type = 'municipal';
+                } else if (nameLower.includes('construction') || nameLower.includes('contractor') || nameLower.includes('builders')) {
+                    type = 'contractor';
+                }
+                
+                customers.push({
+                    type: type,
+                    name: invoice.customer_name,
+                    contactPerson: '',
+                    phone: invoice.customer_phone || '',
+                    email: invoice.customer_email || '',
+                    address: address,
+                    city: city,
+                    state: state,
+                    zip: zip,
+                    preferredContact: invoice.customer_email ? 'email' : (invoice.customer_phone ? 'phone' : 'phone'),
+                    notes: 'Imported from invoice records',
+                    totalJobs: 1,
+                    lastJob: invoice.invoice_date || new Date().toISOString().split('T')[0],
+                    created: new Date().toISOString()
+                });
+                
+                importedCount++;
+            } else if (invoice.customer_name) {
+                // Update job count for existing customer
+                const existingCustomer = customers.find(c => 
+                    c.name.toLowerCase() === invoice.customer_name.toLowerCase()
+                );
+                if (existingCustomer) {
+                    existingCustomer.totalJobs = (existingCustomer.totalJobs || 0) + 1;
+                    const invoiceDate = new Date(invoice.invoice_date);
+                    const lastJobDate = new Date(existingCustomer.lastJob);
+                    if (invoiceDate > lastJobDate) {
+                        existingCustomer.lastJob = invoice.invoice_date;
+                    }
+                }
+                skippedCount++;
+            }
+        });
+        
+        if (importedCount > 0) {
+            saveCustomers();
+            loadCustomers();
+            showNotification(`Successfully imported ${importedCount} new customers! (${skippedCount} duplicates skipped)`, 'success');
+        } else {
+            showNotification('No new customers to import. All invoice customers already exist.', 'info');
+        }
+        
+    } catch (error) {
+        console.error('Error importing customers:', error);
+        showNotification('Failed to import customers from invoices.', 'error');
+    }
+}
+
 // Load customers from localStorage
 function loadCustomers() {
     const saved = localStorage.getItem('customers');
