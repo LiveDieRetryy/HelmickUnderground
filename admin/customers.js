@@ -299,6 +299,16 @@ function editCustomer(index) {
     document.getElementById('preferredContact').value = customer.preferredContact || 'phone';
     document.getElementById('customerNotes').value = customer.notes || '';
     
+    // Populate custom line items
+    if (customer.customLineItems && customer.customLineItems.length > 0) {
+        const lineItemsText = customer.customLineItems
+            .map(item => `${item.description} - ${item.rate}`)
+            .join('\n');
+        document.getElementById('customLineItems').value = lineItemsText;
+    } else {
+        document.getElementById('customLineItems').value = '';
+    }
+    
     document.getElementById('customerModal').style.display = 'block';
 }
 
@@ -333,6 +343,9 @@ function createInvoiceForCustomer(index) {
         address: customer.address,
         city: customer.city,
         state: customer.state,
+        zip: customer.zip,
+        customLineItems: customer.customLineItems || []
+    }));
         zip: customer.zip
     }));
     
@@ -343,6 +356,25 @@ function createInvoiceForCustomer(index) {
 // Handle form submission
 document.getElementById('customerForm').addEventListener('submit', function(e) {
     e.preventDefault();
+    
+    // Parse custom line items
+    const lineItemsText = document.getElementById('customLineItems').value.trim();
+    const customLineItems = [];
+    
+    if (lineItemsText) {
+        const lines = lineItemsText.split('\n').filter(line => line.trim());
+        for (const line of lines) {
+            const parts = line.split('-').map(p => p.trim());
+            if (parts.length === 2) {
+                const description = parts[0];
+                const rate = parseFloat(parts[1]);
+                
+                if (description && !isNaN(rate)) {
+                    customLineItems.push({ description, rate });
+                }
+            }
+        }
+    }
     
     const customerData = {
         type: document.getElementById('customerType').value,
@@ -356,6 +388,7 @@ document.getElementById('customerForm').addEventListener('submit', function(e) {
         zip: document.getElementById('customerZip').value.trim(),
         preferredContact: document.getElementById('preferredContact').value,
         notes: document.getElementById('customerNotes').value.trim(),
+        customLineItems: customLineItems,
         totalJobs: currentEditingIndex !== null ? customers[currentEditingIndex].totalJobs : 0,
         lastJob: currentEditingIndex !== null ? customers[currentEditingIndex].lastJob : 'Never',
         created: currentEditingIndex !== null ? customers[currentEditingIndex].created : new Date().toISOString()

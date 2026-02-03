@@ -83,8 +83,26 @@ function populateCustomerInfo(customer) {
         document.getElementById('customerAddress').value = fullAddress;
     }
     
-    // Show success notification
-    showNotification(`Customer information loaded for ${customer.name}`, 'success');
+    // Load custom line items if available
+    if (customer.customLineItems && customer.customLineItems.length > 0) {
+        // Store custom line items globally
+        window.customerCustomLineItems = customer.customLineItems;
+        
+        // Switch to custom category and render customer's custom items
+        showCategory('customerCustom');
+        
+        // Update tab to show it's customer-specific
+        const tabs = document.querySelectorAll('.category-tab');
+        if (tabs.length > 3) {
+            tabs[3].textContent = `${customer.name.split(' ')[0]}'s Rates`;
+        }
+        
+        showNotification(`Loaded ${customer.name} with ${customer.customLineItems.length} custom line items`, 'success');
+    } else {
+        // No custom items, show default base rates
+        window.customerCustomLineItems = null;
+        showNotification(`Customer information loaded for ${customer.name}`, 'success');
+    }
 }
 
 // Load company profiles from localStorage
@@ -280,6 +298,39 @@ function showCategory(category) {
     
     // Set active based on category
     const tabs = document.querySelectorAll('.category-tab');
+    if (category === 'baseRates') tabs[0].classList.add('active');
+    else if (category === 'customWork') tabs[1].classList.add('active');
+    else if (category === 'additionalItems') tabs[2].classList.add('active');
+    else if (category === 'custom' || category === 'customerCustom') tabs[3].classList.add('active');
+    
+    // Check if showing customer custom items
+    if (category === 'customerCustom' && window.customerCustomLineItems) {
+        renderCustomerLineItems();
+    } else if (category === 'custom') {
+        renderCustomForm();
+    } else {
+        renderRates();
+    }
+}
+
+// Render customer's custom line items
+function renderCustomerLineItems() {
+    const customItems = window.customerCustomLineItems || [];
+    
+    if (customItems.length === 0) {
+        document.getElementById('ratesContainer').innerHTML = `
+            <div style="text-align: center; color: var(--gray); padding: 2rem;">No custom line items for this customer</div>
+        `;
+        return;
+    }
+
+    document.getElementById('ratesContainer').innerHTML = customItems.map((item, index) => `
+        <button type="button" class="rate-button" onclick="addRateAsLineItem('${item.description.replace(/'/g, "\\'")}', ${item.rate})">
+            <span class="rate-name">${item.description}</span>
+            <span class="rate-price">$${item.rate.toFixed(2)}</span>
+        </button>
+    `).join('');
+}
     if (category === 'baseRates') tabs[0].classList.add('active');
     else if (category === 'customWork') tabs[1].classList.add('active');
     else if (category === 'additionalItems') tabs[2].classList.add('active');

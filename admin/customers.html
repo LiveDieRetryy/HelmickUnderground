@@ -484,6 +484,15 @@
                         <label>Notes</label>
                         <textarea id="customerNotes" placeholder="Special instructions, preferences, or important information..."></textarea>
                     </div>
+
+                    <div class="form-group form-group-full" style="border-top: 2px solid rgba(255, 107, 26, 0.3); padding-top: 1.5rem; margin-top: 1rem;">
+                        <label style="color: var(--primary-color); font-size: 1rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span>💰</span> Custom Line Items (Optional)
+                        </label>
+                        <p style="color: var(--gray); font-size: 0.85rem; margin: 0 0 1rem 0;">Add custom pricing codes for this customer. These will automatically appear when creating invoices.</p>
+                        <textarea id="customLineItems" placeholder="Enter one line item per line in this format:&#10;Description - Rate&#10;&#10;Example:&#10;Trenching per foot - 2.50&#10;Boring per foot - 15.00" style="min-height: 120px; font-family: 'Courier New', monospace;"></textarea>
+                        <small style="color: var(--gray); font-size: 0.8rem; margin-top: 0.5rem; display: block;">Format: Description - Rate (one per line)</small>
+                    </div>
                 </div>
 
                 <div style="display: flex; gap: 1rem; justify-content: flex-end;">
