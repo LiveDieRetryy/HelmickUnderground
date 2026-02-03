@@ -132,7 +132,7 @@ function displayCustomers(searchTerm = '') {
         const typeColor = typeColors[customer.type] || '#ff6b1a';
         
         return `
-            <div class="customer-card">
+            <div class="customer-card" onclick="viewCustomerDetails(${actualIndex})" style="cursor: pointer;">
                 <div class="customer-header">
                     <div style="flex: 1;">
                         <h3 class="customer-name">${customer.name}</h3>
@@ -140,7 +140,7 @@ function displayCustomers(searchTerm = '') {
                             ${customer.type}
                         </span>
                     </div>
-                    <div class="customer-actions">
+                    <div class="customer-actions" onclick="event.stopPropagation()">
                         <button onclick="editCustomer(${actualIndex})" class="btn-icon" title="Edit">
                             ✏️
                         </button>
@@ -440,5 +440,20 @@ function removeCustomLineItemRow(btn) {
     }
 }
 
+// View customer details page
+function viewCustomerDetails(index) {
+    window.location.href = `customer-details.html?id=${index}`;
+}
+
 // Initialize on page load
 loadCustomers();
+
+// Check if coming from customer details page with edit parameter
+const urlParams = new URLSearchParams(window.location.search);
+const editId = urlParams.get('edit');
+if (editId !== null) {
+    const index = parseInt(editId);
+    if (index >= 0 && index < customers.length) {
+        editCustomer(index);
+    }
+}

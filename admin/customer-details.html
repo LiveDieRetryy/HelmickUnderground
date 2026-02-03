@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Details - Helmick Underground Admin</title>
+    <link rel="stylesheet" href="sidebar.css">
+    <style>
+        :root {
+            --primary-color: #ff6b1a;
+            --bg-dark: #0a0a0a;
+            --card-dark: #151515;
+            --white: #ffffff;
+            --gray: #888;
+            --red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-dark);
+            color: var(--white);
+            line-height: 1.6;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 107, 26, 0.1);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 107, 26, 0.2);
+            border-color: var(--primary-color);
+            transform: translateX(-5px);
+        }
+
+        .customer-details-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .customer-header-section {
+            background: var(--card-dark);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(255, 107, 26, 0.1);
+        }
+
+        .customer-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .customer-name-section {
+            flex: 1;
+        }
+
+        .customer-name-section h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .customer-type-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #ff8c42 100%);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 26, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            color: #10b981;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #ef4444;
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-box {
+            background: rgba(255, 107, 26, 0.05);
+            border: 1px solid rgba(255, 107, 26, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .info-label {
+            color: var(--gray);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            color: var(--white);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .info-value a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .info-value a:hover {
+            text-decoration: underline;
+        }
+
+        .section-card {
+            background: var(--card-dark);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .notes-content {
+            background: rgba(255, 107, 26, 0.05);
+            border: 1px solid rgba(255, 107, 26, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            color: var(--white);
+            line-height: 1.8;
+        }
+
+        .line-items-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .line-items-table thead tr {
+            background: rgba(255, 107, 26, 0.1);
+            border-bottom: 2px solid rgba(255, 107, 26, 0.3);
+        }
+
+        .line-items-table th {
+            color: var(--white);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 700;
+        }
+
+        .line-items-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 107, 26, 0.1);
+        }
+
+        .line-items-table tbody tr:hover {
+            background: rgba(255, 107, 26, 0.05);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 107, 26, 0.1);
+            border: 2px solid rgba(255, 107, 26, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar"></div>
+
+    <div class="main-content">
+        <a href="customers.html" class="back-button">
+            ← Back to Customers
+        </a>
+
+        <div class="customer-details-container">
+            <div class="customer-header-section">
+                <div class="customer-title">
+                    <div class="customer-name-section">
+                        <h1 id="customerName">Loading...</h1>
+                        <span id="customerTypeBadge" class="customer-type-badge"></span>
+                    </div>
+                    <div class="action-buttons">
+                        <button onclick="editCustomer()" class="btn btn-primary">
+                            ✏️ Edit Customer
+                        </button>
+                        <button onclick="createInvoice()" class="btn btn-secondary">
+                            📄 Create Invoice
+                        </button>
+                        <button onclick="deleteCustomer()" class="btn btn-danger">
+                            🗑️ Delete Customer
+                        </button>
+                    </div>
+                </div>
+
+                <div class="info-grid" id="contactInfo">
+                    <!-- Contact info will be populated here -->
+                </div>
+
+                <div class="stats-grid" id="statsSection">
+                    <!-- Stats will be populated here -->
+                </div>
+            </div>
+
+            <div id="notesSection" class="section-card" style="display: none;">
+                <h2 class="section-title">📝 Notes</h2>
+                <div class="notes-content" id="notesContent"></div>
+            </div>
+
+            <div id="lineItemsSection" class="section-card" style="display: none;">
+                <h2 class="section-title">💰 Custom Line Items</h2>
+                <table class="line-items-table">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lineItemsTable">
+                        <!-- Line items will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="sidebar.js"></script>
+    <script src="customer-details.js"></script>
+</body>
+</html>
