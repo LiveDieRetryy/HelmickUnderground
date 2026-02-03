@@ -6,6 +6,7 @@ if (!sessionStorage.getItem('adminLoggedIn')) {
 let ratesData = [];
 let lineItemCounter = 0;
 let companyProfiles = [];
+let currentCategory = 'baseRates';
 
 // Notification system
 function showNotification(message, type = 'success') {
@@ -260,35 +261,123 @@ async function loadRates() {
         const response = await fetch('/rates-data.json');
         if (!response.ok) throw new Error('Failed to load rates');
         
-        const data = await response.json();
-        // Combine all rate categories
-        ratesData = [
-            ...(data.baseRates || []),
-            ...(data.customWork || []),
-            ...(data.additionalItems || [])
-        ];
-        
-        displayRateButtons();
+        ratesData = await response.json();
+        showCategory('baseRates');
     } catch (error) {
         console.error('Error loading rates:', error);
-        document.getElementById('rateButtons').innerHTML = '<div style="color: var(--red);">Failed to load rates</div>';
+        document.getElementById('ratesContainer').innerHTML = '<div style="color: var(--red); text-align: center; padding: 2rem;">Failed to load rates</div>';
     }
 }
 
-// Display rate buttons
-function displayRateButtons() {
-    const container = document.getElementById('rateButtons');
+// Show category
+function showCategory(category) {
+    currentCategory = category;
     
-    if (ratesData.length === 0) {
-        container.innerHTML = '<div style="color: var(--gray);">No rates available</div>';
+    // Update active tab
+    document.querySelectorAll('.category-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Set active based on category
+    const tabs = document.querySelectorAll('.category-tab');
+    if (category === 'baseRates') tabs[0].classList.add('active');
+    else if (category === 'customWork') tabs[1].classList.add('active');
+    else if (category === 'additionalItems') tabs[2].classList.add('active');
+    else if (category === 'custom') tabs[3].classList.add('active');
+    
+    if (category === 'custom') {
+        renderCustomForm();
+    } else {
+        renderRates();
+    }
+}
+
+// Render rates for current category
+function renderRates() {
+    const rates = ratesData[currentCategory] || [];
+    
+    if (rates.length === 0) {
+        document.getElementById('ratesContainer').innerHTML = `
+            <div style="text-align: center; color: var(--gray); padding: 2rem;">No rates available in this category</div>
+        `;
+        return;
+    }
+
+    document.getElementById('ratesContainer').innerHTML = rates.map(rate => `
+        <button type="button" class="rate-button" onclick="addRateAsLineItem('${rate.name.replace(/'/g, "\\'")}', ${rate.rate})">
+            <span class="rate-name">${rate.name}</span>
+            <span class="rate-price">$${rate.rate.toFixed(2)}</span>
+        </button>
+    `).join('');
+}
+
+// Render custom line item form
+function renderCustomForm() {
+    document.getElementById('ratesContainer').innerHTML = `
+        <div style="grid-column: 1 / -1; background: rgba(255, 107, 26, 0.05); border: 2px solid rgba(255, 107, 26, 0.3); border-radius: 12px; padding: 2rem;">
+            <h3 style="color: var(--primary-color); margin-bottom: 1.5rem; font-size: 1.2rem;">Create Custom Line Item</h3>
+            <div style="display: grid; gap: 1rem;">
+                <div>
+                    <label style="display: block; color: var(--gray); margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 600;">Item Name *</label>
+                    <input type="text" id="customItemName" placeholder="e.g., Special excavation work" style="width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 107, 26, 0.3); border-radius: 8px; padding: 0.75rem; color: var(--white); font-size: 1rem;">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label style="display: block; color: var(--gray); margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 600;">Quantity *</label>
+                        <input type="number" id="customItemQuantity" placeholder="1" min="0" step="0.01" value="1" style="width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 107, 26, 0.3); border-radius: 8px; padding: 0.75rem; color: var(--white); font-size: 1rem;">
+                    </div>
+                    <div>
+                        <label style="display: block; color: var(--gray); margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 600;">Rate ($) *</label>
+                        <input type="number" id="customItemRate" placeholder="0.00" min="0" step="0.01" style="width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 107, 26, 0.3); border-radius: 8px; padding: 0.75rem; color: var(--white); font-size: 1rem;">
+                    </div>
+                    <div style="display: flex; align-items: end;">
+                        <button type="button" onclick="addCustomLineItem()" style="width: 100%; background: linear-gradient(135deg, var(--primary-color) 0%, #ff8c42 100%); color: var(--white); border: none; padding: 0.75rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1rem; transition: all 0.3s ease;">
+                            ➕ Add Item
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Add custom line item
+function addCustomLineItem() {
+    const name = document.getElementById('customItemName').value.trim();
+    const rate = parseFloat(document.getElementById('customItemRate').value);
+    const quantity = parseFloat(document.getElementById('customItemQuantity').value);
+    
+    if (!name) {
+        showNotification('Please enter an item name', 'error');
         return;
     }
     
-    container.innerHTML = ratesData.map(rate => `
-        <button type="button" class="rate-btn" onclick="addRateAsLineItem('${rate.name.replace(/'/g, "\\'")}', ${rate.rate})">
-            ${rate.name} - $${rate.rate}
-        </button>
-    `).join('');
+    if (isNaN(rate) || rate < 0) {
+        showNotification('Please enter a valid rate', 'error');
+        return;
+    }
+    
+    if (isNaN(quantity) || quantity <= 0) {
+        showNotification('Please enter a valid quantity', 'error');
+        return;
+    }
+    
+    addLineItem(name, quantity, rate);
+    
+    // Clear form
+    document.getElementById('customItemName').value = '';
+    document.getElementById('customItemRate').value = '';
+    document.getElementById('customItemQuantity').value = '1';
+    
+    showNotification('Custom item added successfully', 'success');
+}
+
+// Display rate buttons (deprecated, keeping for compatibility)
+function displayRateButtons() {
+    // This function is no longer used but kept for compatibility
+    if (ratesData && ratesData.baseRates) {
+        showCategory('baseRates');
+    }
 }
 
 // Add rate as line item

@@ -153,17 +153,78 @@
         }
 
         .rate-selector {
-            background: rgba(255, 107, 26, 0.1);
-            border: 1px solid rgba(255, 107, 26, 0.3);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
         }
 
-        .rate-selector h3 {
+        .category-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .category-tab {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 107, 26, 0.3);
+            color: var(--white);
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .category-tab.active {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #ff8c42 100%);
+            border-color: var(--primary-color);
+        }
+
+        .category-tab:hover:not(.active) {
+            background: rgba(255, 107, 26, 0.1);
+        }
+
+        .rates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            background: linear-gradient(135deg, rgba(255, 107, 26, 0.05) 0%, rgba(255, 107, 26, 0.02) 100%);
+            border: 2px solid rgba(255, 107, 26, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            min-height: 200px;
+        }
+
+        .rate-button {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 107, 26, 0.4);
+            color: var(--white);
+            padding: 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            text-align: left;
+        }
+
+        .rate-button:hover {
+            background: rgba(255, 107, 26, 0.1);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 26, 0.2);
+        }
+
+        .rate-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .rate-price {
             color: var(--primary-color);
+            font-weight: 700;
             font-size: 1.1rem;
-            margin: 0 0 1rem 0;
         }
 
         .rate-buttons {
@@ -443,20 +504,21 @@
                     <h2>📝 Line Items</h2>
                     
                     <div class="rate-selector">
-                        <h3>💰 Quick Add from Current Rates:</h3>
-                        <div class="rate-buttons" id="rateButtons">
-                            <div style="color: var(--gray);">Loading rates...</div>
+                        <div class="category-tabs">
+                            <button class="category-tab active" onclick="showCategory('baseRates')" type="button">Base Rates</button>
+                            <button class="category-tab" onclick="showCategory('customWork')" type="button">Custom Work</button>
+                            <button class="category-tab" onclick="showCategory('additionalItems')" type="button">Additional Items</button>
+                            <button class="category-tab" onclick="showCategory('custom')" type="button">Custom item</button>
+                        </div>
+
+                        <div id="ratesContainer" class="rates-grid">
+                            <div style="text-align: center; color: var(--gray); padding: 2rem;">Loading rates...</div>
                         </div>
                     </div>
 
                     <div class="line-items-container" id="lineItemsContainer">
                         <!-- Line items will be added here -->
                     </div>
-
-                    <button type="button" class="btn-add-item" onclick="addLineItem()">
-                        <span>➕</span>
-                        <span>Add Custom Line Item</span>
-                    </button>
                 </div>
 
                 <!-- Totals -->
