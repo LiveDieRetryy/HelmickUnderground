@@ -105,20 +105,33 @@ function populateCustomerInfo(customer) {
     }
 }
 
-// Load company profiles from localStorage
+// Load customers from localStorage as company profiles
 function loadProfiles() {
-    const saved = localStorage.getItem('companyProfiles');
-    companyProfiles = saved ? JSON.parse(saved) : [];
+    const saved = localStorage.getItem('customers');
+    const customers = saved ? JSON.parse(saved) : [];
+    
+    // Convert customers to profile format (only those with custom line items)
+    companyProfiles = customers
+        .filter(customer => customer.customLineItems && customer.customLineItems.length > 0)
+        .map(customer => ({
+            name: customer.name,
+            lineItems: customer.customLineItems
+        }));
+    
     updateProfileDropdown();
 }
 
 // Update profile dropdown
 function updateProfileDropdown() {
     const select = document.getElementById('companyProfile');
-    select.innerHTML = '<option value="">-- Select a company profile --</option>' +
-        companyProfiles.map((profile, index) => 
-            `<option value="${index}">${profile.name}</option>`
-        ).join('');
+    if (companyProfiles.length === 0) {
+        select.innerHTML = '<option value="">-- No customers with custom line items --</option>';
+    } else {
+        select.innerHTML = '<option value="">-- Select a customer --</option>' +
+            companyProfiles.map((profile, index) => 
+                `<option value="${index}">${profile.name}</option>`
+            ).join('');
+    }
 }
 
 // Open profile manager modal

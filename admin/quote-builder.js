@@ -87,17 +87,30 @@ async function loadData() {
 
         // Load rates data
         const ratesRes = await fetch('/rates-data.json');
+        if (!ratesRes.ok) throw new Error('Failed to fetch rates');
         ratesData = await ratesRes.json();
 
         // Render customer info
         renderCustomerInfo();
         
-        // Render rates
+        // Render rates - show base rates initially
         showCategory('baseRates');
 
     } catch (error) {
         console.error('Error loading data:', error);
         showNotification('Failed to load data', 'error');
+        
+        // Show error in rates container
+        const container = document.getElementById('ratesContainer');
+        if (container) {
+            container.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; color: var(--red); padding: 3rem;">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">⚠️</div>
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">Error loading rates</div>
+                    <div style="color: var(--gray); font-size: 0.9rem;">Please check your connection and try again</div>
+                </div>
+            `;
+        }
     }
 }
 
