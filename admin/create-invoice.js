@@ -288,7 +288,6 @@ function loadCompanyProfile() {
     } else {
         showNotification(`Customer information loaded for ${profile.name}`, 'success');
     }
-    }
 }
 
 // Load rates data on init
