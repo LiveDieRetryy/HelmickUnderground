@@ -389,8 +389,8 @@ async function handleFileUpload(event, type) {
 // Edit project
 function editProject() {
     // Populate the modal with current project data
-    document.getElementById('projectNumber').value = currentProject.project_number;
-    document.getElementById('projectName').value = currentProject.project_name;
+    document.getElementById('editProjectNumber').value = currentProject.project_number;
+    document.getElementById('editProjectName').value = currentProject.project_name;
     document.getElementById('projectJobAddress').value = currentProject.job_address || '';
     document.getElementById('projectJobCity').value = currentProject.job_city || '';
     document.getElementById('projectJobState').value = currentProject.job_state || '';
@@ -415,8 +415,8 @@ async function saveProjectEdits(event) {
     event.preventDefault();
     
     const projectData = {
-        project_number: document.getElementById('projectNumber').value,
-        project_name: document.getElementById('projectName').value,
+        project_number: document.getElementById('editProjectNumber').value,
+        project_name: document.getElementById('editProjectName').value,
         job_address: document.getElementById('projectJobAddress').value,
         job_city: document.getElementById('projectJobCity').value,
         job_state: document.getElementById('projectJobState').value,
