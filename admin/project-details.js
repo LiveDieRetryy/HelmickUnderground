@@ -127,6 +127,7 @@ function displayFiles(files, type) {
         const icon = isPdf ? '📄' : '🖼️';
         const isImage = /\.(png|jpg|jpeg|gif|webp)$/i.test(file.name);
         const canRedline = (isImage || isPdf) && type === 'prints';
+        const canEditRedline = isImage && type === 'redlines';
         
         return `
             <div class="file-card">
@@ -135,6 +136,7 @@ function displayFiles(files, type) {
                 <div class="file-actions">
                     <button class="file-action-btn" data-file-url="${file.url}" data-file-name="${file.name}" data-action="view">👁️ View</button>
                     ${canRedline ? `<button class="file-action-btn" data-file-url="${file.url}" data-file-name="${file.name}" data-action="redline">✏️ Redline</button>` : ''}
+                    ${canEditRedline ? `<button class="file-action-btn" data-file-url="${file.url}" data-file-name="${file.name}" data-action="edit-redline">✏️ Edit</button>` : ''}
                     <button class="file-action-btn" data-file-url="${file.url}" data-file-name="${file.name}" data-action="download">⬇️ Download</button>
                     <button class="file-action-btn" style="color: var(--red);" data-index="${index}" data-type="${type}" data-action="delete">🗑️ Delete</button>
                 </div>
@@ -161,6 +163,9 @@ function handleFileAction(e) {
     } else if (action === 'redline') {
         e.preventDefault();
         openRedlineEditor(button.dataset.fileUrl, button.dataset.fileName);
+    } else if (action === 'edit-redline') {
+        e.preventDefault();
+        editRedline(button.dataset.fileUrl, button.dataset.fileName);
     } else if (action === 'download') {
         e.preventDefault();
         downloadFile(button.dataset.fileUrl, button.dataset.fileName);
@@ -181,7 +186,14 @@ function openRedlineEditor(url, fileName) {
         window.location.href = selectorUrl;
     } else {
         // Navigate directly to redline editor for images
-        const editorUrl = `redline-editor.html?image=${encodeURIComponent(url)}&filename=${encodeURIComponent(fileName)}&project_id=${currentProject.id}&customer_id=${customerId}`;
+ 
+
+// Edit existing redline
+function editRedline(url, fileName) {
+    // Open the redline image in the editor to continue working on it
+    const editorUrl = `redline-editor.html?image=${encodeURIComponent(url)}&filename=${encodeURIComponent(fileName)}&project_id=${currentProject.id}&customer_id=${customerId}&edit_mode=true`;
+    window.location.href = editorUrl;
+}       const editorUrl = `redline-editor.html?image=${encodeURIComponent(url)}&filename=${encodeURIComponent(fileName)}&project_id=${currentProject.id}&customer_id=${customerId}`;
         window.location.href = editorUrl;
     }
 }
