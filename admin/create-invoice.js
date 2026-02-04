@@ -133,9 +133,13 @@ function updateProfileDropdown() {
         select.innerHTML = '<option value="">-- No customers found --</option>';
     } else {
         select.innerHTML = '<option value="">-- Select a customer --</option>' +
-            companyProfiles.map((profile, index) => 
-                `<option value="${index}">${profile.name}</option>`
-            ).join('');
+            companyProfiles.map((profile, index) => {
+                // Show company name with contact person in parentheses if available
+                const displayName = profile.contactPerson 
+                    ? `${profile.name} (${profile.contactPerson})`
+                    : profile.name;
+                return `<option value="${index}">${displayName}</option>`;
+            }).join('');
     }
 }
 
@@ -987,6 +991,15 @@ function previewInvoice() {
     const jobCity = document.getElementById('jobCity')?.value || '';
     const jobState = document.getElementById('jobState')?.value || '';
     
+    // Parse customer name to separate business name and contact person
+    let businessName = customerName;
+    let contactPerson = '';
+    if (customerName.includes(' - Attn: ')) {
+        const parts = customerName.split(' - Attn: ');
+        businessName = parts[0];
+        contactPerson = parts[1];
+    }
+    
     const previewHTML = `
         <div style="text-align: center; margin-bottom: 1.5rem;">
             <img src="../logo.png" alt="Helmick Underground" style="max-width: 150px; margin-bottom: 0.5rem;">
@@ -1005,10 +1018,11 @@ function previewInvoice() {
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
             <div style="background: #f9f9f9; padding: 1rem; border-radius: 8px; border-left: 4px solid #ff6b1a;">
                 <h3 style="color: #333; margin: 0 0 0.75rem 0; font-size: 1rem;">Bill To:</h3>
-                <p style="margin: 0.2rem 0; color: #666; font-size: 0.9rem;"><strong>${customerName}</strong></p>
+                ${businessName ? `<p style="margin: 0.2rem 0; color: #666; font-size: 0.9rem; font-weight: 600;">${businessName}</p>` : ''}
+                ${contactPerson ? `<p style="margin: 0.2rem 0; color: #666; font-size: 0.9rem;">${contactPerson}</p>` : ''}
+                ${customerAddress ? `<p style="margin: 0.2rem 0; color: #666; font-size: 0.85rem; white-space: pre-wrap;">${customerAddress}</p>` : ''}
                 ${customerEmail ? `<p style="margin: 0.2rem 0; color: #666; font-size: 0.85rem;">${customerEmail}</p>` : ''}
                 ${customerPhone ? `<p style="margin: 0.2rem 0; color: #666; font-size: 0.85rem;">${customerPhone}</p>` : ''}
-                ${customerAddress ? `<p style="margin: 0.2rem 0; color: #666; font-size: 0.85rem; white-space: pre-wrap;">${customerAddress}</p>` : ''}
             </div>
             
             <div style="background: #f9f9f9; padding: 1rem; border-radius: 8px;">
@@ -1117,6 +1131,14 @@ async function downloadInvoicePDF() {
         const jobCity = document.getElementById('jobCity')?.value || '';
         const jobState = document.getElementById('jobState')?.value || '';
         
+        // Parse customer name to separate business name and contact person
+        let businessName = customerName;
+        let contactPerson = '';\n        if (customerName.includes(' - Attn: ')) {
+            const parts = customerName.split(' - Attn: ');
+            businessName = parts[0];
+            contactPerson = parts[1];
+        }
+        
         // White background
         doc.setFillColor(255, 255, 255);
         doc.rect(0, 0, pageWidth, pageHeight, 'F');
@@ -1221,21 +1243,25 @@ async function downloadInvoicePDF() {
         doc.setFontSize(9);
         doc.setFont('helvetica', 'bold');
         doc.text('Bill To:', billToX + 15, yPos + 18);
-        doc.setTextColor(0, 0, 0);
-        doc.setFontSize(10);
-        doc.text(customerName, billToX + 15, yPos + 33);
-        doc.setTextColor(80, 80, 80);
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        let billToY = yPos + 48;
-        if (customerEmail) {
-            doc.text(customerEmail, billToX + 15, billToY);
+        
+        let billToY = yPos + 33;
+        
+        if (businessName) {
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text(businessName, billToX + 15, billToY);
             billToY += 13;
         }
-        if (customerPhone) {
-            doc.text(customerPhone, billToX + 15, billToY);
+        
+        if (contactPerson) {
+            doc.setTextColor(80, 80, 80);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.text(contactPerson, billToX + 15, billToY);
             billToY += 13;
         }
+        
         if (customerAddress) {
             const addressLines = customerAddress.split('\n');
             addressLines.forEach(line => {
@@ -1244,6 +1270,15 @@ async function downloadInvoicePDF() {
                     billToY += 13;
                 }
             });
+        }
+        
+        if (customerEmail && billToY < yPos + 95) {
+            doc.text(customerEmail, billToX + 15, billToY);
+            billToY += 13;
+        }
+        
+        if (customerPhone && billToY < yPos + 95) {
+            doc.text(customerPhone, billToX + 15, billToY);
         }
         
         yPos += 115;
@@ -1491,6 +1526,15 @@ async function emailInvoice() {
         const jobCity = document.getElementById('jobCity')?.value || '';
         const jobState = document.getElementById('jobState')?.value || '';
         
+        // Parse customer name to separate business name and contact person
+        let businessName = customerName;
+        let contactPerson = '';
+        if (customerName.includes(' - Attn: ')) {
+            const parts = customerName.split(' - Attn: ');
+            businessName = parts[0];
+            contactPerson = parts[1];
+        }
+        
         const emailSubject = jobNumber 
             ? `Job #${jobNumber} - Invoice ${invoiceNumber} from Helmick Underground`
             : `Invoice ${invoiceNumber} from Helmick Underground`;
@@ -1519,9 +1563,10 @@ async function emailInvoice() {
                             </td>
                             <td style="width: 50%; vertical-align: top; padding-left: 1rem;">
                                 <h3 style="color: #ff6b1a; margin: 0 0 0.75rem 0; font-size: 1rem;">Bill To:</h3>
-                                <p style="margin: 0; line-height: 1.6; color: #ffffff; font-weight: 600;">${customerName}</p>
+                                ${businessName ? `<p style="margin: 0; line-height: 1.6; color: #ffffff; font-weight: 600;">${businessName}</p>` : ''}
+                                ${contactPerson ? `<p style="margin: 0.25rem 0; line-height: 1.6; color: #b0b0b0;">${contactPerson}</p>` : ''}
                                 ${customerAddress ? `<p style="margin: 0.25rem 0; line-height: 1.6; color: #b0b0b0;">${customerAddress}</p>` : ''}
-                                <p style="margin: 0.25rem 0; line-height: 1.6; color: #b0b0b0;">${customerEmail}</p>
+                                ${customerEmail ? `<p style="margin: 0.25rem 0; line-height: 1.6; color: #b0b0b0;">${customerEmail}</p>` : ''}
                                 ${customerPhone ? `<p style="margin: 0.25rem 0; line-height: 1.6; color: #b0b0b0;">${customerPhone}</p>` : ''}
                             </td>
                         </tr>
