@@ -177,19 +177,28 @@ function viewFile(url, fileName) {
     
     const content = document.getElementById('fileViewerContent');
     
-    // Convert GitHub download URL to raw URL for proper viewing
+    // Use download_url if available (from GitHub API response)
     let viewUrl = url;
-    if (url.includes('github.com') && !url.includes('raw.githubusercontent.com')) {
-        viewUrl = url.replace('github.com', 'raw.githubusercontent.com')
-                     .replace('/blob/', '/');
+    
+    // For GitHub URLs, ensure we're using the raw content URL
+    if (url.includes('github.com')) {
+        if (url.includes('/blob/')) {
+            viewUrl = url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
+        } else if (!url.includes('raw.githubusercontent.com')) {
+            viewUrl = url.replace('github.com', 'raw.githubusercontent.com');
+        }
     }
     
     if (isPdf) {
-        content.innerHTML = `<iframe src="${viewUrl}" style="width: 100%; height: 100%; border: none;"></iframe>`;
+        // Use Google Docs viewer for PDFs to avoid download issues
+        content.innerHTML = `<iframe src="https://docs.google.com/viewer?url=${encodeURIComponent(viewUrl)}&embedded=true" style="width: 100%; height: 100%; border: none;"></iframe>`;
     } else if (isImage) {
         content.innerHTML = `<img src="${viewUrl}" alt="${fileName}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
     } else {
-        content.innerHTML = `<div style="color: white; text-align: center;"><p>Preview not available</p><a href="${url}" target="_blank" style="color: var(--primary-color);">Open in new tab</a></div>`;
+        content.innerHTML = `<div style="color: white; text-align: center; padding: 2rem;">
+            <p style="margin-bottom: 1rem;">Preview not available for this file type</p>
+            <a href="${url}" target="_blank" class="btn btn-primary">Open in new tab</a>
+        </div>`;
     }
     
     document.getElementById('fileViewerModal').classList.add('active');
