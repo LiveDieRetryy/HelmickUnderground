@@ -48,6 +48,11 @@ function init() {
     canvas.addEventListener('mouseup', handleMouseUp);
     canvas.addEventListener('mouseout', handleMouseUp);
     
+    // Prevent browser zoom on wheel
+    canvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+    }, { passive: false });
+    
     // Touch support
     canvas.addEventListener('touchstart', handleTouch);
     canvas.addEventListener('touchmove', handleTouch);
