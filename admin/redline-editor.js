@@ -14,7 +14,8 @@ let currentDrawing = [];
 
 // Get parameters from URL
 const urlParams = new URLSearchParams(window.location.search);
-const imageUrl = urlParams.get('image');
+const useSessionStorage = urlParams.get('useSessionStorage') === 'true';
+const imageUrl = useSessionStorage ? sessionStorage.getItem('redlineImage') : urlParams.get('image');
 const projectId = urlParams.get('project_id');
 const customerId = urlParams.get('customer_id');
 const fileName = urlParams.get('filename');

@@ -143,8 +143,11 @@ async function selectPage(pageNum) {
         const baseFilename = filename.replace('.pdf', '');
         const pageFilename = `${baseFilename}_page${pageNum}.png`;
 
-        // Navigate to redline editor with the page image
-        const editorUrl = `redline-editor.html?image=${encodeURIComponent(imageDataUrl)}&filename=${encodeURIComponent(pageFilename)}&project_id=${projectId}&customer_id=${customerId}&fromPdf=true&pageNumber=${pageNum}`;
+        // Store image data in sessionStorage to avoid URI_TOO_LONG error
+        sessionStorage.setItem('redlineImage', imageDataUrl);
+
+        // Navigate to redline editor with parameters only
+        const editorUrl = `redline-editor.html?filename=${encodeURIComponent(pageFilename)}&project_id=${projectId}&customer_id=${customerId}&fromPdf=true&pageNumber=${pageNum}&useSessionStorage=true`;
         window.location.href = editorUrl;
 
     } catch (error) {
