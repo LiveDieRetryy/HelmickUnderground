@@ -937,7 +937,168 @@ function loadInvoiceFromQuote() {
 
 init();
 
-// Alias for preview button
+// Preview invoice in modal
 function previewInvoice() {
-    previewPDF();
+    const items = Array.from(document.querySelectorAll('.line-item')).map(item => ({
+        description: item.querySelector('.item-description').value,
+        quantity: parseFloat(item.querySelector('.item-quantity').value),
+        rate: parseFloat(item.querySelector('.item-rate').value),
+        amount: parseFloat(item.querySelector('.item-quantity').value) * parseFloat(item.querySelector('.item-rate').value)
+    })).filter(item => item.quantity > 0 && item.description);
+    
+    if (items.length === 0) {
+        alert('Please add at least one line item');
+        return;
+    }
+    
+    const iowaWork = document.getElementById('iowaWorkCheckbox')?.checked || false;
+    const subtotal = items.reduce((sum, item) => sum + item.amount, 0);
+    const taxRate = iowaWork ? 0.07 : 0;
+    const tax = subtotal * taxRate;
+    const total = subtotal + tax;
+    
+    const invoiceNumber = document.getElementById('invoiceNumber').value;
+    const invoiceDate = new Date(document.getElementById('invoiceDate').value).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const dueDate = new Date(document.getElementById('dueDate').value).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const customerName = document.getElementById('customerName').value;
+    const customerEmail = document.getElementById('customerEmail').value;
+    const customerPhone = document.getElementById('customerPhone').value;
+    const customerAddress = document.getElementById('customerAddress').value;
+    const invoiceNotes = document.getElementById('invoiceNotes')?.value || '';
+    
+    const previewHTML = `
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <img src="../logo.png" alt="Helmick Underground" style="max-width: 200px; margin-bottom: 1rem;">
+            <h1 style="color: #ff6b1a; margin: 0; font-size: 2rem;">INVOICE</h1>
+            <p style="color: #666; margin: 0.5rem 0;">Invoice #${invoiceNumber}</p>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+            <div style="background: #f9f9f9; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #ff6b1a;">
+                <h3 style="color: #333; margin: 0 0 1rem 0;">Bill To:</h3>
+                <p style="margin: 0.25rem 0; color: #666;"><strong>${customerName}</strong></p>
+                ${customerEmail ? `<p style="margin: 0.25rem 0; color: #666;">${customerEmail}</p>` : ''}
+                ${customerPhone ? `<p style="margin: 0.25rem 0; color: #666;">${customerPhone}</p>` : ''}
+                ${customerAddress ? `<p style="margin: 0.25rem 0; color: #666; white-space: pre-wrap;">${customerAddress}</p>` : ''}
+            </div>
+            
+            <div style="background: #f9f9f9; padding: 1.5rem; border-radius: 8px;">
+                <p style="margin: 0.5rem 0; color: #666;"><strong>Invoice Date:</strong> ${invoiceDate}</p>
+                <p style="margin: 0.5rem 0; color: #666;"><strong>Due Date:</strong> ${dueDate}</p>
+            </div>
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem;">
+            <thead>
+                <tr style="background: #f0f0f0;">
+                    <th style="padding: 0.75rem; text-align: left; color: #333; border-bottom: 2px solid #ff6b1a;">Description</th>
+                    <th style="padding: 0.75rem; text-align: center; color: #333; border-bottom: 2px solid #ff6b1a;">Quantity</th>
+                    <th style="padding: 0.75rem; text-align: right; color: #333; border-bottom: 2px solid #ff6b1a;">Rate</th>
+                    <th style="padding: 0.75rem; text-align: right; color: #333; border-bottom: 2px solid #ff6b1a;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${items.map(item => `
+                    <tr>
+                        <td style="padding: 0.75rem; border-bottom: 1px solid #eee; color: #333;">${item.description}</td>
+                        <td style="padding: 0.75rem; text-align: center; border-bottom: 1px solid #eee; color: #666;">${item.quantity}</td>
+                        <td style="padding: 0.75rem; text-align: right; border-bottom: 1px solid #eee; color: #666;">$${item.rate.toFixed(2)}</td>
+                        <td style="padding: 0.75rem; text-align: right; border-bottom: 1px solid #eee; color: #333; font-weight: 600;">$${item.amount.toFixed(2)}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+            <tfoot>
+                <tr style="border-top: 2px solid #ff6b1a;">
+                    <td colspan="3" style="padding: 1rem 0.75rem; text-align: right; font-weight: 600; color: #666;">Subtotal:</td>
+                    <td style="padding: 1rem 0.75rem; text-align: right; color: #333; font-weight: 600;">$${subtotal.toFixed(2)}</td>
+                </tr>
+                ${iowaWork && tax > 0 ? `
+                <tr>
+                    <td colspan="3" style="padding: 1rem 0.75rem; text-align: right; font-weight: 600; color: #666;">Tax (7% - Iowa):</td>
+                    <td style="padding: 1rem 0.75rem; text-align: right; color: #ff6b1a; font-weight: 600;">$${tax.toFixed(2)}</td>
+                </tr>
+                ` : ''}
+                <tr style="background: #fff3e6; font-size: 1.3rem; font-weight: 700;">
+                    <td colspan="3" style="padding: 1.25rem 0.75rem; text-align: right; color: #333; border-top: 3px solid #ff6b1a;">Total Due:</td>
+                    <td style="padding: 1.25rem 0.75rem; text-align: right; color: #ff6b1a; border-top: 3px solid #ff6b1a;">$${total.toFixed(2)}</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        ${invoiceNotes ? `
+            <div style="background: #f9f9f9; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border-left: 4px solid #ff6b1a;">
+                <h3 style="color: #333; font-size: 1.1rem; margin: 0 0 0.75rem 0;">Notes</h3>
+                <div style="color: #666; white-space: pre-wrap; line-height: 1.6;">${invoiceNotes}</div>
+            </div>
+        ` : ''}
+
+        <div style="text-align: center; padding: 2rem 0; border-top: 2px solid #eee; margin-top: 2rem;">
+            <p style="color: #666; margin: 0; font-size: 0.9rem;">Thank you for your business!</p>
+            <p style="color: #666; margin: 0.5rem 0 0 0; font-size: 0.9rem;">Payment is due by ${dueDate}</p>
+        </div>
+    `;
+    
+    document.getElementById('invoicePreviewContent').innerHTML = previewHTML;
+    document.getElementById('invoicePreviewModal').style.display = 'block';
+}
+
+// Close invoice preview modal
+function closeInvoicePreview() {
+    document.getElementById('invoicePreviewModal').style.display = 'none';
+}
+
+// Download invoice as PDF
+function downloadInvoicePDF() {
+    alert('PDF download functionality - integrate with jsPDF library');
+    // TODO: Implement PDF generation
+}
+
+// Print invoice
+function printInvoice() {
+    const printWindow = window.open('', '', 'width=800,height=600');
+    const content = document.getElementById('invoicePreviewContent').innerHTML;
+    
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Invoice - Helmick Underground</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                @page { margin: 0.5in; size: auto; }
+                @media print {
+                    body { margin: 0; padding: 0; font-size: 10pt; }
+                    @page { margin: 0.5in; size: portrait; }
+                }
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: white; color: #333; }
+            </style>
+        </head>
+        <body>
+            ${content}
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 250);
+}
+
+// Email invoice
+function emailInvoice() {
+    const customerEmail = document.getElementById('customerEmail').value;
+    
+    if (!customerEmail) {
+        alert('Please enter a customer email address first.');
+        return;
+    }
+    
+    if (confirm(`Send invoice to ${customerEmail}?`)) {
+        alert('Email functionality - integrate with email API');
+        // TODO: Implement email sending
+    }
 }
