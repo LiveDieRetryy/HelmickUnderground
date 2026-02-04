@@ -62,33 +62,27 @@ function showNotification(message, type = 'success') {
     }, 4000);
 }
 
-// Load customers from localStorage
-function loadCustomers() {
+// Load customers from database
+async function loadCustomers() {
     try {
-        const saved = localStorage.getItem('customers');
-        customers = saved ? JSON.parse(saved) : [];
+        const response = await fetch('/api/customers?action=all');
+        if (!response.ok) throw new Error('Failed to load customers');
         
-        // Ensure all customers have customLineItems array (for backwards compatibility)
+        customers = await response.json();
+        
+        // Ensure all customers have custom_line_items array (for backwards compatibility)
         customers = customers.map(customer => ({
             ...customer,
-            customLineItems: customer.customLineItems || []
+            customLineItems: customer.custom_line_items || []
         }));
-        
-        // Sort by name
-        customers.sort((a, b) => a.name.localeCompare(b.name));
         
         displayCustomers();
     } catch (error) {
         console.error('Error loading customers:', error);
         customers = [];
-        showNotification('Error loading customers. Starting fresh.', 'error');
+        showNotification('Error loading customers from database.', 'error');
         displayCustomers();
     }
-}
-
-// Save customers to localStorage
-function saveCustomers() {
-    localStorage.setItem('customers', JSON.stringify(customers));
 }
 
 // Display all customers
@@ -120,8 +114,7 @@ function displayCustomers(searchTerm = '') {
         return;
     }
     
-    container.innerHTML = filteredCustomers.map((customer, index) => {
-        const actualIndex = customers.indexOf(customer);
+    container.innerHTML = filteredCustomers.map((customer) => {
         const typeColors = {
             residential: '#10b981',
             commercial: '#3b82f6',
@@ -132,7 +125,7 @@ function displayCustomers(searchTerm = '') {
         const typeColor = typeColors[customer.type] || '#ff6b1a';
         
         return `
-            <div class="customer-card" onclick="viewCustomerDetails(${actualIndex})" style="cursor: pointer;">
+            <div class="customer-card" onclick="viewCustomerDetails(${customer.id})" style="cursor: pointer;">
                 <div class="customer-header">
                     <div style="flex: 1;">
                         <h3 class="customer-name">${customer.name}</h3>
@@ -141,20 +134,20 @@ function displayCustomers(searchTerm = '') {
                         </span>
                     </div>
                     <div class="customer-actions" onclick="event.stopPropagation()">
-                        <button onclick="editCustomer(${actualIndex})" class="btn-icon" title="Edit">
+                        <button onclick="editCustomer(${customer.id})" class="btn-icon" title="Edit">
                             ✏️
                         </button>
-                        <button onclick="createInvoiceForCustomer(${actualIndex})" class="btn-icon" title="Create Invoice" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.5); color: #10b981;">
+                        <button onclick="createInvoiceForCustomer(${customer.id})" class="btn-icon" title="Create Invoice" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.5); color: #10b981;">
                             📄
                         </button>
-                        <button onclick="deleteCustomer(${actualIndex})" class="btn-icon delete" title="Delete">
+                        <button onclick="deleteCustomer(${customer.id})" class="btn-icon delete" title="Delete">
                             🗑️
                         </button>
                     </div>
                 </div>
                 
                 <div class="customer-info">
-                    ${customer.contactPerson ? `<div class="customer-info-row"><span class="customer-info-label">Contact:</span> ${customer.contactPerson}</div>` : ''}
+                    ${customer.contact_person ? `<div class="customer-info-row"><span class="customer-info-label">Contact:</span> ${customer.contact_person}</div>` : ''}
                     <div class="customer-info-row"><span class="customer-info-label">Phone:</span> <a href="tel:${customer.phone}" style="color: var(--primary-color);">${customer.phone}</a></div>
                     ${customer.email ? `<div class="customer-info-row"><span class="customer-info-label">Email:</span> <a href="mailto:${customer.email}" style="color: var(--primary-color);">${customer.email}</a></div>` : ''}
                     ${customer.address || customer.city || customer.state || customer.zip ? `
@@ -163,31 +156,31 @@ function displayCustomers(searchTerm = '') {
                             ${[customer.address, customer.city, customer.state, customer.zip].filter(Boolean).join(', ')}
                         </div>
                     ` : ''}
-                    ${customer.preferredContact ? `<div class="customer-info-row"><span class="customer-info-label">Prefer:</span> ${customer.preferredContact}</div>` : ''}
+                    ${customer.preferred_contact ? `<div class="customer-info-row"><span class="customer-info-label">Prefer:</span> ${customer.preferred_contact}</div>` : ''}
                 </div>
                 
                 <div class="customer-stats">
                     <div class="stat-box">
-                        <div class="stat-value">${customer.totalJobs || 0}</div>
+                        <div class="stat-value">-</div>
                         <div class="stat-label">Jobs</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-value">${customer.lastJob || 'Never'}</div>
+                        <div class="stat-value">-</div>
                         <div class="stat-label">Last Job</div>
                     </div>
                 </div>
                 
                 ${customer.notes ? `<div class="customer-notes">${customer.notes}</div>` : ''}
                 
-                ${customer.customLineItems && customer.customLineItems.length > 0 ? `
+                ${customer.custom_line_items && customer.custom_line_items.length > 0 ? `
                     <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(255, 107, 26, 0.1); border: 1px solid rgba(255, 107, 26, 0.3); border-radius: 10px; display: flex; align-items: center; gap: 0.5rem;">
                         <span style="font-size: 1.2rem;">💰</span>
-                        <span style="color: var(--primary-color); font-weight: 600; font-size: 0.9rem;">${customer.customLineItems.length} Custom Line Item${customer.customLineItems.length > 1 ? 's' : ''}</span>
+                        <span style="color: var(--primary-color); font-weight: 600; font-size: 0.9rem;">${customer.custom_line_items.length} Custom Line Item${customer.custom_line_items.length > 1 ? 's' : ''}</span>
                     </div>
                 ` : ''}
                 
                 <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255, 107, 26, 0.15); color: var(--gray); font-size: 0.85rem;">
-                    Added: ${new Date(customer.created || Date.now()).toLocaleDateString()}
+                    Added: ${new Date(customer.created_at || Date.now()).toLocaleDateString()}
                 </div>
             </div>
         `;
@@ -209,36 +202,46 @@ function openAddCustomerModal() {
 }
 
 // Open modal to edit existing customer
-function editCustomer(index) {
-    currentEditingIndex = index;
-    const customer = customers[index];
-    
-    document.getElementById('modalTitle').textContent = 'Edit Customer';
-    document.getElementById('customerType').value = customer.type;
-    document.getElementById('customerName').value = customer.name;
-    document.getElementById('contactPerson').value = customer.contactPerson || '';
-    document.getElementById('customerPhone').value = customer.phone;
-    document.getElementById('customerEmail').value = customer.email || '';
-    document.getElementById('customerAddress').value = customer.address || '';
-    document.getElementById('customerCity').value = customer.city || '';
-    document.getElementById('customerState').value = customer.state || 'IA';
-    document.getElementById('customerZip').value = customer.zip || '';
-    document.getElementById('preferredContact').value = customer.preferredContact || 'phone';
-    document.getElementById('customerNotes').value = customer.notes || '';
-    
-    // Populate custom line items table
-    const tableBody = document.getElementById('customLineItemsTable');
-    tableBody.innerHTML = '';
-    
-    if (customer.customLineItems && customer.customLineItems.length > 0) {
-        customer.customLineItems.forEach(item => {
-            addCustomLineItemRow(item.description, item.rate);
-        });
-    } else {
-        tableBody.innerHTML = '<tr><td colspan="3" style="padding: 2rem; text-align: center; color: var(--gray);">No custom line items added yet</td></tr>';
+async function editCustomer(customerId) {
+    try {
+        const customer = customers.find(c => c.id === customerId);
+        if (!customer) {
+            showNotification('Customer not found', 'error');
+            return;
+        }
+        
+        currentEditingIndex = customerId;
+        
+        document.getElementById('modalTitle').textContent = 'Edit Customer';
+        document.getElementById('customerType').value = customer.type;
+        document.getElementById('customerName').value = customer.name;
+        document.getElementById('contactPerson').value = customer.contact_person || '';
+        document.getElementById('customerPhone').value = customer.phone;
+        document.getElementById('customerEmail').value = customer.email || '';
+        document.getElementById('customerAddress').value = customer.address || '';
+        document.getElementById('customerCity').value = customer.city || '';
+        document.getElementById('customerState').value = customer.state || 'IA';
+        document.getElementById('customerZip').value = customer.zip || '';
+        document.getElementById('preferredContact').value = customer.preferred_contact || 'phone';
+        document.getElementById('customerNotes').value = customer.notes || '';
+        
+        // Populate custom line items table
+        const tableBody = document.getElementById('customLineItemsTable');
+        tableBody.innerHTML = '';
+        
+        if (customer.custom_line_items && customer.custom_line_items.length > 0) {
+            customer.custom_line_items.forEach(item => {
+                addCustomLineItemRow(item.description, item.rate);
+            });
+        } else {
+            tableBody.innerHTML = '<tr><td colspan="3" style="padding: 2rem; text-align: center; color: var(--gray);">No custom line items added yet</td></tr>';
+        }
+        
+        document.getElementById('customerModal').style.display = 'block';
+    } catch (error) {
+        console.error('Error loading customer for edit:', error);
+        showNotification('Error loading customer', 'error');
     }
-    
-    document.getElementById('customerModal').style.display = 'block';
 }
 
 // Close customer modal
@@ -248,32 +251,43 @@ function closeCustomerModal() {
 }
 
 // Delete customer
-function deleteCustomer(index) {
-    const customer = customers[index];
+async function deleteCustomer(customerId) {
+    const customer = customers.find(c => c.id === customerId);
+    if (!customer) return;
     
     if (confirm(`Are you sure you want to delete ${customer.name}?\n\nThis will permanently remove this customer from your database.`)) {
-        customers.splice(index, 1);
-        saveCustomers();
-        displayCustomers();
-        showNotification('Customer deleted successfully', 'success');
+        try {
+            const response = await fetch(`/api/customers?id=${customerId}`, {
+                method: 'DELETE'
+            });
+            
+            if (!response.ok) throw new Error('Failed to delete customer');
+            
+            showNotification('Customer deleted successfully', 'success');
+            await loadCustomers();
+        } catch (error) {
+            console.error('Error deleting customer:', error);
+            showNotification('Error deleting customer', 'error');
+        }
     }
 }
 
 // Create invoice for customer (redirects to invoice page with pre-filled data)
-function createInvoiceForCustomer(index) {
-    const customer = customers[index];
+function createInvoiceForCustomer(customerId) {
+    const customer = customers.find(c => c.id === customerId);
+    if (!customer) return;
     
     // Store customer data in sessionStorage to pre-fill invoice
     sessionStorage.setItem('invoiceCustomer', JSON.stringify({
         name: customer.name,
-        contactPerson: customer.contactPerson,
+        contactPerson: customer.contact_person,
         phone: customer.phone,
         email: customer.email,
         address: customer.address,
         city: customer.city,
         state: customer.state,
         zip: customer.zip,
-        customLineItems: customer.customLineItems || []
+        customLineItems: customer.custom_line_items || []
     }));
     
     // Redirect to invoice creation page
@@ -281,7 +295,7 @@ function createInvoiceForCustomer(index) {
 }
 
 // Handle form submission
-document.getElementById('customerForm').addEventListener('submit', function(e) {
+document.getElementById('customerForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     // Parse custom line items from table
@@ -305,34 +319,49 @@ document.getElementById('customerForm').addEventListener('submit', function(e) {
     const customerData = {
         type: document.getElementById('customerType').value,
         name: document.getElementById('customerName').value.trim(),
-        contactPerson: document.getElementById('contactPerson').value.trim(),
+        contact_person: document.getElementById('contactPerson').value.trim(),
         phone: document.getElementById('customerPhone').value.trim(),
         email: document.getElementById('customerEmail').value.trim(),
         address: document.getElementById('customerAddress').value.trim(),
         city: document.getElementById('customerCity').value.trim(),
         state: document.getElementById('customerState').value.trim(),
         zip: document.getElementById('customerZip').value.trim(),
-        preferredContact: document.getElementById('preferredContact').value,
+        preferred_contact: document.getElementById('preferredContact').value,
         notes: document.getElementById('customerNotes').value.trim(),
-        customLineItems: customLineItems,
-        totalJobs: currentEditingIndex !== null ? customers[currentEditingIndex].totalJobs : 0,
-        lastJob: currentEditingIndex !== null ? customers[currentEditingIndex].lastJob : 'Never',
-        created: currentEditingIndex !== null ? customers[currentEditingIndex].created : new Date().toISOString()
+        custom_line_items: customLineItems
     };
     
-    if (currentEditingIndex !== null) {
-        // Update existing customer
-        customers[currentEditingIndex] = customerData;
-        showNotification('Customer updated successfully', 'success');
-    } else {
-        // Add new customer
-        customers.push(customerData);
-        showNotification('Customer added successfully', 'success');
+    try {
+        let response;
+        
+        if (currentEditingIndex !== null) {
+            // Update existing customer
+            response = await fetch(`/api/customers?id=${currentEditingIndex}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(customerData)
+            });
+            
+            if (!response.ok) throw new Error('Failed to update customer');
+            showNotification('Customer updated successfully', 'success');
+        } else {
+            // Add new customer
+            response = await fetch('/api/customers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(customerData)
+            });
+            
+            if (!response.ok) throw new Error('Failed to add customer');
+            showNotification('Customer added successfully', 'success');
+        }
+        
+        await loadCustomers();
+        closeCustomerModal();
+    } catch (error) {
+        console.error('Error saving customer:', error);
+        showNotification('Error saving customer', 'error');
     }
-    
-    saveCustomers();
-    displayCustomers();
-    closeCustomerModal();
 });
 
 // Search functionality
@@ -446,17 +475,18 @@ function viewCustomerDetails(index) {
 }
 
 // Initialize on page load
-function initializePage() {
-    loadCustomers();
+async function initializePage() {
+    await loadCustomers();
     
     // Check if coming from customer details page with edit parameter
     const urlParams = new URLSearchParams(window.location.search);
     const editId = urlParams.get('edit');
     if (editId !== null) {
-        const index = parseInt(editId);
-        if (index >= 0 && index < customers.length) {
-            editCustomer(index);
-        }
+        const customerId = parseInt(editId);
+        // Wait a moment for customers to be loaded
+        setTimeout(() => {
+            editCustomer(customerId);
+        }, 100);
     }
 }
 

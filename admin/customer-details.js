@@ -3,11 +3,11 @@ if (!sessionStorage.getItem('adminLoggedIn')) {
     window.location.href = '/admin/login.html';
 }
 
-let customers = [];
-let currentCustomerIndex = null;
+let currentCustomer = null;
+let currentCustomerId = null;
 
 // Load customer details
-function loadCustomerDetails() {
+async function loadCustomerDetails() {
     // Get customer ID from URL
     const urlParams = new URLSearchParams(window.location.search);
     const customerId = urlParams.get('id');
@@ -17,20 +17,21 @@ function loadCustomerDetails() {
         return;
     }
     
-    currentCustomerIndex = parseInt(customerId);
+    currentCustomerId = parseInt(customerId);
     
-    // Load customers from localStorage
-    const saved = localStorage.getItem('customers');
-    customers = saved ? JSON.parse(saved) : [];
-    
-    if (currentCustomerIndex < 0 || currentCustomerIndex >= customers.length) {
+    try {
+        // Load customer from database
+        const response = await fetch(`/api/customers?action=get&id=${currentCustomerId}`);
+        if (!response.ok) throw new Error('Customer not found');
+        
+        currentCustomer = await response.json();
+        displayCustomer(currentCustomer);
+        loadProjects(); // Load projects for this customer
+    } catch (error) {
+        console.error('Error loading customer:', error);
         alert('Customer not found');
         window.location.href = 'customers.html';
-        return;
     }
-    
-    const customer = customers[currentCustomerIndex];
-    displayCustomer(customer);
 }
 
 // Display customer information
@@ -58,11 +59,11 @@ function displayCustomer(customer) {
     // Contact information
     let contactHtml = '';
     
-    if (customer.contactPerson) {
+    if (customer.contact_person) {
         contactHtml += `
             <div class="info-box">
                 <div class="info-label">Contact Person</div>
-                <div class="info-value">${customer.contactPerson}</div>
+                <div class="info-value">${customer.contact_person}</div>
             </div>
         `;
     }
@@ -83,11 +84,11 @@ function displayCustomer(customer) {
         `;
     }
     
-    if (customer.preferredContact) {
+    if (customer.preferred_contact) {
         contactHtml += `
             <div class="info-box">
                 <div class="info-label">Preferred Contact</div>
-                <div class="info-value" style="text-transform: capitalize;">${customer.preferredContact}</div>
+                <div class="info-value" style="text-transform: capitalize;">${customer.preferred_contact}</div>
             </div>
         `;
     }
@@ -133,10 +134,10 @@ function displayCustomer(customer) {
     }
     
     // Custom line items section
-    if (customer.customLineItems && customer.customLineItems.length > 0) {
+    if (customer.custom_line_items && customer.custom_line_items.length > 0) {
         document.getElementById('lineItemsSection').style.display = 'block';
         
-        const lineItemsHtml = customer.customLineItems.map(item => `
+        const lineItemsHtml = customer.custom_line_items.map(item => `
             <tr>
                 <td style="color: var(--white); font-weight: 500;">${item.description}</td>
                 <td style="color: var(--primary-color); font-weight: 700;">$${item.rate.toFixed(2)}</td>
@@ -149,24 +150,22 @@ function displayCustomer(customer) {
 
 // Edit customer
 function editCustomer() {
-    window.location.href = `customers.html?edit=${currentCustomerIndex}`;
+    window.location.href = `customers.html?edit=${currentCustomerId}`;
 }
 
 // Create invoice for customer
 function createInvoice() {
-    const customer = customers[currentCustomerIndex];
-    
     // Store customer data in sessionStorage
     sessionStorage.setItem('invoiceCustomer', JSON.stringify({
-        name: customer.name,
-        email: customer.email,
-        phone: customer.phone,
-        address: customer.address,
-        city: customer.city,
-        state: customer.state,
-        zip: customer.zip,
-        contactPerson: customer.contactPerson,
-        customLineItems: customer.customLineItems || []
+        name: currentCustomer.name,
+        email: currentCustomer.email,
+        phone: currentCustomer.phone,
+        address: currentCustomer.address,
+        city: currentCustomer.city,
+        state: currentCustomer.state,
+        zip: currentCustomer.zip,
+        contactPerson: currentCustomer.contact_person,
+        customLineItems: currentCustomer.custom_line_items || []
     }));
     
     // Redirect to invoice page
@@ -174,15 +173,21 @@ function createInvoice() {
 }
 
 // Delete customer
-function deleteCustomer() {
-    const customer = customers[currentCustomerIndex];
-    
-    if (confirm(`Are you sure you want to delete ${customer.name}?\n\nThis will permanently remove this customer from your database.`)) {
-        customers.splice(currentCustomerIndex, 1);
-        localStorage.setItem('customers', JSON.stringify(customers));
-        
-        alert('Customer deleted successfully');
-        window.location.href = 'customers.html';
+async function deleteCustomer() {
+    if (confirm(`Are you sure you want to delete ${currentCustomer.name}?\n\nThis will permanently remove this customer from your database.`)) {
+        try {
+            const response = await fetch(`/api/customers?id=${currentCustomerId}`, {
+                method: 'DELETE'
+            });
+            
+            if (!response.ok) throw new Error('Failed to delete customer');
+            
+            alert('Customer deleted successfully');
+            window.location.href = 'customers.html';
+        } catch (error) {
+            console.error('Error deleting customer:', error);
+            alert('Error deleting customer');
+        }
     }
 }
 
@@ -252,8 +257,7 @@ let selectedFiles = [];
 
 // Load projects for customer
 async function loadProjects() {
-    const customer = customers[currentCustomerIndex];
-    const customerId = customer.email; // Using email as unique ID
+    const customerId = currentCustomer.email; // Using email as unique ID
     
     try {
         const response = await fetch(`/api/projects?customer_id=${encodeURIComponent(customerId)}`);
