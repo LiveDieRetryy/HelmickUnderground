@@ -50,10 +50,19 @@ export default async function handler(req, res) {
     async function uploadSingleFile(fileName, fileContent, fileType, projectId, uploadType) {
         // Size limit check
         const sizeInMB = (fileContent.length * 0.75) / (1024 * 1024); // base64 to MB
-        const maxSize = fileType.startsWith('video/') ? 10 : 5;
+        let maxSize = 5; // Default for images
+        
+        if (fileType.startsWith('video/')) {
+            maxSize = 10;
+        } else if (fileType === 'application/pdf' || fileType.startsWith('application/')) {
+            maxSize = 15; // PDFs and documents can be larger
+        }
         
         if (sizeInMB > maxSize) {
-            throw new Error(`File too large. ${fileType.startsWith('video/') ? 'Videos' : 'Images'} must be under ${maxSize}MB.`);
+            const fileTypeName = fileType.startsWith('video/') ? 'Videos' : 
+                                 fileType === 'application/pdf' ? 'PDFs' : 
+                                 fileType.startsWith('application/') ? 'Documents' : 'Images';
+            throw new Error(`File too large. ${fileTypeName} must be under ${maxSize}MB.`);
         }
         
         // Determine folder based on upload type
