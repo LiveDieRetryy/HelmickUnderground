@@ -1,8 +1,27 @@
 {
+  "name": "helmick-underground",
+  "version": "2.0.0",
+  "description": "Enterprise website and admin platform for Helmick Underground LLC - Underground Utility Services",
+  "private": true,
+  "author": "Helmick Underground LLC",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/helmick-underground.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "dev": "vercel dev",
+    "build": "vercel build",
+    "deploy": "vercel --prod",
+    "deploy:staging": "vercel",
+    "lint": "echo 'No linter configured'",
+    "format": "echo 'No formatter configured'"
   },
   "dependencies": {
     "@octokit/rest": "^20.0.2",

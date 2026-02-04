@@ -1,0 +1,233 @@
+# Pre-Deployment Checklist
+
+## Critical Items (Must Complete)
+
+### 1. Environment Variables
+- [ ] Set JWT_SECRET in Vercel (32+ character random string)
+- [ ] Set ADMIN_PASSWORD_HASH in Vercel (bcrypt hash)
+- [ ] Set all POSTGRES_* variables from Vercel Postgres
+- [ ] Verify NODE_ENV=production
+- [ ] Test environment variables locally with `vercel env pull`
+
+### 2. Database Setup
+- [ ] Vercel Postgres database created
+- [ ] Connection strings copied to environment variables
+- [ ] Test database connection with a simple query
+- [ ] Verify tables are created (customers, projects, invoices, etc.)
+
+### 3. Security Verification
+- [ ] Admin password is strong (12+ characters, mixed case, numbers, symbols)
+- [ ] JWT_SECRET is cryptographically random (use crypto.randomBytes)
+- [ ] All API endpoints have proper authentication
+- [ ] CSRF protection enabled on mutations
+- [ ] Rate limiting tested and working
+
+### 4. Remove Sensitive Data
+- [ ] Delete or backup contact-submissions.json
+- [ ] Delete or backup email-history.json
+- [ ] Delete or backup analytics-data.json
+- [ ] Remove any test/dummy data from database
+- [ ] Clear project-files/ folder or ensure it's in .gitignore
+
+### 5. Git Repository
+- [ ] Remove node_modules from git: `git rm -r --cached node_modules`
+- [ ] Commit updated .gitignore
+- [ ] Verify no .env files in git: `git ls-files | grep .env`
+- [ ] Push to GitHub/GitLab
+
+## Important Items (Highly Recommended)
+
+### 6. Testing
+- [ ] Run all tests: `npm test`
+- [ ] Test admin login with production password
+- [ ] Test contact form submission
+- [ ] Test customer CRUD operations
+- [ ] Test invoice generation
+- [ ] Test file uploads
+- [ ] Verify email sending works (if configured)
+
+### 7. Performance
+- [ ] Run Lighthouse audit (aim for 90+ on all metrics)
+- [ ] Test on slow 3G connection
+- [ ] Verify images are lazy loading
+- [ ] Check service worker is caching properly
+- [ ] Verify CDN headers are set correctly
+
+### 8. Mobile Testing
+- [ ] Test on iPhone (Safari)
+- [ ] Test on Android (Chrome)
+- [ ] Test on tablet (iPad, Android)
+- [ ] Verify touch targets are 44px+
+- [ ] Test pull-to-refresh gesture
+- [ ] Verify PWA install prompts show
+- [ ] Test offline mode
+
+### 9. Browser Compatibility
+- [ ] Test in Chrome (latest)
+- [ ] Test in Safari (latest)
+- [ ] Test in Firefox (latest)
+- [ ] Test in Edge (latest)
+- [ ] Test in mobile browsers
+
+### 10. SEO & Analytics
+- [ ] Submit sitemap.xml to Google Search Console
+- [ ] Verify robots.txt is accessible
+- [ ] Check meta tags on all pages
+- [ ] Verify schema markup with Google Rich Results Test
+- [ ] Set up Google Analytics (if not already done)
+- [ ] Test analytics events are firing
+
+## Optional Items (Nice to Have)
+
+### 11. Documentation
+- [ ] Update README.md with deployment info
+- [ ] Document any custom deployment steps
+- [ ] Add screenshots to repository
+- [ ] Document admin workflows
+
+### 12. Monitoring
+- [ ] Set up error tracking (Sentry, LogRocket, etc.)
+- [ ] Configure Vercel logs integration
+- [ ] Set up uptime monitoring (UptimeRobot, Pingdom)
+- [ ] Enable Vercel deployment notifications
+
+### 13. Backups
+- [ ] Set up database backup schedule
+- [ ] Export customer data as backup
+- [ ] Backup project files to cloud storage
+- [ ] Document restore procedures
+
+### 14. Domain & SSL
+- [ ] Domain purchased and configured
+- [ ] DNS pointing to Vercel
+- [ ] SSL certificate active (automatic with Vercel)
+- [ ] WWW redirect configured (if needed)
+- [ ] Verify HTTPS is enforced
+
+### 15. Email Configuration
+- [ ] SMTP credentials configured (if using email)
+- [ ] Test email sending
+- [ ] Configure SPF/DKIM records for domain
+- [ ] Set up email templates
+
+## Post-Deployment Verification
+
+### Immediately After Deployment
+- [ ] Visit homepage and verify it loads
+- [ ] Test admin login
+- [ ] Submit test contact form
+- [ ] Check service worker is registered (DevTools → Application)
+- [ ] Verify PWA install prompt shows (mobile)
+- [ ] Test one CRUD operation (create customer)
+- [ ] Check Vercel logs for errors
+
+### Within 24 Hours
+- [ ] Monitor error logs for issues
+- [ ] Check analytics for traffic
+- [ ] Verify contact form submissions are received
+- [ ] Test from multiple devices/locations
+- [ ] Check Core Web Vitals in Search Console
+
+### Within 1 Week
+- [ ] Review user feedback
+- [ ] Check for any error patterns in logs
+- [ ] Monitor database performance
+- [ ] Verify backups are running
+- [ ] Check uptime monitoring reports
+
+## Rollback Plan
+
+If critical issues are found after deployment:
+
+1. **Quick Fix Available**
+   - Make fix locally
+   - Test thoroughly
+   - Deploy with `vercel --prod`
+
+2. **No Quick Fix**
+   - Roll back to previous deployment in Vercel dashboard
+   - Investigate issue locally
+   - Fix and test thoroughly before redeploying
+
+3. **Database Issues**
+   - Restore from backup if available
+   - Check Vercel Postgres logs
+   - Contact Vercel support if needed
+
+## Emergency Contacts
+
+- **Vercel Support**: https://vercel.com/support
+- **Domain Registrar**: [Your registrar]
+- **Database**: Vercel Postgres support
+- **Developer**: [Your contact info]
+
+## Final Checklist
+
+Before clicking "Deploy to Production":
+
+- [ ] All critical items completed
+- [ ] All tests passing
+- [ ] No errors in local testing
+- [ ] Sensitive data removed/backed up
+- [ ] Environment variables set in Vercel
+- [ ] Rollback plan understood
+- [ ] Monitoring/logging configured
+
+**Deployment approved by:** ___________________
+**Date:** ___________________
+**Time:** ___________________
+
+---
+
+## Deployment Commands
+
+### First-time deployment:
+```bash
+# Link to Vercel project
+vercel
+
+# Set environment variables via dashboard or:
+vercel env add JWT_SECRET
+vercel env add ADMIN_PASSWORD_HASH
+vercel env add POSTGRES_URL
+
+# Deploy to production
+vercel --prod
+```
+
+### Subsequent deployments:
+```bash
+# Deploy to staging first
+vercel
+
+# Test staging deployment
+
+# Deploy to production
+vercel --prod
+```
+
+### Environment variable management:
+```bash
+# Pull environment variables for local testing
+vercel env pull
+
+# Add new environment variable
+vercel env add VARIABLE_NAME
+
+# Remove environment variable
+vercel env rm VARIABLE_NAME
+```
+
+## Success Criteria
+
+Deployment is successful when:
+✅ Homepage loads in < 3 seconds
+✅ Admin login works with production credentials
+✅ Contact form submissions are received
+✅ No errors in Vercel logs
+✅ Lighthouse score > 90
+✅ Mobile usability score = 100
+✅ Service worker is active
+✅ PWA is installable
+✅ All CRUD operations work
+✅ Database queries are fast (< 500ms)

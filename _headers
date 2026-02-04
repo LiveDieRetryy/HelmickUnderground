@@ -1,6 +1,53 @@
 /*
-  X-Robots-Tag: index, follow
+  # Security Headers
   X-Frame-Options: SAMEORIGIN
   X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: geolocation=(), microphone=(), camera=()
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://www.google-analytics.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  
+  # SEO Headers
+  X-Robots-Tag: index, follow
+
+# Cache static assets for 1 year
+/logo.png
+  Cache-Control: public, max-age=31536000, immutable
+  
+/images/*
+  Cache-Control: public, max-age=31536000, immutable
+  
+/videos/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Cache CSS/JS for 1 year (versioned via query params)
+/*.css
+  Cache-Control: public, max-age=31536000, immutable
+  
+/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+# Cache HTML for 1 hour (revalidate)
+/*.html
+  Cache-Control: public, max-age=3600, must-revalidate
+  
+/
+  Cache-Control: public, max-age=3600, must-revalidate
+
+# Cache service worker separately
+/service-worker.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Cache PWA files
+/manifest.json
+  Cache-Control: public, max-age=86400, must-revalidate
+  
+/offline.html
+  Cache-Control: public, max-age=86400, must-revalidate
+
+# API routes - no cache
+/api/*
+  Cache-Control: no-store, no-cache, must-revalidate
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
