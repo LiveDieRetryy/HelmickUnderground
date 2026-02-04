@@ -51,6 +51,42 @@
             font-size: 2rem;
         }
 
+        .quote-builder-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+
+        @media (max-width: 1200px) {
+            .quote-builder-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .quote-builder-container {
+                gap: 1rem;
+            }
+        }
+
+        .builder-section {
+            background: var(--card-dark);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            min-width: 0;
+            overflow-x: auto;
+        }
+
+        @media (max-width: 768px) {
+            .builder-section {
+                padding: 1.5rem;
+                border-radius: 16px;
+            }
+        }
+
         .invoice-form {
             background: var(--card-dark);
             border-radius: 20px;
@@ -320,6 +356,88 @@
             color: var(--white);
         }
 
+        .section-header {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(255, 107, 26, 0.3);
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 107, 26, 0.1);
+        }
+
+        .summary-row:last-of-type {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            color: var(--gray);
+            font-weight: 600;
+        }
+
+        .summary-value {
+            color: var(--white);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .total-row {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid rgba(255, 107, 26, 0.5);
+        }
+
+        .total-row .summary-label,
+        .total-row .summary-value {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+
+        .notes-textarea {
+            width: 100%;
+            min-height: 100px;
+            background: rgba(255, 107, 26, 0.05);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            color: var(--white);
+            padding: 0.75rem;
+            border-radius: 8px;
+            resize: vertical;
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+
+        .notes-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: rgba(255, 107, 26, 0.1);
+        }
+
+        .save-quote-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #ff8c42 100%);
+            color: var(--white);
+            border: none;
+            padding: 1.25rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1.5rem;
+        }
+
+        .save-quote-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 26, 0.4);
+        }
+
         .totals-section {
             background: rgba(255, 107, 26, 0.05);
             border: 1px solid rgba(255, 107, 26, 0.3);
@@ -444,10 +562,12 @@
             <h1>🧾 Create New Invoice</h1>
         </div>
 
-        <div class="invoice-form">
-            <form id="invoiceForm">
-                <!-- Invoice Details -->
-                <div class="form-section">
+        <form id="invoiceForm">
+            <div class="quote-builder-container">
+                <!-- Left Column: Invoice Form -->
+                <div>
+                    <!-- Invoice Details -->
+                    <div class="builder-section form-section">
                     <h2>📋 Invoice Details</h2>
                     <div class="form-grid">
                         <div class="form-group">
@@ -520,46 +640,60 @@
                         <!-- Line items will be added here -->
                     </div>
                 </div>
+            </div>
 
-                <!-- Totals -->
-                <div class="form-section">
-                    <h2>💵 Totals</h2>
-                    <div class="totals-section">
-                        <div class="total-row">
-                            <span class="total-label">Subtotal:</span>
-                            <span class="total-value" id="subtotalDisplay">$0.00</span>
-                        </div>
-                        <div class="total-row">
-                            <div class="form-group" style="margin: 0;">
-                                <label for="taxRate">Tax Rate (%)</label>
-                                <input type="number" id="taxRate" value="7" step="0.01" min="0" max="100" style="width: 120px;" onchange="calculateTotals()">
-                            </div>
-                            <span class="total-value" id="taxDisplay">$0.00</span>
-                        </div>
-                        <div class="total-row">
-                            <span class="total-label">TOTAL:</span>
-                            <span class="total-value" id="totalDisplay">$0.00</span>
-                        </div>
+            <!-- Right Column: Invoice Summary -->
+            <div>
+                <div class="builder-section" style="position: sticky; top: 2rem;">
+                    <div class="section-header">Invoice Summary</div>
+                    
+                    <div class="summary-row">
+                        <span class="summary-label">Total Items:</span>
+                        <span class="summary-value" id="totalItems">0</span>
                     </div>
-                </div>
+                    
+                    <div class="summary-row">
+                        <span class="summary-label">Subtotal:</span>
+                        <span class="summary-value" id="subtotalDisplay">$0.00</span>
+                    </div>
+                    
+                    <div style="background: rgba(255, 107, 26, 0.05); padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--white); font-weight: 600;">
+                            <input type="checkbox" id="iowaWorkCheckbox" onchange="calculateTotals()" style="width: 18px; height: 18px; cursor: pointer;">
+                            Work performed in Iowa (7% tax)
+                        </label>
+                    </div>
+                    
+                    <div class="summary-row" id="taxRow" style="display: none; color: var(--primary-color);">
+                        <span class="summary-label">Tax (7%):</span>
+                        <span class="summary-value" id="taxDisplay">$0.00</span>
+                    </div>
+                    
+                    <div class="summary-row total-row">
+                        <span class="summary-label" style="font-size: 1.2rem;">Total:</span>
+                        <span class="summary-value" id="totalDisplay">$0.00</span>
+                    </div>
 
-                <!-- Action Buttons -->
-                <div class="action-buttons">
-                    <a href="/admin/invoices.html" class="btn-back">
-                        <span>←</span>
-                        <span>Back to Invoices</span>
+                    <div style="margin-top: 1.5rem;">
+                        <label style="color: var(--gray); font-weight: 600; display: block; margin-bottom: 0.5rem;">Invoice Notes (Optional)</label>
+                        <textarea id="invoiceNotes" class="notes-textarea" placeholder="Add any additional notes, terms, or conditions..."></textarea>
+                    </div>
+
+                    <button type="button" class="save-quote-btn" onclick="previewInvoice()">
+                        👁️ Preview Invoice
+                    </button>
+
+                    <button type="submit" class="save-quote-btn" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); margin-top: 0.5rem;">
+                        💾 Save Invoice
+                    </button>
+
+                    <a href="/admin/invoices.html" class="save-quote-btn" style="background: rgba(255, 255, 255, 0.05); color: var(--white); text-decoration: none; text-align: center; margin-top: 0.5rem; display: block;">
+                        ← Back to Invoices
                     </a>
-                    <button type="submit" class="btn-primary">
-                        <span>💾</span>
-                        <span>Save Invoice</span>
-                    </button>
-                    <button type="button" class="btn-secondary" onclick="previewPDF()">
-                        <span>👁️</span>
-                        <span>Preview PDF</span>
-                    </button>
                 </div>
-            </form>
+            </div>
         </div>
+        </form>
     </div>
 
     <!-- Profile Manager Modal -->

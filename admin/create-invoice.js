@@ -489,6 +489,7 @@ function removeLineItem(id) {
 function calculateTotals() {
     const items = document.querySelectorAll('.line-item');
     let subtotal = 0;
+    let itemCount = 0;
     
     items.forEach(item => {
         const quantity = parseFloat(item.querySelector('.item-quantity').value) || 0;
@@ -497,15 +498,26 @@ function calculateTotals() {
         
         item.querySelector('.item-amount').value = `$${amount.toFixed(2)}`;
         subtotal += amount;
+        if (quantity > 0) itemCount++;
     });
     
-    const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+    // Check if Iowa work checkbox is checked
+    const iowaWorkCheckbox = document.getElementById('iowaWorkCheckbox');
+    const taxRate = iowaWorkCheckbox && iowaWorkCheckbox.checked ? 7 : 0;
     const tax = subtotal * (taxRate / 100);
     const total = subtotal + tax;
     
+    // Update displays
+    document.getElementById('totalItems').textContent = itemCount;
     document.getElementById('subtotalDisplay').textContent = `$${subtotal.toFixed(2)}`;
     document.getElementById('taxDisplay').textContent = `$${tax.toFixed(2)}`;
     document.getElementById('totalDisplay').textContent = `$${total.toFixed(2)}`;
+    
+    // Show/hide tax row
+    const taxRow = document.getElementById('taxRow');
+    if (taxRow) {
+        taxRow.style.display = taxRate > 0 ? 'flex' : 'none';
+    }
 }
 
 // Set default dates
@@ -561,7 +573,9 @@ function previewPDF() {
         return;
     }
     
-    const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+    // Use checkbox for tax rate
+    const iowaWorkCheckbox = document.getElementById('iowaWorkCheckbox');
+    const taxRate = iowaWorkCheckbox && iowaWorkCheckbox.checked ? 7 : 0;
     const subtotal = items.reduce((sum, item) => sum + item.amount, 0);
     const tax = subtotal * (taxRate / 100);
     const total = subtotal + tax;
@@ -922,3 +936,8 @@ function loadInvoiceFromQuote() {
 }
 
 init();
+
+// Alias for preview button
+function previewInvoice() {
+    previewPDF();
+}
