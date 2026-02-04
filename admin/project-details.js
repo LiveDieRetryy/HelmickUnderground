@@ -286,11 +286,30 @@ function toggleFullscreen() {
 }
 
 // Download file
-function downloadFile(url, filename) {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
+async function downloadFile(url, filename) {
+    try {
+        // Fetch the file as a blob to force download
+        const response = await fetch(url);
+        const blob = await response.blob();
+        
+        // Create a temporary URL for the blob
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        // Create download link
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        
+        // Cleanup
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+        console.error('Download failed:', error);
+        // Fallback to opening in new tab
+        window.open(url, '_blank');
+    }
 }
 
 // Delete file
