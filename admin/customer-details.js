@@ -380,15 +380,17 @@ async function saveProject(event) {
             closeProjectModal();
             loadProjects();
         } else {
-            // Try to parse error as JSON, fallback to text
+            // Get error message from response
+            const responseText = await response.text();
             let errorMessage = 'Failed to save project';
+            
             try {
-                const error = await response.json();
-                errorMessage = error.error || error.message || errorMessage;
+                const error = JSON.parse(responseText);
+                errorMessage = error.error || error.message || responseText;
             } catch (e) {
-                const errorText = await response.text();
-                errorMessage = errorText || errorMessage;
+                errorMessage = responseText || errorMessage;
             }
+            
             console.error('Server error:', errorMessage);
             alert(`Error: ${errorMessage}`);
         }
