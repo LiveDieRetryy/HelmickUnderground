@@ -104,27 +104,27 @@ function displayCustomer(customer) {
     
     document.getElementById('contactInfo').innerHTML = contactHtml;
     
-    // Stats section
-    const statsHtml = `
+    // Stats section - will be updated with live data
+    updateCustomerStats(customer);
+    
+    document.getElementById('statsSection').innerHTML = `
         <div class="stat-card">
-            <div class="stat-value">${customer.totalJobs || 0}</div>
+            <div class="stat-value" id="totalJobsValue">-</div>
             <div class="stat-label">Total Jobs</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">${customer.lastJob || 'Never'}</div>
-            <div class="stat-label">Last Job</div>
+            <div class="stat-value" id="activeJobsValue">-</div>
+            <div class="stat-label">Active Jobs</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">${customer.customLineItems ? customer.customLineItems.length : 0}</div>
-            <div class="stat-label">Custom Rates</div>
+            <div class="stat-value" id="completedJobsValue">-</div>
+            <div class="stat-label">Completed Jobs</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">${new Date(customer.created || Date.now()).toLocaleDateString()}</div>
-            <div class="stat-label">Customer Since</div>
+            <div class="stat-value" id="invoicedAmountValue">-</div>
+            <div class="stat-label">Invoiced Amount</div>
         </div>
     `;
-    
-    document.getElementById('statsSection').innerHTML = statsHtml;
     
     // Notes section
     if (customer.notes) {
@@ -183,6 +183,62 @@ function deleteCustomer() {
         
         alert('Customer deleted successfully');
         window.location.href = 'customers.html';
+    }
+}
+
+// Update customer stats with live data
+async function updateCustomerStats(customer) {
+    const customerId = customer.email; // Using email as unique ID
+    
+    try {
+        // Load projects for this customer
+        const projectsResponse = await fetch(`/api/projects?customer_id=${encodeURIComponent(customerId)}`);
+        if (projectsResponse.ok) {
+            const customerProjects = await projectsResponse.json();
+            
+            // Calculate total jobs
+            const totalJobs = customerProjects.length;
+            document.getElementById('totalJobsValue').textContent = totalJobs;
+            
+            // Calculate active jobs (accepted or ongoing)
+            const activeJobs = customerProjects.filter(p => 
+                p.status === 'accepted' || p.status === 'ongoing'
+            ).length;
+            document.getElementById('activeJobsValue').textContent = activeJobs;
+            
+            // Calculate completed jobs
+            const completedJobs = customerProjects.filter(p => 
+                p.status === 'completed'
+            ).length;
+            document.getElementById('completedJobsValue').textContent = completedJobs;
+        }
+        
+        // Load invoices for this customer
+        const invoicesResponse = await fetch('/api/invoices?action=all');
+        if (invoicesResponse.ok) {
+            const data = await invoicesResponse.json();
+            const allInvoices = data.invoices || [];
+            
+            // Filter invoices for this customer and calculate total
+            const customerInvoices = allInvoices.filter(inv => 
+                inv.customer_email === customerId || 
+                inv.customer_name === customer.name
+            );
+            
+            const totalInvoiced = customerInvoices.reduce((sum, inv) => {
+                return sum + parseFloat(inv.total || 0);
+            }, 0);
+            
+            document.getElementById('invoicedAmountValue').textContent = 
+                `$${totalInvoiced.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+    } catch (error) {
+        console.error('Error loading customer stats:', error);
+        // Show 0 values on error
+        document.getElementById('totalJobsValue').textContent = '0';
+        document.getElementById('activeJobsValue').textContent = '0';
+        document.getElementById('completedJobsValue').textContent = '0';
+        document.getElementById('invoicedAmountValue').textContent = '$0.00';
     }
 }
 
