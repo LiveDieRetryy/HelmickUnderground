@@ -52,7 +52,7 @@ function init() {
     canvas.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('mouseup', handleMouseUp);
     canvas.addEventListener('mouseout', handleMouseUp);
-    canvas.addEventListener('wheel', handleWheel);
+    canvas.addEventListener('wheel', handleWheel, { passive: false });
     
     // Touch support
     canvas.addEventListener('touchstart', handleTouch);
