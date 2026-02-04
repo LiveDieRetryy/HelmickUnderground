@@ -102,6 +102,9 @@ function loadImage(url) {
         canvas.width = img.width;
         canvas.height = img.height;
         
+        console.log('Image loaded:', img.width, 'x', img.height);
+        console.log('Canvas size:', canvas.width, 'x', canvas.height);
+        
         imageCtx.drawImage(img, 0, 0);
         redraw();
     };
@@ -109,8 +112,6 @@ function loadImage(url) {
     img.onerror = function(error) {
         console.error('Failed to load image:', error);
         alert('Failed to load image. Please check the URL or try again.');
-    };
-        alert('Failed to load image');
     };
     
     img.src = loadUrl;
@@ -146,10 +147,25 @@ function getMousePos(e) {
     const scaleY = canvas.height / rect.height;
     
     // Convert screen coordinates to canvas coordinates
-    return {
-        x: (e.clientX - rect.left) * scaleX,
-        y: (e.clientY - rect.top) * scaleY
-    };
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+    
+    console.log('Mouse click:', {
+        screenX: e.clientX,
+        screenY: e.clientY,
+        rectLeft: rect.left,
+        rectTop: rect.top,
+        rectWidth: rect.width,
+        rectHeight: rect.height,
+        canvasWidth: canvas.width,
+        canvasHeight: canvas.height,
+        scaleX: scaleX,
+        scaleY: scaleY,
+        calculatedX: x,
+        calculatedY: y
+    });
+    
+    return { x, y };
 }
 
 // Handle touch events
