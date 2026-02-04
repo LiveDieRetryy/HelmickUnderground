@@ -174,12 +174,9 @@ function viewFile(url, fileName) {
     const isImage = /\.(png|jpg|jpeg|gif|webp)$/i.test(fileName);
     
     document.getElementById('fileViewerTitle').textContent = fileName;
+    document.getElementById('fileViewerModal').classList.add('active');
     
     const content = document.getElementById('fileViewerContent');
-    const loader = document.getElementById('fileLoader');
-    
-    // Show loader
-    loader.style.display = 'block';
     
     // Use download_url if available (from GitHub API response)
     let viewUrl = url;
@@ -194,47 +191,45 @@ function viewFile(url, fileName) {
     }
     
     if (isPdf) {
+        // Show loading message
+        content.innerHTML = '<div id="fileLoader" style="position: absolute; color: #666; font-size: 1.2rem;">Loading PDF...</div>';
+        
         // Use Google Docs viewer for PDFs to avoid download issues
         const iframe = document.createElement('iframe');
         iframe.src = `https://docs.google.com/viewer?url=${encodeURIComponent(viewUrl)}&embedded=true`;
         iframe.style.cssText = 'width: 100%; height: 100%; border: none; background: white;';
         
         iframe.onload = function() {
-            loader.style.display = 'none';
+            const loader = document.getElementById('fileLoader');
+            if (loader) loader.style.display = 'none';
         };
         
-        // Clear content and add iframe
-        content.innerHTML = '';
-        content.appendChild(loader);
         content.appendChild(iframe);
     } else if (isImage) {
+        // Show loading message
+        content.innerHTML = '<div id="fileLoader" style="position: absolute; color: #666; font-size: 1.2rem;">Loading image...</div>';
+        
         const img = document.createElement('img');
         img.src = viewUrl;
         img.alt = fileName;
         img.style.cssText = 'max-width: 100%; max-height: 100%; object-fit: contain; background: white;';
         
         img.onload = function() {
-            loader.style.display = 'none';
+            const loader = document.getElementById('fileLoader');
+            if (loader) loader.style.display = 'none';
         };
         
         img.onerror = function() {
-            loader.innerHTML = 'Failed to load image';
-            loader.style.color = 'red';
+            content.innerHTML = '<div style="color: red; font-size: 1.2rem;">Failed to load image</div>';
         };
         
-        // Clear content and add image
-        content.innerHTML = '';
-        content.appendChild(loader);
         content.appendChild(img);
     } else {
-        loader.style.display = 'none';
         content.innerHTML = `<div style="color: #666; text-align: center; padding: 2rem;">
             <p style="margin-bottom: 1rem;">Preview not available for this file type</p>
             <a href="${url}" target="_blank" class="btn btn-primary">Open in new tab</a>
         </div>`;
     }
-    
-    document.getElementById('fileViewerModal').classList.add('active');
 }
 
 // Close file viewer
