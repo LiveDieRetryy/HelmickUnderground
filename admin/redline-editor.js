@@ -213,13 +213,6 @@ function handleMouseDown(e) {
     } else if (currentTool === 'eraser') {
         const shapeToDelete = getShapeAt(pos.x, pos.y);
         if (shapeToDelete) {
-    if (isPanning) {
-        offsetX = e.clientX - panStartX;
-        offsetY = e.clientY - panStartY;
-        redraw();
-        return;
-    }
-    
             shapes = shapes.filter(s => s !== shapeToDelete);
             redraw();
         }
@@ -230,6 +223,13 @@ function handleMouseDown(e) {
 
 // Mouse move
 function handleMouseMove(e) {
+    if (isPanning) {
+        offsetX = e.clientX - panStartX;
+        offsetY = e.clientY - panStartY;
+        applyTransform();
+        return;
+    }
+    
     const pos = getMousePos(e);
     
     if (currentTool === 'select' && dragMode) {
@@ -557,11 +557,6 @@ function drawShapePreview(x1, y1, x2, y2) {
 function redraw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Apply transformations
-    ctx.save();
-    ctx.translate(offsetX, offsetY);
-    ctx.scale(scale, scale);
-    
     // Draw all shapes
     for (let shape of shapes) {
         drawShape(shape, shape === selectedShape);
@@ -571,8 +566,6 @@ function redraw() {
     if (selectedShape) {
         drawSelectionHandles(selectedShape);
     }
-    
-    ctx.restore();
 }
 
 // Draw a single shape
@@ -922,19 +915,27 @@ function goBack() {
 // Zoom functions
 function zoomIn() {
     scale = Math.min(scale * 1.2, 5); // Max 5x zoom
-    redraw();
+    applyTransform();
 }
 
 function zoomOut() {
     scale = Math.max(scale / 1.2, 0.1); // Min 0.1x zoom
-    redraw();
+    applyTransform();
 }
 
 function resetZoom() {
     scale = 1;
     offsetX = 0;
     offsetY = 0;
-    redraw();
+    applyTransform();
+}
+
+function applyTransform() {
+    const transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+    imageCanvas.style.transform = transform;
+    canvas.style.transform = transform;
+    imageCanvas.style.transformOrigin = '0 0';
+    canvas.style.transformOrigin = '0 0';
 }
 
 function handleWheel(e) {
@@ -957,7 +958,7 @@ function handleWheel(e) {
     offsetY = mouseY - worldY * newScale;
     scale = newScale;
     
-    redraw();
+    applyTransform();
 }
 
 // Expose functions to window for onclick handlers
