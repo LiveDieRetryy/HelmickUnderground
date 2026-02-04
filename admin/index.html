@@ -763,6 +763,11 @@
             document.getElementById('loginContainer').style.display = 'none';
             document.getElementById('dashboardContent').style.display = 'block';
             
+            // Initialize mobile menu after dashboard is visible
+            if (typeof initMobileMenu === 'function') {
+                initMobileMenu();
+            }
+            
             // Attach logout handler
             const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
