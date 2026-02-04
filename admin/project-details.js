@@ -186,16 +186,16 @@ function openRedlineEditor(url, fileName) {
         window.location.href = selectorUrl;
     } else {
         // Navigate directly to redline editor for images
- 
+        const editorUrl = `redline-editor.html?image=${encodeURIComponent(url)}&filename=${encodeURIComponent(fileName)}&project_id=${currentProject.id}&customer_id=${customerId}`;
+        window.location.href = editorUrl;
+    }
+}
 
 // Edit existing redline
 function editRedline(url, fileName) {
     // Open the redline image in the editor to continue working on it
     const editorUrl = `redline-editor.html?image=${encodeURIComponent(url)}&filename=${encodeURIComponent(fileName)}&project_id=${currentProject.id}&customer_id=${customerId}&edit_mode=true`;
     window.location.href = editorUrl;
-}       const editorUrl = `redline-editor.html?image=${encodeURIComponent(url)}&filename=${encodeURIComponent(fileName)}&project_id=${currentProject.id}&customer_id=${customerId}`;
-        window.location.href = editorUrl;
-    }
 }
 
 // View file
