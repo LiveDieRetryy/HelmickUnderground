@@ -446,14 +446,23 @@ function viewCustomerDetails(index) {
 }
 
 // Initialize on page load
-loadCustomers();
-
-// Check if coming from customer details page with edit parameter
-const urlParams = new URLSearchParams(window.location.search);
-const editId = urlParams.get('edit');
-if (editId !== null) {
-    const index = parseInt(editId);
-    if (index >= 0 && index < customers.length) {
-        editCustomer(index);
+function initializePage() {
+    loadCustomers();
+    
+    // Check if coming from customer details page with edit parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const editId = urlParams.get('edit');
+    if (editId !== null) {
+        const index = parseInt(editId);
+        if (index >= 0 && index < customers.length) {
+            editCustomer(index);
+        }
     }
+}
+
+// Wait for DOM to be ready before initializing
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializePage);
+} else {
+    initializePage();
 }
