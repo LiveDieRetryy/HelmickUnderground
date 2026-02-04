@@ -13,6 +13,33 @@
     <link rel="stylesheet" href="sidebar.css">
     <script src="shared-navbar.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // Check authentication on page load
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/auth?action=verify', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    window.location.href = '/admin/index.html';
+                    return;
+                }
+                
+                const data = await response.json();
+                if (!data.authenticated) {
+                    window.location.href = '/admin/index.html';
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                window.location.href = '/admin/index.html';
+            }
+        }
+        
+        // Run auth check immediately
+        checkAuth();
+    </script>
     <style>
         .quote-builder-container {
             display: grid;

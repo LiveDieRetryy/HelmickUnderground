@@ -141,9 +141,23 @@ function loadAdminNavbar() {
     // Setup logout button
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
+        logoutBtn.addEventListener('click', async function() {
+            try {
+                // Call API to clear JWT cookie
+                await fetch('/api/auth?action=logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+            
+            // Clear any session storage
             sessionStorage.removeItem('adminLoggedIn');
-            window.location.href = '/admin/login.html';
+            sessionStorage.removeItem('csrfToken');
+            
+            // Redirect to login
+            window.location.href = '/admin/index.html';
         });
     }
 }

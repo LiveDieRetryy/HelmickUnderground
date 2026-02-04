@@ -126,36 +126,73 @@
     </div>
 
     <script>
-        // Admin credentials
-        const ADMIN_USERNAME = 'admin';
-        const ADMIN_PASSWORD = 'HUAdmin';
-
-        // Check if user is logged in
-        function checkAuth() {
-            const isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
-            if (isLoggedIn) {
-                // Redirect to dashboard
-                window.location.href = '/admin/dashboard.html';
+        // Check if user is already logged in
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/auth?action=verify', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.authenticated) {
+                        // Already logged in, redirect to dashboard
+                        window.location.href = '/admin/dashboard.html';
+                    }
+                }
+            } catch (error) {
+                console.log('Not authenticated');
             }
         }
 
         // Login form handler
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const errorDiv = document.getElementById('loginError');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
             
-            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-                sessionStorage.setItem('adminLoggedIn', 'true');
-                // Redirect to dashboard
-                window.location.href = '/admin/dashboard.html';
-            } else {
-                errorDiv.textContent = 'Invalid username or password. Please try again.';
+            // Disable button during login
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Logging in...';
+            
+            try {
+                const response = await fetch('/api/auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Store CSRF token
+                    if (data.csrfToken) {
+                        sessionStorage.setItem('csrfToken', data.csrfToken);
+                    }
+                    // Redirect to dashboard
+                    window.location.href = '/admin/dashboard.html';
+                } else {
+                    errorDiv.textContent = data.message || 'Invalid username or password. Please try again.';
+                    errorDiv.style.display = 'block';
+                    setTimeout(() => {
+                        errorDiv.style.display = 'none';
+                    }, 5000);
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Login failed. Please check your connection and try again.';
                 errorDiv.style.display = 'block';
                 setTimeout(() => {
                     errorDiv.style.display = 'none';
-                }, 3000);
+                }, 5000);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Login';
             }
         });
 
