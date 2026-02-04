@@ -399,7 +399,9 @@ async function openSendInvoiceModal(id) {
         const invoice = await response.json();
         const items = typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items;
         
-        const emailSubject = `Invoice ${invoice.invoice_number} from Helmick Underground`;
+        const emailSubject = invoice.job_number 
+            ? `Job #${invoice.job_number} - Invoice ${invoice.invoice_number} from Helmick Underground`
+            : `Invoice ${invoice.invoice_number} from Helmick Underground`;
         
         // Create styled HTML email preview
         const emailHTML = `
