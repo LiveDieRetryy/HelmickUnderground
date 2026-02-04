@@ -194,7 +194,7 @@ function openRedlineEditor(url, fileName) {
 // Edit existing redline
 function editRedline(url, fileName) {
     // Open the redline image in the editor to continue working on it
-    const editorUrl = `redline-editor.html?image=${encodeURIComponent(url)}&filename=${encodeURIComponent(fileName)}&project_id=${currentProject.id}&customer_id=${customerId}&edit_mode=true`;
+    const editorUrl = `redline-editor.html?image=${encodeURIComponent(url)}&filename=${encodeURIComponent(fileName)}&project_id=${currentProject.id}&customer_id=${customerId}&edit_mode=true&original_url=${encodeURIComponent(url)}`;
     window.location.href = editorUrl;
 }
 
