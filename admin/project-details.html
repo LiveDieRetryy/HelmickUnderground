@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Details - Helmick Underground Admin</title>
+    <link rel="stylesheet" href="sidebar.css">
+    <style>
+        :root {
+            --primary-color: #ff6b1a;
+            --bg-dark: #0a0a0a;
+            --card-dark: #151515;
+            --white: #ffffff;
+            --gray: #888;
+            --red: #ef4444;
+            --green: #10b981;
+            --blue: #3b82f6;
+            --yellow: #fbbf24;
+            --purple: #8b5cf6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-dark);
+            color: var(--white);
+            line-height: 1.6;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 107, 26, 0.1);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 107, 26, 0.2);
+            border-color: var(--primary-color);
+            transform: translateX(-5px);
+        }
+
+        .project-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .project-header {
+            background: var(--card-dark);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(255, 107, 26, 0.1);
+        }
+
+        .project-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .project-title-section h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .project-number {
+            color: var(--gray);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-accepted { background: rgba(59, 130, 246, 0.2); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.4); }
+        .status-ongoing { background: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.4); }
+        .status-invoiced { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.4); }
+        .status-completed { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #ff8c42 100%);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 26, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            color: #10b981;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #ef4444;
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .info-box {
+            background: rgba(255, 107, 26, 0.05);
+            border: 1px solid rgba(255, 107, 26, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .info-label {
+            color: var(--gray);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            color: var(--white);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .section-card {
+            background: var(--card-dark);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .files-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .file-card {
+            background: rgba(255, 107, 26, 0.05);
+            border: 1px solid rgba(255, 107, 26, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .file-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 26, 0.2);
+        }
+
+        .file-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .file-name {
+            color: var(--white);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            word-break: break-all;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .file-action-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            background: rgba(255, 107, 26, 0.05);
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .file-action-btn:hover {
+            background: rgba(255, 107, 26, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray);
+        }
+
+        .upload-btn {
+            background: rgba(255, 107, 26, 0.1);
+            border: 2px dashed rgba(255, 107, 26, 0.3);
+            color: var(--primary-color);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .upload-btn:hover {
+            background: rgba(255, 107, 26, 0.2);
+            border-color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar"></div>
+
+    <div class="main-content">
+        <button onclick="goBack()" class="back-button">
+            ← Back
+        </button>
+
+        <div class="project-container">
+            <div class="project-header">
+                <div class="project-title-row">
+                    <div class="project-title-section">
+                        <h1 id="projectName">Loading...</h1>
+                        <div class="project-number" id="projectNumber"></div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 1rem; align-items: flex-end;">
+                        <span id="statusBadge" class="status-badge"></span>
+                        <div class="action-buttons">
+                            <button onclick="editProject()" class="btn btn-primary">
+                                ✏️ Edit Project
+                            </button>
+                            <button onclick="createInvoice()" class="btn btn-secondary">
+                                📄 Create Invoice
+                            </button>
+                            <button onclick="deleteProject()" class="btn btn-danger">
+                                🗑️ Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-grid" id="projectInfo">
+                    <!-- Project info will be populated here -->
+                </div>
+            </div>
+
+            <div id="descriptionSection" class="section-card" style="display: none;">
+                <h2 class="section-title">📝 Description</h2>
+                <div id="descriptionContent" style="color: var(--white); line-height: 1.8;"></div>
+            </div>
+
+            <div id="notesSection" class="section-card" style="display: none;">
+                <h2 class="section-title">📋 Notes</h2>
+                <div id="notesContent" style="color: var(--white); line-height: 1.8;"></div>
+            </div>
+
+            <div id="printsSection" class="section-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2 class="section-title" style="margin: 0;">📄 Prints/Blueprints</h2>
+                    <button onclick="uploadPrints()" class="upload-btn">
+                        ➕ Upload Prints
+                    </button>
+                </div>
+                <div class="files-grid" id="printsGrid">
+                    <!-- Prints will be populated here -->
+                </div>
+                <div class="empty-state" id="printsEmpty" style="display: none;">
+                    <p>No prints uploaded yet</p>
+                </div>
+            </div>
+
+            <div id="redlinesSection" class="section-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2 class="section-title" style="margin: 0;">✏️ Redlines</h2>
+                    <button onclick="uploadRedlines()" class="upload-btn">
+                        ➕ Upload Redlines
+                    </button>
+                </div>
+                <div class="files-grid" id="redlinesGrid">
+                    <!-- Redlines will be populated here -->
+                </div>
+                <div class="empty-state" id="redlinesEmpty" style="display: none;">
+                    <p>No redlines uploaded yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="printsUpload" multiple accept=".pdf,.png,.jpg,.jpeg" style="display: none;" onchange="handleFileUpload(event, 'prints')">
+    <input type="file" id="redlinesUpload" multiple accept=".pdf,.png,.jpg,.jpeg" style="display: none;" onchange="handleFileUpload(event, 'redlines')">
+
+    <script src="sidebar.js"></script>
+    <script src="project-details.js"></script>
+</body>
+</html>

@@ -376,9 +376,19 @@ async function saveProject(event) {
                 await uploadProjectFiles(savedProject.id);
             }
             
-            alert(projectId ? 'Project updated successfully!' : 'Project created successfully!');
+            // Show success notification
+            showSuccessNotification(projectId ? 'Project updated successfully!' : 'Project created successfully!');
+            
             closeProjectModal();
-            loadProjects();
+            await loadProjects();
+            
+            // Scroll to projects section
+            setTimeout(() => {
+                document.getElementById('projectsSection').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+            }, 300);
         } else {
             // Get error message from response
             const responseText = await response.text();
@@ -479,99 +489,7 @@ async function editProject(projectId) {
 
 // View project details
 async function viewProject(projectId) {
-    const project = projects.find(p => p.id === projectId);
-    if (!project) return;
-    
-    const prints = project.prints || [];
-    const redlines = project.redlines || [];
-    
-    const content = `
-        <div style="padding: 1rem 0;">
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
-                <div class="info-box">
-                    <div class="info-label">Project Number</div>
-                    <div class="info-value" style="color: var(--primary-color);">#${project.project_number}</div>
-                </div>
-                <div class="info-box">
-                    <div class="info-label">Status</div>
-                    <div class="info-value">
-                        <span class="project-status-badge status-${project.status}">${project.status}</span>
-                    </div>
-                </div>
-                <div class="info-box">
-                    <div class="info-label">Total Estimate</div>
-                    <div class="info-value">$${(project.total_estimate || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
-                </div>
-                <div class="info-box">
-                    <div class="info-label">Total Billed</div>
-                    <div class="info-value">$${(project.total_billed || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
-                </div>
-            </div>
-            
-            ${project.job_address ? `
-                <div class="info-box" style="margin-bottom: 1.5rem;">
-                    <div class="info-label">Job Address</div>
-                    <div class="info-value">${project.job_address}${project.job_city ? `, ${project.job_city}` : ''}${project.job_state ? `, ${project.job_state}` : ''}</div>
-                </div>
-            ` : ''}
-            
-            ${project.description ? `
-                <div class="info-box" style="margin-bottom: 1.5rem;">
-                    <div class="info-label">Description</div>
-                    <div class="info-value" style="font-weight: 400;">${project.description}</div>
-                </div>
-            ` : ''}
-            
-            ${project.notes ? `
-                <div class="info-box" style="margin-bottom: 1.5rem;">
-                    <div class="info-label">Notes</div>
-                    <div class="info-value" style="font-weight: 400;">${project.notes}</div>
-                </div>
-            ` : ''}
-            
-            ${prints.length > 0 ? `
-                <div style="margin-bottom: 1.5rem;">
-                    <h3 style="color: var(--primary-color); margin-bottom: 1rem;">📄 Prints/Blueprints</h3>
-                    <div class="file-list">
-                        ${prints.map(file => `
-                            <div class="file-item">
-                                <span class="file-item-name">${file.name}</span>
-                                <a href="${file.url}" target="_blank" style="color: var(--primary-color); text-decoration: none;">View</a>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            ` : ''}
-            
-            ${redlines.length > 0 ? `
-                <div style="margin-bottom: 1.5rem;">
-                    <h3 style="color: var(--primary-color); margin-bottom: 1rem;">✏️ Redlines</h3>
-                    <div class="file-list">
-                        ${redlines.map(file => `
-                            <div class="file-item">
-                                <span class="file-item-name">${file.name}</span>
-                                <a href="${file.url}" target="_blank" style="color: var(--primary-color); text-decoration: none;">View</a>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            ` : ''}
-            
-            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                <button class="btn btn-primary" onclick="editProject(${project.id}); closeViewProjectModal();" style="flex: 1;">✏️ Edit Project</button>
-                <button class="btn btn-secondary" onclick="createInvoiceForProject(${project.id}); closeViewProjectModal();" style="flex: 1;">📄 Create Invoice</button>
-            </div>
-        </div>
-    `;
-    
-    document.getElementById('viewProjectTitle').textContent = project.project_name;
-    document.getElementById('viewProjectContent').innerHTML = content;
-    document.getElementById('viewProjectModal').classList.add('active');
-}
-
-// Close view project modal
-function closeViewProjectModal() {
-    document.getElementById('viewProjectModal').classList.remove('active');
+    window.location.href = `project-details.html?id=${projectId}&customer_id=${currentCustomerIndex}`;
 }
 
 // Create invoice for project
@@ -636,3 +554,20 @@ async function deleteProject(projectId) {
 setTimeout(() => {
     loadProjects();
 }, 500);
+
+// Success notification function
+function showSuccessNotification(message) {
+    const notification = document.getElementById('successNotification');
+    const messageEl = document.getElementById('successMessage');
+    
+    messageEl.textContent = message;
+    notification.style.display = 'block';
+    notification.style.animation = 'slideIn 0.3s ease';
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 300);
+    }, 3000);
+}

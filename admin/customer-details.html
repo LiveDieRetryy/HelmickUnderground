@@ -584,6 +584,35 @@
     </style>
 </head>
 <body>
+    <!-- Success Notification -->
+    <div id="successNotification" style="position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 1rem 1.5rem; border-radius: 12px; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3); display: none; z-index: 2000; font-weight: 600; animation: slideIn 0.3s ease;">
+        <span id="successMessage"></span>
+    </div>
+
+    <style>
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+    </style>
+
     <div id="sidebar"></div>
 
     <div class="main-content">
@@ -752,19 +781,6 @@
                     <button type="button" class="btn btn-danger" onclick="closeProjectModal()">Cancel</button>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- View Project Modal -->
-    <div id="viewProjectModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title" id="viewProjectTitle">Project Details</h2>
-                <button class="close-modal" onclick="closeViewProjectModal()">&times;</button>
-            </div>
-            <div id="viewProjectContent">
-                <!-- Project details will be populated here -->
-            </div>
         </div>
     </div>
 
