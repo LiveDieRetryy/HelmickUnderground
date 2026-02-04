@@ -21,20 +21,52 @@ export default async function handler(req, res) {
     }
     
     try {
-        const { fileName, fileContent, fileType } = req.body;
+        const { fileName, fileContent, fileType, files, project_id, type } = req.body;
         
-        // Size limit check (already checked on client, but double-check)
+        // Handle multiple files upload (for project documents)
+        if (files && Array.isArray(files)) {
+            const uploadedFiles = [];
+            
+            for (const file of files) {
+                const result = await uploadSingleFile(file.fileName, file.fileContent, file.fileType, project_id, type);
+                uploadedFiles.push(result);
+            }
+            
+            return res.status(200).json({ 
+                success: true, 
+                files: uploadedFiles
+            });
+        }
+        
+        // Handle single file upload (original functionality)
+        const result = await uploadSingleFile(fileName, fileContent, fileType, project_id, type);
+        return res.status(200).json(result);
+        
+    } catch (error) {
+        console.error('Upload error:', error);
+        return res.status(500).json({ error: error.message });
+    }
+    
+    async function uploadSingleFile(fileName, fileContent, fileType, projectId, uploadType) {
+        // Size limit check
         const sizeInMB = (fileContent.length * 0.75) / (1024 * 1024); // base64 to MB
         const maxSize = fileType.startsWith('video/') ? 10 : 5;
         
         if (sizeInMB > maxSize) {
-            return res.status(400).json({ 
-                error: `File too large. ${fileType.startsWith('video/') ? 'Videos' : 'Images'} must be under ${maxSize}MB.` 
-            });
+            throw new Error(`File too large. ${fileType.startsWith('video/') ? 'Videos' : 'Images'} must be under ${maxSize}MB.`);
         }
         
-        // Determine folder
-        const folder = fileType.startsWith('video/') ? 'videos' : 'images';
+        // Determine folder based on upload type
+        let folder;
+        if (projectId) {
+            // Project-related files go in project-files directory
+            folder = `project-files/${projectId}/${uploadType || 'documents'}`;
+        } else if (fileType.startsWith('video/')) {
+            folder = 'videos';
+        } else {
+            folder = 'images';
+        }
+        
         const filePath = `${folder}/${fileName}`;
         
         // Check if file exists
@@ -56,8 +88,8 @@ export default async function handler(req, res) {
         
         // Upload file
         const uploadBody = {
-            message: `Upload ${fileType.startsWith('video/') ? 'video' : 'image'}: ${fileName}`,
-            content: fileContent.split(',')[1], // Remove data:image/jpeg;base64, prefix
+            message: `Upload ${uploadType || fileType.split('/')[0]}: ${fileName}${projectId ? ` (Project ${projectId})` : ''}`,
+            content: fileContent.split(',')[1], // Remove data prefix
         };
         
         if (sha) {
@@ -84,14 +116,12 @@ export default async function handler(req, res) {
         
         const result = await uploadResponse.json();
         
-        return res.status(200).json({ 
+        return { 
             success: true, 
+            name: fileName,
             path: filePath,
-            url: result.content.download_url
-        });
-        
-    } catch (error) {
-        console.error('Upload error:', error);
-        return res.status(500).json({ error: error.message });
+            url: result.content.download_url,
+            type: uploadType || fileType.split('/')[0]
+        };
     }
 }
