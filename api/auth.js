@@ -118,6 +118,7 @@ module.exports = async function handler(req, res) {
             if (!token) {
                 return res.status(401).json({
                     success: false,
+                    authenticated: false,
                     error: 'AUTHENTICATION_ERROR',
                     message: 'No authentication token found'
                 });
@@ -128,6 +129,7 @@ module.exports = async function handler(req, res) {
             if (!decoded) {
                 return res.status(401).json({
                     success: false,
+                    authenticated: false,
                     error: 'AUTHENTICATION_ERROR',
                     message: 'Invalid or expired token'
                 });
@@ -135,6 +137,7 @@ module.exports = async function handler(req, res) {
 
             return res.status(200).json({
                 success: true,
+                authenticated: true,
                 message: 'Token is valid',
                 user: {
                     username: decoded.username,
