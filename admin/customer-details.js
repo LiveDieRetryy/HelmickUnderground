@@ -251,7 +251,14 @@ function displayProjects() {
             <div class="project-card" onclick="viewProject(${project.id})">
                 <div class="project-card-header">
                     <span class="project-number">#${project.project_number}</span>
-                    <span class="project-status-badge status-${project.status}">${project.status}</span>
+                    <select class="project-status-dropdown status-${project.status}" 
+                            onchange="updateProjectStatus(${project.id}, this.value, event)" 
+                            onclick="event.stopPropagation()">
+                        <option value="accepted" ${project.status === 'accepted' ? 'selected' : ''}>Accepted</option>
+                        <option value="ongoing" ${project.status === 'ongoing' ? 'selected' : ''}>Ongoing</option>
+                        <option value="invoiced" ${project.status === 'invoiced' ? 'selected' : ''}>Invoiced</option>
+                        <option value="completed" ${project.status === 'completed' ? 'selected' : ''}>Completed</option>
+                    </select>
                 </div>
                 <div class="project-name">${project.project_name}</div>
                 ${project.job_address ? `
@@ -278,8 +285,6 @@ function displayProjects() {
                     </div>
                 </div>
                 <div class="project-actions" onclick="event.stopPropagation()">
-                    <button class="project-action-btn" onclick="editProject(${project.id})">✏️ Edit</button>
-                    <button class="project-action-btn" onclick="createInvoiceForProject(${project.id})">📄 Invoice</button>
                     <button class="project-action-btn" onclick="deleteProject(${project.id})">🗑️ Delete</button>
                 </div>
             </div>
@@ -477,8 +482,17 @@ async function uploadProjectFiles(projectId) {
 
 // Edit project
 async function editProject(projectId) {
+    console.log('editProject called with projectId:', projectId);
+    console.log('Available projects:', projects);
+    console.log('Project IDs:', projects.map(p => p.id));
+    
     const project = projects.find(p => p.id === projectId);
-    if (!project) return;
+    console.log('Found project:', project);
+    
+    if (!project) {
+        alert('Project not found!');
+        return;
+    }
     
     document.getElementById('projectModalTitle').textContent = 'Edit Project';
     document.getElementById('projectId').value = project.id;
@@ -535,6 +549,31 @@ function createInvoiceForProject(projectId) {
     }));
     
     window.location.href = 'create-invoice.html';
+}
+
+// Update project status
+async function updateProjectStatus(projectId, newStatus, event) {
+    event.stopPropagation();
+    
+    try {
+        const response = await fetch(`/api/projects?project_id=${projectId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        });
+        
+        if (response.ok) {
+            showSuccessNotification('Project status updated!');
+            await loadProjects();
+        } else {
+            alert('Failed to update status');
+            await loadProjects(); // Reload to reset dropdown
+        }
+    } catch (error) {
+        console.error('Error updating status:', error);
+        alert('Failed to update status');
+        await loadProjects(); // Reload to reset dropdown
+    }
 }
 
 // Delete project
