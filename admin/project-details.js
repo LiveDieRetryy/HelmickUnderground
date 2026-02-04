@@ -212,7 +212,12 @@ function viewFile(url, fileName) {
         const img = document.createElement('img');
         img.src = viewUrl;
         img.alt = fileName;
-        img.style.cssText = 'max-width: 100%; max-height: 100%; object-fit: contain; background: white;';
+        img.style.cssText = 'max-width: 100%; max-height: 100%; object-fit: contain; background: white; cursor: pointer;';
+        
+        // Click image to toggle fullscreen
+        img.onclick = function() {
+            toggleFullscreen();
+        };
         
         img.onload = function() {
             const loader = document.getElementById('fileLoader');
@@ -234,8 +239,16 @@ function viewFile(url, fileName) {
 
 // Close file viewer
 function closeFileViewer() {
-    document.getElementById('fileViewerModal').classList.remove('active');
+    const modal = document.getElementById('fileViewerModal');
+    modal.classList.remove('active');
+    modal.classList.remove('fullscreen');
     document.getElementById('fileViewerContent').innerHTML = '';
+}
+
+// Toggle fullscreen
+function toggleFullscreen() {
+    const modal = document.getElementById('fileViewerModal');
+    modal.classList.toggle('fullscreen');
 }
 
 // Download file
