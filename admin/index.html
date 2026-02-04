@@ -101,8 +101,9 @@
             border: 1px solid rgba(220, 20, 60, 0.5);
             display: none;
         }
-
-        .dashboard-wrapper {
+    </style>
+</head>
+<body>
             min-height: 100vh;
             background: transparent;
             padding: 0;
@@ -597,10 +598,46 @@
         </div>
     </div>
 
-    <!-- Dashboard Content (hidden until login) -->
-    <div id="dashboardContent" class="dashboard-wrapper" style="display: none;">
-        <!-- Mobile Menu Toggle -->
-        <button class="mobile-menu-toggle" id="mobileMenuToggle">
+    <script>
+        // Admin credentials
+        const ADMIN_USERNAME = 'admin';
+        const ADMIN_PASSWORD = 'HUAdmin';
+
+        // Check if user is logged in
+        function checkAuth() {
+            const isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
+            if (isLoggedIn) {
+                // Redirect to dashboard
+                window.location.href = '/admin/dashboard.html';
+            }
+        }
+
+        // Login form handler
+        document.getElementById('loginForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('loginError');
+            
+            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                // Redirect to dashboard
+                window.location.href = '/admin/dashboard.html';
+            } else {
+                errorDiv.textContent = 'Invalid username or password. Please try again.';
+                errorDiv.style.display = 'block';
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 3000);
+            }
+        });
+
+        // Check auth on load
+        checkAuth();
+    </script>
+</body>
+</html>
+
             <span></span>
             <span></span>
             <span></span>
