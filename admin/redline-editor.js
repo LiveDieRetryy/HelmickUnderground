@@ -535,7 +535,29 @@ function drawShapePreview(x1, y1, x2, y2) {
     ctx.strokeStyle = currentColor;
     ctx.lineWidth = currentWidth;
     ctx.setLineDash([5, 5]);
-    Apply transformations
+    
+    if (currentTool === 'line') {
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+    } else if (currentTool === 'rectangle') {
+        ctx.strokeRect(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1), Math.abs(y2 - y1));
+    } else if (currentTool === 'circle') {
+        const radius = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        ctx.beginPath();
+        ctx.arc(x1, y1, radius, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+    
+    ctx.setLineDash([]);
+}
+
+// Redraw canvas
+function redraw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Apply transformations
     ctx.save();
     ctx.translate(offsetX, offsetY);
     ctx.scale(scale, scale);
@@ -550,29 +572,7 @@ function drawShapePreview(x1, y1, x2, y2) {
         drawSelectionHandles(selectedShape);
     }
     
-    ctx.restore(); else if (currentTool === 'circle') {
-        const radius = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-        ctx.beginPath();
-        ctx.arc(x1, y1, radius, 0, Math.PI * 2);
-        ctx.stroke();
-    }
-    
-    ctx.setLineDash([]);
-}
-
-// Redraw canvas
-function redraw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw all shapes
-    for (let shape of shapes) {
-        drawShape(shape, shape === selectedShape);
-    }
-    
-    // Draw selection handles
-    if (selectedShape) {
-        drawSelectionHandles(selectedShape);
-    }
+    ctx.restore();
 }
 
 // Draw a single shape
