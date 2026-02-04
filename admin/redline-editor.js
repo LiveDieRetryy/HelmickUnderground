@@ -964,6 +964,7 @@ function handleWheel(e) {
 window.selectTool = selectTool;
 window.clearCanvas = clearCanvas;
 window.undo = undo;
+window.undoLast = undo; // Alias
 window.saveRedline = saveRedline;
 window.goBack = goBack;
 window.zoomIn = zoomIn;
