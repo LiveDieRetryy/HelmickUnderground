@@ -273,12 +273,7 @@ function handleMouseMove(e) {
         
         // Draw preview for shapes
         if (currentTool !== 'pen') {
-          Panning) {
-        isPanning = false;
-        canvas.style.cursor = currentTool === 'select' ? 'default' : 'crosshair';
-    }
-    
-    if (is  drawShapePreview(startX, startY, pos.x, pos.y);
+            drawShapePreview(startX, startY, pos.x, pos.y);
         }
     } else if (currentTool === 'select') {
         // Update cursor based on what's under mouse
@@ -295,6 +290,11 @@ function handleMouseMove(e) {
 
 // Mouse up
 function handleMouseUp(e) {
+    if (isPanning) {
+        isPanning = false;
+        canvas.style.cursor = currentTool === 'select' ? 'default' : 'crosshair';
+    }
+    
     if (isDrawing && currentTool !== 'pen') {
         const pos = getMousePos(e);
         
