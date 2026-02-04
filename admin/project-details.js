@@ -131,18 +131,45 @@ function displayFiles(files, type) {
                 <div class="file-icon">${icon}</div>
                 <div class="file-name">${file.name}</div>
                 <div class="file-actions">
-                    <button class="file-action-btn" onclick="viewFile('${file.url}')">👁️ View</button>
-                    <button class="file-action-btn" onclick="downloadFile('${file.url}', '${file.name}')">⬇️ Download</button>
-                    <button class="file-action-btn" style="color: var(--red);" onclick="deleteFile(${index}, '${type}')">🗑️ Delete</button>
+                    <button class="file-action-btn" data-file-url="${file.url}" data-file-name="${file.name}" data-action="view">👁️ View</button>
+                    <button class="file-action-btn" data-file-url="${file.url}" data-file-name="${file.name}" data-action="download">⬇️ Download</button>
+                    <button class="file-action-btn" style="color: var(--red);" data-index="${index}" data-type="${type}" data-action="delete">🗑️ Delete</button>
                 </div>
             </div>
         `;
     }).join('');
+    
+    // Add event listeners to buttons
+    setTimeout(() => {
+        document.querySelectorAll('.file-action-btn').forEach(btn => {
+            btn.addEventListener('click', handleFileAction);
+        });
+    }, 0);
+}
+
+// Handle file actions
+function handleFileAction(e) {
+    const button = e.currentTarget;
+    const action = button.dataset.action;
+    
+    if (action === 'view') {
+        e.preventDefault();
+        viewFile(button.dataset.fileUrl, button.dataset.fileName);
+    } else if (action === 'download') {
+        e.preventDefault();
+        downloadFile(button.dataset.fileUrl, button.dataset.fileName);
+    } else if (action === 'delete') {
+        e.preventDefault();
+        deleteFile(parseInt(button.dataset.index), button.dataset.type);
+    }
 }
 
 // View file
-function viewFile(url) {
-    const fileName = url.split('/').pop();
+function viewFile(url, fileName) {
+    if (!fileName) {
+        fileName = url.split('/').pop();
+    }
+    
     const isPdf = fileName.toLowerCase().endsWith('.pdf');
     const isImage = /\.(png|jpg|jpeg|gif|webp)$/i.test(fileName);
     
@@ -150,10 +177,17 @@ function viewFile(url) {
     
     const content = document.getElementById('fileViewerContent');
     
+    // Convert GitHub download URL to raw URL for proper viewing
+    let viewUrl = url;
+    if (url.includes('github.com') && !url.includes('raw.githubusercontent.com')) {
+        viewUrl = url.replace('github.com', 'raw.githubusercontent.com')
+                     .replace('/blob/', '/');
+    }
+    
     if (isPdf) {
-        content.innerHTML = `<iframe src="${url}" style="width: 100%; height: 100%; border: none;"></iframe>`;
+        content.innerHTML = `<iframe src="${viewUrl}" style="width: 100%; height: 100%; border: none;"></iframe>`;
     } else if (isImage) {
-        content.innerHTML = `<img src="${url}" alt="${fileName}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+        content.innerHTML = `<img src="${viewUrl}" alt="${fileName}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
     } else {
         content.innerHTML = `<div style="color: white; text-align: center;"><p>Preview not available</p><a href="${url}" target="_blank" style="color: var(--primary-color);">Open in new tab</a></div>`;
     }
