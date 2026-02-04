@@ -4,9 +4,15 @@
  */
 
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const { generateToken, verifyToken, extractToken, setAuthCookie, clearAuthCookie } = require('../lib/auth-middleware');
 const { generateAndSetCsrfToken, clearCsrfCookie, CSRF_HEADER_NAME } = require('../lib/csrf-middleware');
 const { enforceRateLimit } = require('../lib/rate-limiter');
+
+// Helper function to generate CSRF token
+function generateCsrfToken() {
+    return crypto.randomBytes(32).toString('hex');
+}
 
 // TEMPORARY: Hardcoded admin credentials
 // TODO: Move to database with proper user management
@@ -73,11 +79,15 @@ module.exports = async function handler(req, res) {
                         email: ADMIN_EMAIL
                     });
 
-                    // Set HTTP-only cookie
-                    setAuthCookie(res, token);
-
-                    // Generate and set CSRF token
-                    const csrfToken = generateAndSetCsrfToken(res);
+                    // Generate CSRF token
+                    const csrfToken = generateCsrfToken();
+                    
+                    // Set both cookies at once to avoid overwriting
+                    const isProduction = process.env.NODE_ENV === 'production';
+                    res.setHeader('Set-Cookie', [
+                        `auth_token=${token}; HttpOnly; Path=/; Max-Age=28800; SameSite=Lax${isProduction ? '; Secure' : ''}`,
+                        `csrf_token=${csrfToken}; HttpOnly; Path=/; Max-Age=86400; SameSite=Lax${isProduction ? '; Secure' : ''}`
+                    ]);
 
                     return res.status(200).json({
                         success: true,
