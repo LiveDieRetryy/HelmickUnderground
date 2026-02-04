@@ -388,7 +388,65 @@ async function handleFileUpload(event, type) {
 
 // Edit project
 function editProject() {
-    window.location.href = `customer-details.html?id=${customerId}&edit_project=${currentProject.id}`;
+    // Populate the modal with current project data
+    document.getElementById('projectNumber').value = currentProject.project_number;
+    document.getElementById('projectName').value = currentProject.project_name;
+    document.getElementById('projectJobAddress').value = currentProject.job_address || '';
+    document.getElementById('projectJobCity').value = currentProject.job_city || '';
+    document.getElementById('projectJobState').value = currentProject.job_state || '';
+    document.getElementById('projectDescription').value = currentProject.description || '';
+    document.getElementById('projectStatus').value = currentProject.status;
+    document.getElementById('projectEstimate').value = currentProject.total_estimate || '';
+    document.getElementById('projectStartDate').value = currentProject.start_date || '';
+    document.getElementById('projectEstimatedCompletion').value = currentProject.estimated_completion || '';
+    document.getElementById('projectNotes').value = currentProject.notes || '';
+    
+    // Open the modal
+    document.getElementById('projectModal').classList.add('active');
+}
+
+// Close edit modal
+function closeEditModal() {
+    document.getElementById('projectModal').classList.remove('active');
+}
+
+// Save project edits
+async function saveProjectEdits(event) {
+    event.preventDefault();
+    
+    const projectData = {
+        project_number: document.getElementById('projectNumber').value,
+        project_name: document.getElementById('projectName').value,
+        job_address: document.getElementById('projectJobAddress').value,
+        job_city: document.getElementById('projectJobCity').value,
+        job_state: document.getElementById('projectJobState').value,
+        description: document.getElementById('projectDescription').value,
+        status: document.getElementById('projectStatus').value,
+        total_estimate: parseFloat(document.getElementById('projectEstimate').value) || 0,
+        start_date: document.getElementById('projectStartDate').value,
+        estimated_completion: document.getElementById('projectEstimatedCompletion').value,
+        notes: document.getElementById('projectNotes').value
+    };
+    
+    try {
+        const response = await fetch(`/api/projects?project_id=${currentProject.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(projectData)
+        });
+        
+        if (response.ok) {
+            alert('Project updated successfully!');
+            closeEditModal();
+            // Reload the page to show updated data
+            window.location.reload();
+        } else {
+            alert('Failed to update project');
+        }
+    } catch (error) {
+        console.error('Error updating project:', error);
+        alert('Failed to update project');
+    }
 }
 
 // Create invoice for project

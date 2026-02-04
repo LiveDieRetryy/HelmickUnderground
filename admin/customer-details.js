@@ -477,17 +477,8 @@ async function uploadProjectFiles(projectId) {
 
 // Edit project
 async function editProject(projectId) {
-    console.log('editProject called with ID:', projectId);
-    console.log('Available projects:', projects);
-    
     const project = projects.find(p => p.id === projectId);
-    console.log('Found project:', project);
-    
-    if (!project) {
-        console.error('Project not found with ID:', projectId);
-        alert('Project not found. Please refresh the page and try again.');
-        return;
-    }
+    if (!project) return;
     
     document.getElementById('projectModalTitle').textContent = 'Edit Project';
     document.getElementById('projectId').value = project.id;
