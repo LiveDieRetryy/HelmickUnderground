@@ -136,7 +136,11 @@ function selectTool(tool) {
 
 // Get mouse position
 function getMousePos(e) {
-    const rect = canvas.getBoundingClientRect();
+    // Get container position (which doesn't transform)
+    const container = document.getElementById('canvasContainer');
+    const rect = container.getBoundingClientRect();
+    
+    // Calculate position in canvas space, accounting for CSS transforms
     return {
         x: (e.clientX - rect.left - offsetX) / scale,
         y: (e.clientY - rect.top - offsetY) / scale
