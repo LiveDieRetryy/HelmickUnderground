@@ -77,22 +77,20 @@
         .canvas-container {
             flex: 1;
             position: relative;
-            overflow: auto;
+            overflow: hidden;
             background: #2a2a2a;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        #imageCanvas {
+        #imageCanvas, #drawingCanvas {
             position: absolute;
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
             cursor: crosshair;
-        }
-
-        #drawingCanvas {
-            position: absolute;
-            cursor: crosshair;
-            pointer-events: all;
         }
 
         .color-picker {
@@ -177,9 +175,8 @@
 
             <div class="toolbar-section">
                 <input type="color" id="colorPicker" class="color-picker" value="#ff0000">
-                <input type="number" id="strokeWidth" class="stroke-width" min="1" max="20" value="3" placeholder="Width">                <button class="tool-btn" onclick="zoomIn()">🔍+ Zoom In</button>
-                <button class="tool-btn" onclick="zoomOut()">🔍- Zoom Out</button>
-                <button class="tool-btn" onclick="resetZoom()">↺ Reset</button>                <button class="tool-btn" onclick="clearCanvas()">🗑️ Clear All</button>
+                <input type="number" id="strokeWidth" class="stroke-width" min="1" max="20" value="3" placeholder="Width">
+                <button class="tool-btn" onclick="clearCanvas()">🗑️ Clear All</button>
                 <button class="tool-btn" onclick="undo()">↶ Undo</button>
             </div>
 

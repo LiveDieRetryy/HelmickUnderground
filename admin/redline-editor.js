@@ -11,14 +11,9 @@ let currentWidth = 3;
 let startX, startY;
 let shapes = []; // Store all shapes as objects
 let selectedShape = null;
-let dragMode = null; // null, 'move', 'resize-tl', 'resize-tr', 'resize-bl', 'resize-br', 'rotate'
+let dragMode = null;
 let dragStartX, dragStartY;
 let originalShape = null;
-let scale = 1;
-let offsetX = 0;
-let offsetY = 0;
-let isPanning = false;
-let panStartX, panStartY;
 
 // Get parameters from URL
 const urlParams = new URLSearchParams(window.location.search);
@@ -52,7 +47,6 @@ function init() {
     canvas.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('mouseup', handleMouseUp);
     canvas.addEventListener('mouseout', handleMouseUp);
-    canvas.addEventListener('wheel', handleWheel, { passive: false });
     
     // Touch support
     canvas.addEventListener('touchstart', handleTouch);
@@ -145,14 +139,13 @@ function selectTool(tool) {
 // Get mouse position
 function getMousePos(e) {
     // Get container position (which doesn't transform)
-    const container = document.getElementById('canvasContainer');
-    const rect = container.getBoundingClientRect();
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
     
-    // Calculate position in canvas space, accounting for CSS transforms
     return {
-        x: (e.clientX - rect.left - offsetX) / scale,
-        y: (e.clientY - rect.top - offsetY) / scale
-    };
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
 }
 
 // Handle touch events
@@ -173,16 +166,6 @@ function handleMouseDown(e) {
     startY = pos.y;
     
     // Middle mouse button or Ctrl+Click for panning
-    if (e.button === 1 || (e.ctrlKey && e.button === 0)) {
-        isPanning = true;
-        panStartX = e.clientX - offsetX;
-        panStartY = e.clientY - offsetY;
-        canvas.style.cursor = 'grabbing';
-        e.preventDefault();
-        return;
-    }
-    
-    if (currentTool === 'select') {
         // Check if clicking on a handle
         if (selectedShape) {
             const handle = getHandleAt(pos.x, pos.y);
@@ -246,13 +229,6 @@ function handleMouseMove(e) {
     
     if (currentTool === 'select' && dragMode) {
         const dx = pos.x - dragStartX;
-        const dy = pos.y - dragStartY;
-        
-        if (dragMode === 'move') {
-            selectedShape.x = originalShape.x + dx;
-            selectedShape.y = originalShape.y + dy;
-            
-            if (selectedShape.type === 'line') {
                 selectedShape.x2 = originalShape.x2 + dx;
                 selectedShape.y2 = originalShape.y2 + dy;
             } else if (selectedShape.type === 'pen') {
@@ -319,11 +295,6 @@ function handleMouseUp(e) {
                 y2: pos.y,
                 color: currentColor,
                 width: currentWidth
-            });
-        } else if (currentTool === 'rectangle') {
-            shapes.push({
-                type: 'rectangle',
-                x: Math.min(startX, pos.x),
                 y: Math.min(startY, pos.y),
                 width: Math.abs(pos.x - startX),
                 height: Math.abs(pos.y - startY),
@@ -924,55 +895,6 @@ function goBack() {
     }
 }
 
-// Zoom functions
-function zoomIn() {
-    scale = Math.min(scale * 1.2, 5); // Max 5x zoom
-    applyTransform();
-}
-
-function zoomOut() {
-    scale = Math.max(scale / 1.2, 0.1); // Min 0.1x zoom
-    applyTransform();
-}
-
-function resetZoom() {
-    scale = 1;
-    offsetX = 0;
-    offsetY = 0;
-    applyTransform();
-}
-
-function applyTransform() {
-    const transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
-    imageCanvas.style.transform = transform;
-    canvas.style.transform = transform;
-    imageCanvas.style.transformOrigin = '0 0';
-    canvas.style.transformOrigin = '0 0';
-}
-
-function handleWheel(e) {
-    e.preventDefault();
-    
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    
-    // Get the position before zoom
-    const worldX = (mouseX - offsetX) / scale;
-    const worldY = (mouseY - offsetY) / scale;
-    
-    // Zoom
-    const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    const newScale = Math.max(0.1, Math.min(5, scale * delta));
-    
-    // Adjust offset to zoom towards mouse position
-    offsetX = mouseX - worldX * newScale;
-    offsetY = mouseY - worldY * newScale;
-    scale = newScale;
-    
-    applyTransform();
-}
-
 // Expose functions to window for onclick handlers
 window.selectTool = selectTool;
 window.clearCanvas = clearCanvas;
@@ -980,9 +902,6 @@ window.undo = undo;
 window.undoLast = undo; // Alias
 window.saveRedline = saveRedline;
 window.goBack = goBack;
-window.zoomIn = zoomIn;
-window.zoomOut = zoomOut;
-window.resetZoom = resetZoom;
 
 // Initialize on load
 window.addEventListener('DOMContentLoaded', init);
