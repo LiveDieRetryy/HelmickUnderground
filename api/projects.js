@@ -116,6 +116,13 @@ export default async function handler(req, res) {
                 notes
             } = req.body;
 
+            // Validate required fields
+            if (!project_number || !customer_id || !project_name) {
+                return res.status(400).json({ 
+                    error: 'Missing required fields: project_number, customer_id, and project_name are required' 
+                });
+            }
+
             const result = await sql`
                 INSERT INTO projects (
                     project_number, customer_id, project_name, job_address, 
@@ -123,9 +130,9 @@ export default async function handler(req, res) {
                     estimated_completion, total_estimate, notes
                 )
                 VALUES (
-                    ${project_number}, ${customer_id}, ${project_name}, ${job_address},
-                    ${job_city}, ${job_state}, ${description}, ${status || 'accepted'}, 
-                    ${start_date}, ${estimated_completion}, ${total_estimate || 0}, ${notes}
+                    ${project_number}, ${customer_id}, ${project_name}, ${job_address || null},
+                    ${job_city || null}, ${job_state || null}, ${description || null}, ${status || 'accepted'}, 
+                    ${start_date || null}, ${estimated_completion || null}, ${total_estimate || 0}, ${notes || null}
                 )
                 RETURNING *
             `;
