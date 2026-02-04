@@ -112,7 +112,10 @@ function loadImage(url) {
         redraw();
     };
     
-    img.onerror = function() {
+    img.onerror = function(error) {
+        console.error('Failed to load image:', error);
+        alert('Failed to load image. Please check the URL or try again.');
+    };
         alert('Failed to load image');
     };
     
@@ -126,10 +129,15 @@ function selectTool(tool) {
     
     // Update UI
     document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`[data-tool="${tool}"]`).classList.add('active');
+    const toolBtn = document.querySelector(`[data-tool="${tool}"]`);
+    if (toolBtn) {
+        toolBtn.classList.add('active');
+    }
     
     // Update cursor
-    canvas.style.cursor = tool === 'select' ? 'default' : 'crosshair';
+    if (canvas) {
+        canvas.style.cursor = tool === 'select' ? 'default' : 'crosshair';
+    }
     
     redraw();
 }
