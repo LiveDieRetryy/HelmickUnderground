@@ -138,14 +138,18 @@ function selectTool(tool) {
 
 // Get mouse position
 function getMousePos(e) {
-    // Get container position (which doesn't transform)
+    // Get the canvas's position and size on screen
     const rect = canvas.getBoundingClientRect();
+    
+    // Calculate the scale between display size and actual canvas size
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
     
+    // Convert screen coordinates to canvas coordinates
     return {
         x: (e.clientX - rect.left) * scaleX,
         y: (e.clientY - rect.top) * scaleY
+    };
 }
 
 // Handle touch events
