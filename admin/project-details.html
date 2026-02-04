@@ -373,6 +373,50 @@
     <input type="file" id="printsUpload" multiple accept=".pdf,.png,.jpg,.jpeg" style="display: none;" onchange="handleFileUpload(event, 'prints')">
     <input type="file" id="redlinesUpload" multiple accept=".pdf,.png,.jpg,.jpeg" style="display: none;" onchange="handleFileUpload(event, 'redlines')">
 
+    <!-- File Viewer Modal -->
+    <div id="fileViewerModal" class="modal">
+        <div class="modal-content" style="max-width: 90vw; max-height: 90vh; padding: 0; overflow: hidden;">
+            <div style="background: var(--card-dark); padding: 1rem 2rem; border-bottom: 1px solid rgba(255, 107, 26, 0.3); display: flex; justify-content: space-between; align-items: center;">
+                <h2 id="fileViewerTitle" style="color: var(--primary-color); font-size: 1.2rem; margin: 0;"></h2>
+                <button class="close-modal" onclick="closeFileViewer()" style="background: none; border: none; color: var(--gray); font-size: 2rem; cursor: pointer; padding: 0; line-height: 1;">&times;</button>
+            </div>
+            <div id="fileViewerContent" style="width: 100%; height: calc(90vh - 80px); display: flex; align-items: center; justify-content: center; background: #000;">
+                <!-- File content will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .modal-content img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+    </style>
+
     <script src="sidebar.js"></script>
     <script src="project-details.js"></script>
 </body>

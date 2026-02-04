@@ -142,7 +142,29 @@ function displayFiles(files, type) {
 
 // View file
 function viewFile(url) {
-    window.open(url, '_blank');
+    const fileName = url.split('/').pop();
+    const isPdf = fileName.toLowerCase().endsWith('.pdf');
+    const isImage = /\.(png|jpg|jpeg|gif|webp)$/i.test(fileName);
+    
+    document.getElementById('fileViewerTitle').textContent = fileName;
+    
+    const content = document.getElementById('fileViewerContent');
+    
+    if (isPdf) {
+        content.innerHTML = `<iframe src="${url}" style="width: 100%; height: 100%; border: none;"></iframe>`;
+    } else if (isImage) {
+        content.innerHTML = `<img src="${url}" alt="${fileName}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+    } else {
+        content.innerHTML = `<div style="color: white; text-align: center;"><p>Preview not available</p><a href="${url}" target="_blank" style="color: var(--primary-color);">Open in new tab</a></div>`;
+    }
+    
+    document.getElementById('fileViewerModal').classList.add('active');
+}
+
+// Close file viewer
+function closeFileViewer() {
+    document.getElementById('fileViewerModal').classList.remove('active');
+    document.getElementById('fileViewerContent').innerHTML = '';
 }
 
 // Download file
