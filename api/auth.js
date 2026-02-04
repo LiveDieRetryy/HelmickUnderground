@@ -123,38 +123,48 @@ module.exports = async function handler(req, res) {
 
         // GET /api/auth?action=verify - Verify token
         if (req.method === 'GET' && req.query.action === 'verify') {
-            const token = extractToken(req);
-            
-            if (!token) {
+            try {
+                const token = extractToken(req);
+                
+                if (!token) {
+                    return res.status(401).json({
+                        success: false,
+                        authenticated: false,
+                        error: 'AUTHENTICATION_ERROR',
+                        message: 'No authentication token found'
+                    });
+                }
+
+                const decoded = verifyToken(token);
+                
+                if (!decoded) {
+                    return res.status(401).json({
+                        success: false,
+                        authenticated: false,
+                        error: 'AUTHENTICATION_ERROR',
+                        message: 'Invalid or expired token'
+                    });
+                }
+
+                return res.status(200).json({
+                    success: true,
+                    authenticated: true,
+                    message: 'Token is valid',
+                    user: {
+                        username: decoded.username,
+                        email: decoded.email
+                    },
+                    expiresAt: decoded.exp
+                });
+            } catch (error) {
+                console.error('Token verification error:', error);
                 return res.status(401).json({
                     success: false,
                     authenticated: false,
                     error: 'AUTHENTICATION_ERROR',
-                    message: 'No authentication token found'
+                    message: 'Token verification failed'
                 });
             }
-
-            const decoded = verifyToken(token);
-            
-            if (!decoded) {
-                return res.status(401).json({
-                    success: false,
-                    authenticated: false,
-                    error: 'AUTHENTICATION_ERROR',
-                    message: 'Invalid or expired token'
-                });
-            }
-
-            return res.status(200).json({
-                success: true,
-                authenticated: true,
-                message: 'Token is valid',
-                user: {
-                    username: decoded.username,
-                    email: decoded.email
-                },
-                expiresAt: decoded.exp
-            });
         }
 
         // GET /api/auth?action=csrf - Get CSRF token
