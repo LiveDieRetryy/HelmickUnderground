@@ -125,6 +125,8 @@ function displayFiles(files, type) {
     grid.innerHTML = files.map((file, index) => {
         const isPdf = file.name.toLowerCase().endsWith('.pdf');
         const icon = isPdf ? '📄' : '🖼️';
+        const isImage = /\.(png|jpg|jpeg|gif|webp)$/i.test(file.name);
+        const canRedline = (isImage || isPdf) && type === 'prints';
         
         return `
             <div class="file-card">
@@ -132,6 +134,7 @@ function displayFiles(files, type) {
                 <div class="file-name">${file.name}</div>
                 <div class="file-actions">
                     <button class="file-action-btn" data-file-url="${file.url}" data-file-name="${file.name}" data-action="view">👁️ View</button>
+                    ${canRedline ? `<button class="file-action-btn" data-file-url="${file.url}" data-file-name="${file.name}" data-action="redline">✏️ Redline</button>` : ''}
                     <button class="file-action-btn" data-file-url="${file.url}" data-file-name="${file.name}" data-action="download">⬇️ Download</button>
                     <button class="file-action-btn" style="color: var(--red);" data-index="${index}" data-type="${type}" data-action="delete">🗑️ Delete</button>
                 </div>
@@ -155,12 +158,31 @@ function handleFileAction(e) {
     if (action === 'view') {
         e.preventDefault();
         viewFile(button.dataset.fileUrl, button.dataset.fileName);
+    } else if (action === 'redline') {
+        e.preventDefault();
+        openRedlineEditor(button.dataset.fileUrl, button.dataset.fileName);
     } else if (action === 'download') {
         e.preventDefault();
         downloadFile(button.dataset.fileUrl, button.dataset.fileName);
     } else if (action === 'delete') {
         e.preventDefault();
         deleteFile(parseInt(button.dataset.index), button.dataset.type);
+    }
+}
+
+// Open redline editor
+function openRedlineEditor(url, fileName) {
+    // Check if it's a PDF
+    const isPdf = fileName.toLowerCase().endsWith('.pdf');
+    
+    if (isPdf) {
+        // Navigate to PDF page selector
+        const selectorUrl = `pdf-page-selector.html?pdf=${encodeURIComponent(url)}&filename=${encodeURIComponent(fileName)}&project_id=${currentProject.id}&customer_id=${customerId}`;
+        window.location.href = selectorUrl;
+    } else {
+        // Navigate directly to redline editor for images
+        const editorUrl = `redline-editor.html?image=${encodeURIComponent(url)}&filename=${encodeURIComponent(fileName)}&project_id=${currentProject.id}&customer_id=${customerId}`;
+        window.location.href = editorUrl;
     }
 }
 

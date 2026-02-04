@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redline Editor - Helmick Underground</title>
+    <link rel="stylesheet" href="sidebar.css">
+    <style>
+        :root {
+            --primary-color: #ff6b1a;
+            --bg-dark: #0a0a0a;
+            --card-dark: #151515;
+            --white: #ffffff;
+            --gray: #888;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-dark);
+            color: var(--white);
+            overflow: hidden;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .toolbar {
+            background: var(--card-dark);
+            border-bottom: 1px solid rgba(255, 107, 26, 0.3);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .toolbar-section {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .tool-btn {
+            background: rgba(255, 107, 26, 0.1);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            color: var(--white);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tool-btn:hover {
+            background: rgba(255, 107, 26, 0.2);
+            border-color: var(--primary-color);
+        }
+
+        .tool-btn.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: auto;
+            background: #2a2a2a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #imageCanvas {
+            position: absolute;
+            cursor: crosshair;
+        }
+
+        #drawingCanvas {
+            position: absolute;
+            cursor: crosshair;
+            pointer-events: all;
+        }
+
+        .color-picker {
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(255, 107, 26, 0.3);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .stroke-width {
+            width: 80px;
+            padding: 0.5rem;
+            background: rgba(255, 107, 26, 0.1);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            border-radius: 8px;
+            color: var(--white);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #ff8c42 100%);
+            color: var(--white);
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 26, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 107, 26, 0.1);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 107, 26, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .toolbar {
+                flex-wrap: wrap;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar"></div>
+
+    <div class="main-content">
+        <div class="toolbar">
+            <div class="toolbar-section">
+                <button class="btn-secondary" onclick="goBack()">← Back</button>
+                <h2 style="color: var(--primary-color); margin: 0;" id="fileName">Redline Editor</h2>
+            </div>
+            
+            <div class="toolbar-section">
+                <button class="tool-btn active" data-tool="pen" onclick="selectTool('pen')">✏️ Pen</button>
+                <button class="tool-btn" data-tool="line" onclick="selectTool('line')">📏 Line</button>
+                <button class="tool-btn" data-tool="rectangle" onclick="selectTool('rectangle')">▭ Rectangle</button>
+                <button class="tool-btn" data-tool="circle" onclick="selectTool('circle')">⭕ Circle</button>
+                <button class="tool-btn" data-tool="text" onclick="selectTool('text')">T Text</button>
+                <button class="tool-btn" data-tool="eraser" onclick="selectTool('eraser')">🧹 Eraser</button>
+            </div>
+
+            <div class="toolbar-section">
+                <input type="color" id="colorPicker" class="color-picker" value="#ff0000">
+                <input type="number" id="strokeWidth" class="stroke-width" min="1" max="20" value="3" placeholder="Width">
+                <button class="tool-btn" onclick="clearCanvas()">🗑️ Clear All</button>
+                <button class="tool-btn" onclick="undoLast()">↶ Undo</button>
+            </div>
+
+            <div class="toolbar-section">
+                <button class="btn-primary" onclick="saveRedline()">💾 Save Redline</button>
+            </div>
+        </div>
+
+        <div class="canvas-container" id="canvasContainer">
+            <canvas id="imageCanvas"></canvas>
+            <canvas id="drawingCanvas"></canvas>
+        </div>
+    </div>
+
+    <script src="sidebar.js"></script>
+    <script src="redline-editor.js"></script>
+</body>
+</html>
