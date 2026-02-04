@@ -1,74 +1,55 @@
-// Check auth
-if (!sessionStorage.getItem('adminLoggedIn')) {
-    window.location.href = '/admin/login.html';
-}
+// Check auth (using shared utility)
+checkAuth();
 
 let customers = [];
 let currentEditingIndex = null;
+let currentPage = 1;
+let itemsPerPage = 25;
+let totalPages = 1;
+let totalCustomers = 0;
+let customerSearch = null; // Fuzzy search instance
 
-// Notification system
-function showNotification(message, type = 'success') {
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 2rem;
-        right: 2rem;
-        background: ${type === 'success' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : type === 'info' ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'};
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 12px;
-        font-weight: 600;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        z-index: 100000;
-        animation: slideIn 0.3s ease-out;
-    `;
+/**
+ * Load customers from database with pagination
+ * @param {number} [page=currentPage] - Page number to load (1-indexed)
+ * @returns {Promise<void>}
+ * @throws {Error} If API request fails
+ * @example
+ * await loadCustomers(1); // Load first page
+ */
+async function loadCustomers(page = currentPage) {
+    const container = document.getElementById('customersContainer');
     
-    notification.textContent = message;
-    
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        @keyframes slideOut {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-        }
-    `;
-    if (!document.querySelector('style[data-notification]')) {
-        style.setAttribute('data-notification', 'true');
-        document.head.appendChild(style);
+    // Show loading state
+    if (container) {
+        container.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; color: var(--gray);">
+                <div class="loading-spinner" style="display: inline-block; width: 40px; height: 40px; border: 4px solid rgba(255, 107, 26, 0.3); border-radius: 50%; border-top-color: var(--primary-color); animation: spin 1s linear infinite; margin-bottom: 1rem;"></div>
+                <div style="font-size: 1.1rem;">Loading customers...</div>
+            </div>
+        `;
     }
     
-    document.body.appendChild(notification);
-    
-    // Auto remove after 4 seconds
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease-out';
-        setTimeout(() => notification.remove(), 300);
-    }, 4000);
-}
-
-// Load customers from database
-async function loadCustomers() {
     try {
-        const response = await fetch('/api/customers?action=all');
+        const response = await fetch(`/api/customers?action=all&page=${page}&limit=${itemsPerPage}`);
         if (!response.ok) throw new Error('Failed to load customers');
         
-        customers = await response.json();
+        const data = await response.json();
+        
+        // Handle both old (array) and new (object with pagination) response formats
+        if (Array.isArray(data)) {
+            // Old format - no pagination
+            customers = data;
+            totalCustomers = data.length;
+            totalPages = 1;
+            currentPage = 1;
+        } else {
+            // New format - with pagination
+            customers = data.customers || [];
+            currentPage = data.pagination.page;
+            totalPages = data.pagination.totalPages;
+            totalCustomers = data.pagination.totalCount;
+        }
         
         // Ensure all customers have custom_line_items array (for backwards compatibility)
         customers = customers.map(customer => ({
@@ -76,7 +57,13 @@ async function loadCustomers() {
             customLineItems: customer.custom_line_items || []
         }));
         
+        // Initialize fuzzy search if SearchEnhancer is available
+        if (typeof initCustomerSearch !== 'undefined') {
+            customerSearch = initCustomerSearch(customers);
+        }
+        
         displayCustomers();
+        updatePaginationControls();
     } catch (error) {
         console.error('Error loading customers:', error);
         customers = [];
@@ -85,26 +72,54 @@ async function loadCustomers() {
     }
 }
 
-// Display all customers
+/**
+ * Display customers in grid with optional search filtering using fuzzy search
+ * @param {string} [searchTerm=''] - Search term to filter customers by name, contact, phone, email, or city
+ * @returns {void}
+ * @example
+ * displayCustomers(); // Show all customers
+ * displayCustomers('john'); // Show customers matching 'john'
+ */
 function displayCustomers(searchTerm = '') {
     const container = document.getElementById('customersContainer');
     
     let filteredCustomers = customers;
+    let searchStats = null;
     
-    // Filter by search term
-    if (searchTerm) {
+    // Use fuzzy search if available and search term provided
+    if (searchTerm && customerSearch) {
+        const results = customerSearch.searchWithHighlights(searchTerm);
+        filteredCustomers = results.map(r => ({
+            ...r,
+            // Remove search metadata for display
+            _score: undefined,
+            _matches: undefined
+        }));
+        searchStats = customerSearch.getSearchStats(results);
+    } else if (searchTerm) {
+        // Fallback to basic search
         const search = searchTerm.toLowerCase();
         filteredCustomers = customers.filter(customer => 
             customer.name.toLowerCase().includes(search) ||
-            (customer.contactPerson && customer.contactPerson.toLowerCase().includes(search)) ||
+            (customer.contact_person && customer.contact_person.toLowerCase().includes(search)) ||
             (customer.phone && customer.phone.includes(search)) ||
             (customer.email && customer.email.toLowerCase().includes(search)) ||
             (customer.city && customer.city.toLowerCase().includes(search))
         );
     }
     
+    // Show search stats if available
+    let statsHtml = '';
+    if (searchStats && searchTerm) {
+        statsHtml = `
+            <div class="search-stats" style="grid-column: 1 / -1;">
+                Found <strong>${searchStats.matches}</strong> of <strong>${searchStats.total}</strong> customers matching "<strong>${searchTerm}</strong>"
+            </div>
+        `;
+    }
+    
     if (filteredCustomers.length === 0) {
-        container.innerHTML = `
+        container.innerHTML = statsHtml + `
             <div class="empty-state">
                 <div class="empty-state-icon">👥</div>
                 <h3 style="color: var(--white); margin-bottom: 0.5rem;">${searchTerm ? 'No Customers Found' : 'No Customers Yet'}</h3>
@@ -114,7 +129,7 @@ function displayCustomers(searchTerm = '') {
         return;
     }
     
-    container.innerHTML = filteredCustomers.map((customer) => {
+    container.innerHTML = statsHtml + filteredCustomers.map((customer) => {
         const typeColors = {
             residential: '#10b981',
             commercial: '#3b82f6',
@@ -125,7 +140,7 @@ function displayCustomers(searchTerm = '') {
         const typeColor = typeColors[customer.type] || '#ff6b1a';
         
         return `
-            <div class="customer-card" onclick="viewCustomerDetails(${customer.id})" style="cursor: pointer;">
+            <div class="customer-card" data-customer-id="${customer.id}" onclick="viewCustomerDetails(${customer.id})" style="cursor: pointer;">
                 <div class="customer-header">
                     <div style="flex: 1;">
                         <h3 class="customer-name">${customer.name}</h3>
@@ -180,14 +195,22 @@ function displayCustomers(searchTerm = '') {
                 ` : ''}
                 
                 <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255, 107, 26, 0.15); color: var(--gray); font-size: 0.85rem;">
-                    Added: ${new Date(customer.created_at || Date.now()).toLocaleDateString()}
+ **
+ * Open modal to add a new customer
+ * Resets form and prepares for new entry
+ * @returns {void}
+ */Date(customer.created_at || Date.now()).toLocaleDateString()}
                 </div>
             </div>
         `;
     }).join('');
 }
 
-// Open modal to add new customer
+/**
+ * Open modal to add a new customer
+ * Resets form and prepares for new entry
+ * @returns {void}
+ */
 function openAddCustomerModal() {
     currentEditingIndex = null;
     document.getElementById('modalTitle').textContent = 'Add Customer';
@@ -201,7 +224,15 @@ function openAddCustomerModal() {
     document.getElementById('customerModal').style.display = 'block';
 }
 
-// Open modal to edit existing customer
+/**
+ * Open modal to edit an existing customer
+ * Populates form with customer data and custom line items
+ * @param {number} customerId - Database ID of customer to edit
+ * @returns {Promise<void>}
+ * @throws {Error} If customer not found
+ * @example
+ * await editCustomer(42);
+ */
 async function editCustomer(customerId) {
     try {
         const customer = customers.find(c => c.id === customerId);
@@ -244,35 +275,68 @@ async function editCustomer(customerId) {
     }
 }
 
-// Close customer modal
+/**
+ * Close customer modal and reset state
+ * @returns {void}
+ */
 function closeCustomerModal() {
     document.getElementById('customerModal').style.display = 'none';
     currentEditingIndex = null;
 }
 
-// Delete customer
+/**
+ * Delete customer from database with optimistic UI
+ * Shows confirmation dialog before deletion
+ * @param {number} customerId - Database ID of customer to delete
+ * @returns {Promise<void>}
+ * @throws {Error} If deletion fails
+ */
 async function deleteCustomer(customerId) {
     const customer = customers.find(c => c.id === customerId);
     if (!customer) return;
     
     if (confirm(`Are you sure you want to delete ${customer.name}?\n\nThis will permanently remove this customer from your database.`)) {
-        try {
-            const response = await fetch(`/api/customers?id=${customerId}`, {
-                method: 'DELETE'
+        const element = document.querySelector(`[data-customer-id="${customerId}"]`);
+        
+        if (element && window.optimisticUI) {
+            // Use optimistic UI for instant feedback
+            await window.optimisticUI.deleteItem({
+                element,
+                apiCall: async () => {
+                    const response = await fetch(`/api/customers?id=${customerId}`, {
+                        method: 'DELETE'
+                    });
+                    if (!response.ok) throw new Error('Failed to delete customer');
+                    return response.json();
+                },
+                animation: 'slide'
             });
-            
-            if (!response.ok) throw new Error('Failed to delete customer');
-            
             showNotification('Customer deleted successfully', 'success');
-            await loadCustomers();
-        } catch (error) {
-            console.error('Error deleting customer:', error);
-            showNotification('Error deleting customer', 'error');
+        } else {
+            // Fallback to traditional approach
+            try {
+                const response = await fetch(`/api/customers?id=${customerId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) throw new Error('Failed to delete customer');
+                
+                showNotification('Customer deleted successfully', 'success');
+                await loadCustomers();
+            } catch (error) {
+                console.error('Error deleting customer:', error);
+                showNotification('Error deleting customer', 'error');
+            }
         }
     }
 }
 
-// Create invoice for customer (redirects to invoice page with pre-filled data)
+/**
+ * Redirect to create invoice page with customer pre-filled
+ * Stores customer data in sessionStorage for invoice form
+ * @param {number} customerId - Database ID of customer
+ * @returns {void}
+ */
 function createInvoiceForCustomer(customerId) {
     const customer = customers.find(c => c.id === customerId);
     if (!customer) return;
@@ -364,61 +428,62 @@ document.getElementById('customerForm').addEventListener('submit', async functio
     }
 });
 
-// Search functionality
-document.getElementById('searchInput').addEventListener('input', function(e) {
-    displayCustomers(e.target.value);
+// Search functionality with debouncing
+const debouncedSearch = debounce((searchTerm) => {
+    displayCustomers(searchTerm);
+}, 300);
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+    debouncedSearch(e.target.value);
 });
 
-// Notification system
-function showNotification(message, type = 'success') {
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 2rem;
-        right: 2rem;
-        background: ${type === 'success' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'};
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 12px;
-        font-weight: 600;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        z-index: 100000;
-        animation: slideIn 0.3s ease-out;
+// Note: showNotification function is now in utils.js
+
+// Pagination controls
+function updatePaginationControls() {
+    const paginationDiv = document.getElementById('paginationControls');
+    if (!paginationDiv) return;
+    
+    if (totalPages <= 1) {
+        paginationDiv.style.display = 'none';
+        return;
+    }
+    
+    paginationDiv.style.display = 'flex';
+    
+    const startItem = (currentPage - 1) * itemsPerPage + 1;
+    const endItem = Math.min(currentPage * itemsPerPage, totalCustomers);
+    
+    paginationDiv.innerHTML = `
+        <div style="color: var(--gray); font-size: 0.9rem;">
+            Showing ${startItem}-${endItem} of ${totalCustomers} customers
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <button 
+                onclick="changePage(${currentPage - 1})" 
+                ${currentPage === 1 ? 'disabled' : ''}
+                style="padding: 0.5rem 1rem; background: rgba(255, 107, 26, 0.1); border: 1px solid rgba(255, 107, 26, 0.3); color: var(--primary-color); border-radius: 8px; cursor: pointer; font-weight: 600;"
+            >
+                ← Previous
+            </button>
+            <span style="color: var(--white); font-weight: 600;">
+                Page ${currentPage} of ${totalPages}
+            </span>
+            <button 
+                onclick="changePage(${currentPage + 1})" 
+                ${currentPage === totalPages ? 'disabled' : ''}
+                style="padding: 0.5rem 1rem; background: rgba(255, 107, 26, 0.1); border: 1px solid rgba(255, 107, 26, 0.3); color: var(--primary-color); border-radius: 8px; cursor: pointer; font-weight: 600;"
+            >
+                Next →
+            </button>
+        </div>
     `;
-    
-    notification.textContent = message;
-    
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        @keyframes slideOut {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-        }
-    `;
-    document.head.appendChild(style);
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease-out';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
+}
+
+function changePage(page) {
+    if (page < 1 || page > totalPages) return;
+    loadCustomers(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // Close modal when clicking outside

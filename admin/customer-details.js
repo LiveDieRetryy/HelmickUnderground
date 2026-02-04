@@ -20,13 +20,33 @@ async function loadCustomerDetails() {
     currentCustomerId = parseInt(customerId);
     
     try {
-        // Load customer from database
-        const response = await fetch(`/api/customers?action=get&id=${currentCustomerId}`);
+        // Load customer with projects and invoices in single request (optimized)
+        const response = await fetch(`/api/customers?action=full&id=${currentCustomerId}`);
         if (!response.ok) throw new Error('Customer not found');
         
-        currentCustomer = await response.json();
+        const data = await response.json();
+        currentCustomer = data.customer;
+        projects = data.projects || [];
+        
+        // Display customer info
         displayCustomer(currentCustomer);
-        loadProjects(); // Load projects for this customer
+        
+        // Display projects
+        displayProjects();
+        
+        // Update stats with pre-calculated values
+        updateCustomerStatsFromData(data.stats);
+        
+        // Check if we need to auto-open edit modal from URL parameter
+        const editProjectId = urlParams.get('edit_project');
+        if (editProjectId) {
+            setTimeout(() => {
+                editProject(parseInt(editProjectId));
+                // Clean up URL without reloading page
+                const newUrl = window.location.pathname + '?id=' + urlParams.get('id');
+                window.history.replaceState({}, '', newUrl);
+            }, 300);
+        }
     } catch (error) {
         console.error('Error loading customer:', error);
         alert('Customer not found');
@@ -139,8 +159,8 @@ function displayCustomer(customer) {
         
         const lineItemsHtml = customer.custom_line_items.map(item => `
             <tr>
-                <td style="color: var(--white); font-weight: 500;">${item.description}</td>
-                <td style="color: var(--primary-color); font-weight: 700;">$${item.rate.toFixed(2)}</td>
+                <td data-label="Description" style="color: var(--white); font-weight: 500;">${item.description}</td>
+                <td data-label="Rate" style="color: var(--primary-color); font-weight: 700;">$${item.rate.toFixed(2)}</td>
             </tr>
         `).join('');
         
@@ -193,76 +213,21 @@ async function deleteCustomer() {
 
 // Update customer stats with live data
 async function updateCustomerStats(customer) {
-    const customerId = customer.email; // Using email as unique ID
-    
-    try {
-        // Load projects for this customer
-        const projectsResponse = await fetch(`/api/projects?customer_id=${encodeURIComponent(customerId)}`);
-        if (projectsResponse.ok) {
-            const customerProjects = await projectsResponse.json();
-            
-            // Calculate total jobs
-            const totalJobs = customerProjects.length;
-            document.getElementById('totalJobsValue').textContent = totalJobs;
-            
-            // Calculate active jobs (accepted or ongoing)
-            const activeJobs = customerProjects.filter(p => 
-                p.status === 'accepted' || p.status === 'ongoing'
-            ).length;
-            document.getElementById('activeJobsValue').textContent = activeJobs;
-            
-            // Calculate completed jobs
-            const completedJobs = customerProjects.filter(p => 
-                p.status === 'completed'
-            ).length;
-            document.getElementById('completedJobsValue').textContent = completedJobs;
-        }
-        
-        // Load invoices for this customer
-        const invoicesResponse = await fetch('/api/invoices?action=all');
-        if (invoicesResponse.ok) {
-            const data = await invoicesResponse.json();
-            const allInvoices = data.invoices || [];
-            
-            // Filter invoices for this customer and calculate total
-            const customerInvoices = allInvoices.filter(inv => 
-                inv.customer_email === customerId || 
-                inv.customer_name === customer.name
-            );
-            
-            const totalInvoiced = customerInvoices.reduce((sum, inv) => {
-                return sum + parseFloat(inv.total || 0);
-            }, 0);
-            
-            document.getElementById('invoicedAmountValue').textContent = 
-                `$${totalInvoiced.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-        }
-    } catch (error) {
-        console.error('Error loading customer stats:', error);
-        // Show 0 values on error
-        document.getElementById('totalJobsValue').textContent = '0';
-        document.getElementById('activeJobsValue').textContent = '0';
-        document.getElementById('completedJobsValue').textContent = '0';
-        document.getElementById('invoicedAmountValue').textContent = '$0.00';
-    }
+    // Stats are now loaded directly from the optimized API endpoint
+    // This function is kept for backward compatibility but does nothing
+    // The stats are set by updateCustomerStatsFromData() in loadCustomerDetails()
+}
+
+// Update customer stats with pre-calculated data from API
+function updateCustomerStatsFromData(stats) {
+    document.getElementById('totalJobsValue').textContent = stats.totalJobs;
+    document.getElementById('activeJobsValue').textContent = stats.activeJobs;
+    document.getElementById('completedJobsValue').textContent = stats.completedJobs;
+    document.getElementById('invoicedAmountValue').textContent = `$${stats.totalInvoiced.toFixed(2)}`;
 }
 
 // Initialize on page load
-loadCustomerDetails();
 
-// Projects Management
-let projects = [];
-let currentFilter = 'all';
-let selectedFiles = [];
-
-// Load projects for customer
-async function loadProjects() {
-    const customerId = currentCustomer.email; // Using email as unique ID
-    
-    try {
-        const response = await fetch(`/api/projects?customer_id=${encodeURIComponent(customerId)}`);
-        if (response.ok) {
-            projects = await response.json();
             displayProjects();
             
             // Check if we need to auto-open edit modal from URL parameter

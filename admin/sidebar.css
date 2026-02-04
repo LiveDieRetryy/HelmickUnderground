@@ -1,4 +1,24 @@
 /* Sidebar Navigation Styles */
+
+/* Ensure minimum touch target size for mobile accessibility */
+.sidebar-nav-item,
+button,
+a.btn,
+.btn-icon,
+input[type="button"],
+input[type="submit"],
+select {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon {
+    min-width: 44px;
+    padding: 0.5rem;
+}
+
 .dashboard-wrapper {
     min-height: 100vh;
     background: transparent;
@@ -95,12 +115,23 @@
     transition: transform 0.3s ease;
 }
 
-.sidebar-nav-item:hover {
-    background: rgba(255, 107, 26, 0.1);
+@media (hover: hover) {
+    .sidebar-nav-item:hover {
+        background: rgba(255, 107, 26, 0.1);
+        color: var(--white);
+    }
+
+    .sidebar-nav-item:hover::before {
+        transform: scaleY(1);
+    }
+}
+
+.sidebar-nav-item:active {
+    background: rgba(255, 107, 26, 0.15);
     color: var(--white);
 }
 
-.sidebar-nav-item:hover::before {
+.sidebar-nav-item:active::before {
     transform: scaleY(1);
 }
 
@@ -155,9 +186,16 @@
     transition: all 0.3s ease;
 }
 
-.mobile-menu-toggle:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(255, 107, 26, 0.6);
+@media (hover: hover) {
+    .mobile-menu-toggle:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(255, 107, 26, 0.6);
+    }
+}
+
+.mobile-menu-toggle:active {
+    transform: scale(0.95);
+    box-shadow: 0 4px 15px rgba(255, 107, 26, 0.4);
 }
 
 .mobile-menu-toggle span {
@@ -209,10 +247,19 @@
     letter-spacing: 1px;
 }
 
-.btn-logout:hover {
+@media (hover: hover) {
+    .btn-logout:hover {
+        background: linear-gradient(135deg, #a01028 0%, #dc143c 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(220, 20, 60, 0.5);
+        border-color: #dc143c;
+    }
+}
+
+.btn-logout:active {
     background: linear-gradient(135deg, #a01028 0%, #dc143c 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(220, 20, 60, 0.5);
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(220, 20, 60, 0.4);
     border-color: #dc143c;
 }
 

@@ -29,6 +29,13 @@
             color: var(--white);
         }
 
+        @media (max-width: 768px) {
+            body {
+                margin-left: 0;
+                padding: 1rem;
+            }
+        }
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -90,9 +97,16 @@
 
         .pages-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 20px;
             margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .pages-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 15px;
+            }
         }
 
         .page-card {

@@ -20,6 +20,31 @@
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Mobile-First Touch Targets - Minimum 44px for accessibility */
+button,
+a.btn,
+.btn,
+input[type="submit"],
+input[type="button"],
+input[type="reset"],
+select,
+.hamburger {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="url"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+input[type="date"],
+textarea {
+    min-height: 44px;
+}
+
 /* Reset and Base Styles */
 * {
     margin: 0;
@@ -1413,7 +1438,8 @@ section {
         width: 100%;
         margin: 0.5rem 0;
     }
-} 
+}
+ 
  
 /* Floating Click-to-Call Button */
 .floating-call-btn {

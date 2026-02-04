@@ -5,7 +5,12 @@ if (!sessionStorage.getItem('adminLoggedIn')) {
 
 let allInvoices = [];
 
-// Load invoices on page load
+/**
+ * Load all invoices from database
+ * Fetches invoices and statistics, updates UI
+ * @returns {Promise<void>}
+ * @throws {Error} If API request fails
+ */
 async function loadInvoices() {
     try {
         const response = await fetch('/api/invoices?action=all');
@@ -27,7 +32,16 @@ async function loadInvoices() {
     }
 }
 
-// Display invoices in table
+/**
+ * Display invoices in table format
+ * @param {Array<Object>} invoices - Array of invoice objects
+ * @param {number} invoices[].id - Invoice database ID
+ * @param {string} invoices[].invoice_number - Invoice number (e.g., "INV-001")
+ * @param {string} invoices[].customer_name - Customer name
+ * @param {string} invoices[].status - Invoice status (draft|sent|paid|overdue|cancelled)
+ * @param {number} invoices[].total - Invoice total amount
+ * @returns {void}
+ */
 function displayInvoices(invoices) {
     const tbody = document.getElementById('invoicesTableBody');
     
@@ -53,13 +67,13 @@ function displayInvoices(invoices) {
             : invoice.invoice_number;
         
         return `
-            <tr>
-                <td>${invoiceDisplay}</td>
-                <td>${invoice.customer_name}</td>
-                <td>${invoiceDate}</td>
-                <td>${dueDate}</td>
-                <td>$${parseFloat(invoice.total).toFixed(2)}</td>
-                <td>
+            <tr data-invoice-id="${invoice.id}">
+                <td data-label="Invoice #">${invoiceDisplay}</td>
+                <td data-label="Customer">${invoice.customer_name}</td>
+                <td data-label="Date">${invoiceDate}</td>
+                <td data-label="Due Date">${dueDate}</td>
+                <td data-label="Amount">$${parseFloat(invoice.total).toFixed(2)}</td>
+                <td data-label="Status">
                     <select onchange="updateInvoiceStatus(${invoice.id}, this.value)" class="status-select" style="background: ${getStatusColor(invoice.status)}; color: white; padding: 0.5rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer;">
                         <option value="draft" ${invoice.status === 'draft' ? 'selected' : ''}>Draft</option>
                         <option value="sent" ${invoice.status === 'sent' ? 'selected' : ''}>Sent</option>
@@ -68,7 +82,7 @@ function displayInvoices(invoices) {
                         <option value="cancelled" ${invoice.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
                     </select>
                 </td>
-                <td>
+                <td data-label="Actions">
                     <div style="display: flex; gap: 0.5rem;">
                         <button onclick="viewInvoice(${invoice.id})" class="btn-action" title="View">
                             👁️
@@ -80,7 +94,13 @@ function displayInvoices(invoices) {
                             📧
                         </button>
                         <button onclick="deleteInvoice(${invoice.id})" class="btn-action btn-danger" title="Delete">
-                            🗑️
+ **
+ * Get CSS color for invoice status
+ * @param {string} status - Invoice status (draft|sent|paid|overdue|cancelled)
+ * @returns {string} Hex color code
+ * @example
+ * getStatusColor('paid') // Returns '#22c55e'
+ */         🗑️
                         </button>
                     </div>
                 </td>
@@ -157,45 +177,99 @@ function searchInvoices(query) {
 
 // Update invoice status
 async function updateInvoiceStatus(id, status) {
-    try {
-        const response = await fetch(`/api/invoices?action=updateStatus&id=${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status })
-        });
-        
-        if (!response.ok) throw new Error('Failed to update status');
-        
-        // If status changed to paid, update linked submission to complete
-        if (status === 'paid') {
-            try {
-                // Find submission with this invoice_id
-                const subResponse = await fetch('/api/contact-submissions?action=all');
-                if (subResponse.ok) {
-                    const submissions = await subResponse.json();
-                    const linkedSub = submissions.find(s => s.invoice_id == id);
-                    
-                    if (linkedSub) {
-                        // Update submission status to completed
-                        await fetch('/api/contact-submissions', {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ id: linkedSub.id, status: 'completed' })
-                        });
+    const invoiceRow = document.querySelector(`tr[data-invoice-id="${id}"]`);
+    const statusSelect = invoiceRow?.querySelector('.status-select');
+    const originalStatus = statusSelect?.value;
+    
+    if (invoiceRow && statusSelect && window.optimisticUI) {
+        // Use optimistic UI for instant feedback
+        await window.optimisticUI.execute({
+            optimisticUpdate: () => {
+                statusSelect.value = status;
+                statusSelect.disabled = true;
+                invoiceRow.classList.add('optimistic-updating');
+            },
+            operation: async () => {
+                const response = await fetch(`/api/invoices?action=updateStatus&id=${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                
+                if (!response.ok) throw new Error('Failed to update status');
+                
+                // If status changed to paid, update linked submission to complete
+                if (status === 'paid') {
+                    try {
+                        const subResponse = await fetch('/api/contact-submissions?action=all');
+                        if (subResponse.ok) {
+                            const submissions = await subResponse.json();
+                            const linkedSub = submissions.find(s => s.invoice_id == id);
+                            
+                            if (linkedSub) {
+                                await fetch('/api/contact-submissions', {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ id: linkedSub.id, status: 'completed' })
+                                });
+                            }
+                        }
+                    } catch (syncError) {
+                        console.error('Failed to sync submission status:', syncError);
                     }
                 }
-            } catch (syncError) {
-                console.error('Failed to sync submission status:', syncError);
-                // Don't fail the whole operation if sync fails
+                
+                await loadInvoices();
+            },
+            rollback: {
+                getState: () => ({ originalStatus }),
+                restore: (state) => {
+                    if (statusSelect) {
+                        statusSelect.value = state.originalStatus;
+                        statusSelect.disabled = false;
+                    }
+                    invoiceRow.classList.remove('optimistic-updating');
+                }
+            },
+            successMessage: 'Invoice status updated successfully'
+        });
+    } else {
+        // Fallback to traditional approach
+        try {
+            const response = await fetch(`/api/invoices?action=updateStatus&id=${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
+            });
+            
+            if (!response.ok) throw new Error('Failed to update status');
+            
+            if (status === 'paid') {
+                try {
+                    const subResponse = await fetch('/api/contact-submissions?action=all');
+                    if (subResponse.ok) {
+                        const submissions = await subResponse.json();
+                        const linkedSub = submissions.find(s => s.invoice_id == id);
+                        
+                        if (linkedSub) {
+                            await fetch('/api/contact-submissions', {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ id: linkedSub.id, status: 'completed' })
+                            });
+                        }
+                    }
+                } catch (syncError) {
+                    console.error('Failed to sync submission status:', syncError);
+                }
             }
+            
+            await loadInvoices();
+        } catch (error) {
+            console.error('Error updating status:', error);
+            showNotification('Failed to update invoice status', 'error');
+            loadInvoices();
         }
-        
-        // Reload invoices to update stats
-        await loadInvoices();
-    } catch (error) {
-        console.error('Error updating status:', error);
-        showNotification('Failed to update invoice status', 'error');
-        loadInvoices(); // Reload to reset the dropdown
     }
 }
 

@@ -51,6 +51,13 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
         }
 
+        @media (max-width: 768px) {
+            .login-box {
+                padding: 2rem 1.5rem;
+                max-width: 100%;
+            }
+        }
+
         .login-header {
             text-align: center;
             margin-bottom: 2rem;
@@ -126,31 +133,82 @@
     </div>
 
     <script>
-        // Check if already logged in
-        if (sessionStorage.getItem('adminLoggedIn') === 'true') {
-            window.location.href = '/admin/dashboard.html';
+        // Check if already logged in via JWT token
+        checkExistingAuth();
+
+        async function checkExistingAuth() {
+            try {
+                const response = await fetch('/api/auth?action=verify', {
+                    method: 'GET',
+                    credentials: 'include' // Include cookies
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Already logged in with valid token
+                    window.location.href = '/admin/dashboard.html';
+                }
+            } catch (error) {
+                // Not logged in, stay on login page
+            }
         }
 
-        // Admin credentials
-        const ADMIN_USERNAME = 'admin';
-        const ADMIN_PASSWORD = 'HUAdmin';
-
-        // Login form handler
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        // Login form handler with JWT authentication
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const errorDiv = document.getElementById('loginError');
+            const submitBtn = this.querySelector('button[type="submit"]');
             
-            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-                sessionStorage.setItem('adminLoggedIn', 'true');
-                window.location.href = '/admin/dashboard.html';
-            } else {
-                errorDiv.textContent = 'Invalid username or password. Please try again.';
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Logging in...';
+            errorDiv.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include', // Include cookies
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Store token in localStorage as backup
+                    localStorage.setItem('auth_token', data.token);
+                    localStorage.setItem('admin_user', JSON.stringify(data.user));
+                    
+                    // Store CSRF token if provided
+                    if (data.csrfToken) {
+                        localStorage.setItem('csrf_token', data.csrfToken);
+                    }
+                    
+                    // Redirect to dashboard
+                    window.location.href = '/admin/dashboard.html';
+                } else {
+                    // Show error
+                    errorDiv.textContent = data.message || 'Invalid username or password. Please try again.';
+                    errorDiv.style.display = 'block';
+                    setTimeout(() => {
+                        errorDiv.style.display = 'none';
+                    }, 5000);
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorDiv.textContent = 'Network error. Please check your connection and try again.';
                 errorDiv.style.display = 'block';
                 setTimeout(() => {
                     errorDiv.style.display = 'none';
-                }, 3000);
+                }, 5000);
+            } finally {
+                // Re-enable button
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Login';
             }
         });
     </script>

@@ -10,8 +10,15 @@ function checkAuth() {
 
 let allSubmissions = [];
 let currentFilter = 'all';
+let submissionSearch = null; // Fuzzy search instance
+let selectedSubmissions = new Set(); // Track selected submission IDs
 
-// Load data
+/**
+ * Load all contact submissions and statistics from database
+ * Fetches submissions and stats in parallel, updates UI
+ * @returns {Promise<void>}
+ * @throws {Error} If API requests fail
+ */
 async function loadData() {
     if (!checkAuth()) return;
 
@@ -37,6 +44,11 @@ async function loadData() {
 
         console.log('Loaded submissions:', allSubmissions.length);
         console.log('Stats:', stats);
+
+        // Initialize fuzzy search if available
+        if (typeof initSubmissionSearch !== 'undefined') {
+            submissionSearch = initSubmissionSearch(allSubmissions);
+        }
 
         // Update filter dropdown counts
         updateFilterCounts(stats);
@@ -69,7 +81,24 @@ async function loadData() {
                 <p style="font-size: 0.9rem; color: var(--gray);">${error.message}</p>
                 <p style="font-size: 0.8rem; color: var(--gray); margin-top: 1rem; max-width: 600px; word-break: break-all;">${errorDetails}</p>
                 <p style="font-size: 0.85rem; color: var(--gray); margin-top: 1rem;">Check browser console for full details</p>
-            </div>
+ **
+ * Update filter dropdown with submission counts by status
+ * @param {Object} stats - Statistics object
+ * @param {number} stats.total - Total submissions
+ * @param {number} stats.unread - Unread submissions
+ * @param {number} stats.read - Read submissions
+ * @param {number} stats.acknowledged - Acknowledged submissions
+ * @param {number} stats.contacted - Contacted submissions
+ * @param {number} stats.scheduled - Scheduled submissions
+ * @param {number} stats.quoted - Quoted submissions
+ * @param {number} stats.accepted - Accepted submissions
+ * @param {number} stats.invoiced - Invoiced submissions
+ * @param {number} stats.completed - Completed submissions
+ * @param {number} stats.declined - Declined submissions
+ * @param {number} stats.spam - Spam submissions
+ * @param {number} stats.today - Today's submissions
+ * @returns {void}
+ */
         `;
     }
 }
@@ -124,11 +153,24 @@ function filterSubmissions() {
 // Render submissions
 function renderSubmissions() {
     const container = document.getElementById('submissionsList');
+    const searchTerm = document.getElementById('searchInput')?.value || '';
     
     // Filter submissions based on current filter
-    const filteredSubmissions = currentFilter === 'all' 
+    let filteredSubmissions = currentFilter === 'all' 
         ? allSubmissions 
         : allSubmissions.filter(sub => sub.status === currentFilter);
+
+    // Apply fuzzy search if search term provided
+    if (searchTerm && submissionSearch) {
+        // Update search data with filtered submissions
+        submissionSearch.updateData(filteredSubmissions);
+        const results = submissionSearch.searchWithHighlights(searchTerm);
+        filteredSubmissions = results.map(r => ({
+            ...r,
+            _score: undefined,
+            _matches: undefined
+        }));
+    }
 
     if (filteredSubmissions.length === 0) {
         const message = currentFilter === 'all' 
@@ -158,9 +200,10 @@ function renderSubmissions() {
         });
 
         return `
-            <div class="submission-card ${sub.status === 'unread' ? 'unread' : ''}" onclick="viewSubmission(${sub.id})">
+            <div class="submission-card ${sub.status === 'unread' ? 'unread' : ''} ${selectedSubmissions.has(sub.id) ? 'selected' : ''}" data-submission-id="${sub.id}">
                 <div class="submission-header">
-                    <div class="submission-name">${sub.name}</div>
+                    <input type="checkbox" class="bulk-checkbox" ${selectedSubmissions.has(sub.id) ? 'checked' : ''} onchange="toggleSubmissionSelection(${sub.id})" onclick="event.stopPropagation()" style="width: 20px; height: 20px; cursor: pointer; margin-right: 1rem;" />
+                    <div class="submission-name" onclick="viewSubmission(${sub.id})" style="cursor: pointer; flex: 1;">${sub.name}</div>
                     <select class="card-status-dropdown status-${sub.status}" onchange="updateStatusFromCard(${sub.id}, this.value)" onclick="event.stopPropagation()">
                         <option value="unread" ${sub.status === 'unread' ? 'selected' : ''}>📬 Unread</option>
                         <option value="read" ${sub.status === 'read' ? 'selected' : ''}>📖 Read</option>
@@ -175,7 +218,7 @@ function renderSubmissions() {
                         <option value="spam" ${sub.status === 'spam' ? 'selected' : ''}>🚫 Spam</option>
                     </select>
                 </div>
-                <div class="submission-info">
+                <div class="submission-info" onclick="viewSubmission(${sub.id})" style="cursor: pointer;">
                     <div class="info-item">
                         <strong>Email:</strong> ${sub.email}
                     </div>
@@ -192,11 +235,11 @@ function renderSubmissions() {
                     ` : ''}
                 </div>
                 ${sub.services && sub.services.length > 0 ? `
-                    <div class="services-list">
+                    <div class="services-list" onclick="viewSubmission(${sub.id})" style="cursor: pointer;">
                         ${sub.services.map(s => `<span class="service-tag">${s}</span>`).join('')}
                     </div>
                 ` : ''}
-                <div class="message-preview">${sub.message}</div>
+                <div class="message-preview" onclick="viewSubmission(${sub.id})" style="cursor: pointer;">${sub.message}</div>
             </div>
         `;
     }).join('');
@@ -471,21 +514,56 @@ async function deleteAllSpam() {
 
 // Update status
 async function updateStatus(id, newStatus) {
-    try {
-        const response = await fetch(`/api/contact-submissions?action=updateStatus&id=${id}&status=${newStatus}`);
-        if (!response.ok) throw new Error('Update failed');
-        
-        // Update local data
-        const sub = allSubmissions.find(s => s.id == id);
-        if (sub) sub.status = newStatus;
-        
-        // Refresh display
-        loadData();
-        
-        console.log(`Updated submission ${id} to status: ${newStatus}`);
-    } catch (error) {
-        console.error('Error updating status:', error);
-        alert('Failed to update status');
+    const statusSelect = document.getElementById('statusSelect');
+    const originalStatus = statusSelect?.value;
+    
+    if (statusSelect && window.optimisticUI) {
+        // Use optimistic UI for instant feedback
+        await window.optimisticUI.execute({
+            optimisticUpdate: () => {
+                statusSelect.value = newStatus;
+                statusSelect.disabled = true;
+            },
+            operation: async () => {
+                const response = await fetch(`/api/contact-submissions?action=updateStatus&id=${id}&status=${newStatus}`);
+                if (!response.ok) throw new Error('Update failed');
+                
+                // Update local data
+                const sub = allSubmissions.find(s => s.id == id);
+                if (sub) sub.status = newStatus;
+                
+                // Refresh display
+                loadData();
+            },
+            rollback: {
+                getState: () => ({ originalStatus }),
+                restore: (state) => {
+                    if (statusSelect) {
+                        statusSelect.value = state.originalStatus;
+                        statusSelect.disabled = false;
+                    }
+                }
+            },
+            successMessage: 'Status updated successfully'
+        });
+    } else {
+        // Fallback to traditional approach
+        try {
+            const response = await fetch(`/api/contact-submissions?action=updateStatus&id=${id}&status=${newStatus}`);
+            if (!response.ok) throw new Error('Update failed');
+            
+            // Update local data
+            const sub = allSubmissions.find(s => s.id == id);
+            if (sub) sub.status = newStatus;
+            
+            // Refresh display
+            loadData();
+            
+            console.log(`Updated submission ${id} to status: ${newStatus}`);
+        } catch (error) {
+            console.error('Error updating status:', error);
+            alert('Failed to update status');
+        }
     }
 }
 
@@ -1043,6 +1121,107 @@ async function markAsPaid(submissionId, invoiceId) {
     } catch (error) {
         console.error('Error marking as paid:', error);
         showNotification('Failed to mark as paid: ' + error.message, 'error');
+    }
+}
+
+// Bulk action functions
+function toggleSubmissionSelection(id) {
+    if (selectedSubmissions.has(id)) {
+        selectedSubmissions.delete(id);
+    } else {
+        selectedSubmissions.add(id);
+    }
+    renderSubmissions();
+    updateBulkActionUI();
+}
+
+function selectAll() {
+    const visibleSubmissions = document.querySelectorAll('.submission-card');
+    visibleSubmissions.forEach(card => {
+        const id = parseInt(card.dataset.submissionId);
+        selectedSubmissions.add(id);
+    });
+    renderSubmissions();
+    updateBulkActionUI();
+}
+
+function deselectAll() {
+    selectedSubmissions.clear();
+    renderSubmissions();
+    updateBulkActionUI();
+}
+
+function updateBulkActionUI() {
+    const bulkActions = document.getElementById('bulkActions');
+    const selectedCount = document.getElementById('selectedCount');
+    
+    if (selectedSubmissions.size > 0) {
+        bulkActions.style.display = 'flex';
+        selectedCount.textContent = `${selectedSubmissions.size} selected`;
+    } else {
+        bulkActions.style.display = 'none';
+    }
+}
+
+async function bulkUpdateStatus(newStatus) {
+    if (selectedSubmissions.size === 0) {
+        showNotification('No submissions selected', 'error');
+        return;
+    }
+    
+    const count = selectedSubmissions.size;
+    const confirmMsg = `Update ${count} submission${count > 1 ? 's' : ''} to ${newStatus}?`;
+    
+    if (!confirm(confirmMsg)) return;
+    
+    try {
+        const promises = Array.from(selectedSubmissions).map(id => 
+            fetch('/api/contact-submissions', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, status: newStatus })
+            })
+        );
+        
+        await Promise.all(promises);
+        
+        showNotification(`✅ Updated ${count} submission${count > 1 ? 's' : ''} to ${newStatus}`, 'success');
+        selectedSubmissions.clear();
+        await loadData();
+        updateBulkActionUI();
+    } catch (error) {
+        console.error('Error in bulk update:', error);
+        showNotification('Failed to update submissions: ' + error.message, 'error');
+    }
+}
+
+async function bulkDelete() {
+    if (selectedSubmissions.size === 0) {
+        showNotification('No submissions selected', 'error');
+        return;
+    }
+    
+    const count = selectedSubmissions.size;
+    const confirmMsg = `⚠️ Delete ${count} submission${count > 1 ? 's' : ''} permanently? This cannot be undone.`;
+    
+    if (!confirm(confirmMsg)) return;
+    
+    try {
+        const promises = Array.from(selectedSubmissions).map(id => 
+            fetch(`/api/contact-submissions?id=${id}`, {
+                method: 'DELETE'
+            })
+        );
+        
+        await Promise.all(promises);
+        
+        showNotification(`✅ Deleted ${count} submission${count > 1 ? 's' : ''}`, 'success');
+        selectedSubmissions.clear();
+        await loadData();
+        updateBulkActionUI();
+    } catch (error) {
+        console.error('Error in bulk delete:', error);
+        showNotification('Failed to delete submissions: ' + error.message, 'error');
     }
 }
 

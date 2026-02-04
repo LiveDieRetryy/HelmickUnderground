@@ -1,0 +1,410 @@
+# Mobile Features Documentation
+
+## Overview
+Helmick Underground now includes comprehensive mobile enhancements that provide an app-like experience on smartphones and tablets, including offline support, pull-to-refresh, and iOS installation guides.
+
+## Features
+
+### 1. Pull-to-Refresh
+**Purpose**: Allow users to manually refresh data lists by pulling down on the screen.
+
+**Behavior**:
+- Automatically enabled on admin pages with data lists (inbox, customers, analytics)
+- Pull down from the top of the page when scroll position is at 0
+- Visual indicator shows progress with spinner and text
+- Releases when pulled 80px or more
+- Automatically calls the page's data loading function
+- Provides haptic feedback (vibration) when triggered
+
+**Usage**:
+- User pulls down on a data list page
+- Indicator appears: "Pull to refresh"
+- When threshold reached: "Release to refresh"
+- On release: "Refreshing..." with spinner animation
+- Data reloads automatically
+- Indicator slides back up after completion
+
+**Technical Details**:
+- Detects containers: `.submissions-container`, `.customers-container`, `#logContainer`, `.table-container`
+- Touch events: `touchstart` → `touchmove` → `touchend`
+- Calls page functions: `loadData()`, `loadAnalyticsData()`, `loadActivityLog()`
+- Falls back to `window.location.reload()` if no data function found
+
+### 2. Network Status Monitoring
+**Purpose**: Show users when they go offline or come back online.
+
+**Behavior**:
+- Monitors `online` and `offline` events
+- Shows fixed banner at top of screen
+- Offline banner (red): "You're offline. Some features may be limited."
+- Online banner (green): "Back online" (auto-hides after 3 seconds)
+- Provides haptic feedback on status changes
+
+**Usage**:
+- User loses internet connection → red banner appears
+- User regains connection → green banner appears briefly
+- Banner doesn't interfere with page content (fixed positioning)
+
+### 3. Haptic Feedback
+**Purpose**: Provide tactile feedback for important actions on mobile devices.
+
+**Patterns**:
+- **Light**: 10ms - minor interactions
+- **Medium**: 20ms - standard actions
+- **Heavy**: 40ms - important actions
+- **Success**: [10, 50, 10] - action completed
+- **Warning**: [20, 100, 20] - attention needed
+- **Error**: [30, 100, 30, 100, 30] - problem occurred
+
+**Usage**:
+```javascript
+// In your page scripts
+if (window.mobileEnhancements) {
+    window.mobileEnhancements.triggerHaptic('success');
+}
+```
+
+**Supported Events**:
+- Pull-to-refresh trigger (medium)
+- Pull-to-refresh completion (success/error)
+- Network status changes (warning/success)
+- Form submissions (configurable)
+- Button taps (configurable)
+
+### 4. iOS "Add to Home Screen" Guide
+**Purpose**: Help iOS Safari users install the PWA to their home screen.
+
+**Behavior**:
+- Only shows on iOS Safari (not in standalone mode)
+- Appears 10 seconds after page load
+- 30-day cooldown after dismissal
+- Step-by-step visual instructions:
+  1. Tap the Share button (⎙)
+  2. Scroll and tap "Add to Home Screen"
+  3. Tap "Add"
+
+**Benefits Highlighted**:
+- ✓ Quick access from home screen
+- ✓ Works offline
+- ✓ Full-screen experience
+- ✓ Faster loading
+
+**Technical Details**:
+- Detection: `/iPad|iPhone|iPod/.test(userAgent)` + `WebKit` + `Safari`
+- Storage key: `ios-install-dismissed`
+- Analytics: Tracks impressions and dismissals
+- Modal design: Dark theme with orange accents, animated entrance
+
+### 5. Screen Wake Lock
+**Purpose**: Prevent screen from sleeping during important tasks (e.g., viewing project details, creating quotes).
+
+**Usage**:
+```javascript
+// Request wake lock
+await window.requestScreenWakeLock();
+
+// Release wake lock when done
+window.releaseScreenWakeLock();
+```
+
+**Use Cases**:
+- Viewing project redlines
+- Creating detailed quotes
+- Long form filling sessions
+- Live chat or real-time updates
+
+**Browser Support**:
+- Chrome/Edge: Full support
+- Safari: Not supported (gracefully degrades)
+- Firefox: Experimental
+
+### 6. Device Capability Detection
+**Purpose**: Track what features are available on the user's device for analytics and debugging.
+
+**Detected Capabilities**:
+- `standalone`: Is app installed to home screen?
+- `touchscreen`: Touch input available?
+- `orientation`: Current screen orientation
+- `connection`: Network connection type (4G, WiFi, etc.)
+- `memory`: Device RAM (GB)
+- `cores`: CPU core count
+- `maxTouchPoints`: Maximum simultaneous touches
+- `vibration`: Haptic feedback support
+- `wakeLock`: Screen wake lock support
+- `share`: Native share API support
+- `clipboard`: Clipboard API support
+
+**Usage**:
+```javascript
+// Access capabilities
+const capabilities = window.mobileEnhancements.detectDeviceCapabilities();
+console.log('Device supports:', capabilities);
+```
+
+**Analytics Tracking**:
+- Automatically sends capabilities to analytics on load
+- Event: `Device → Capabilities → {JSON}`
+- Useful for understanding user device landscape
+
+## Files
+
+### mobile-enhancements.js (365 lines)
+Main mobile features implementation.
+
+**Class**: `MobileEnhancements`
+
+**Methods**:
+- `init()` - Initialize all features
+- `isMobileDevice()` - Detect mobile vs desktop
+- `initPullToRefresh()` - Set up pull-to-refresh
+- `performRefresh()` - Execute data reload
+- `resetPullToRefresh()` - Reset UI after refresh
+- `initNetworkStatus()` - Monitor online/offline
+- `triggerHaptic(type)` - Vibration feedback
+- `initScreenWakeLock()` - Wake lock support
+- `detectDeviceCapabilities()` - Feature detection
+- `injectPullToRefreshStyles()` - CSS injection
+- `injectNetworkStatusStyles()` - CSS injection
+
+**Properties**:
+- `isPullToRefreshEnabled` - Feature flag
+- `startY`, `currentY` - Touch position tracking
+- `isPulling` - Gesture state
+- `pullThreshold` - 80px trigger distance
+- `refreshElement` - DOM element for indicator
+
+### ios-install.js (298 lines)
+iOS Safari installation guide.
+
+**Class**: `IOSInstallPrompt`
+
+**Methods**:
+- `init()` - Check conditions and show if appropriate
+- `isIOSSafari()` - Detect iOS Safari browser
+- `isStandalone()` - Check if already installed
+- `isRecentlyDismissed()` - Check 30-day cooldown
+- `showInstallInstructions()` - Display modal
+- `dismissPrompt(modal)` - Hide and track dismissal
+- `injectStyles()` - CSS injection
+
+**Properties**:
+- `storageKey` - 'ios-install-dismissed'
+- `cooldownDays` - 30
+
+**Modal Structure**:
+```
+┌─────────────────────────────┐
+│  📲                         ×│
+│  Install App                │
+│  Add to home screen...      │
+│                             │
+│  1. Tap Share button        │
+│  2. Add to Home Screen      │
+│  3. Tap "Add"               │
+│                             │
+│  Benefits:                  │
+│  ✓ Quick access             │
+│  ✓ Works offline            │
+│  ✓ Full-screen              │
+│  ✓ Faster loading           │
+│                             │
+│  [ Maybe Later ]            │
+└─────────────────────────────┘
+```
+
+## Installation
+
+### Automatic Integration
+These features are automatically loaded on:
+- ✓ index.html (homepage)
+- ✓ about.html
+- ✓ contact.html
+- ✓ gallery.html
+- ✓ admin/inbox.html
+
+### Manual Integration
+To add to other pages:
+
+```html
+<!-- Before closing </body> tag -->
+<script src="mobile-enhancements.js"></script>
+<script src="ios-install.js"></script>
+</body>
+```
+
+**Admin pages** need relative path:
+```html
+<script src="../mobile-enhancements.js"></script>
+<script src="../ios-install.js"></script>
+```
+
+## Configuration
+
+### Customize Pull-to-Refresh Threshold
+```javascript
+// In your page or after mobile-enhancements.js loads
+window.mobileEnhancements.pullThreshold = 100; // pixels (default: 80)
+```
+
+### Customize iOS Install Delay
+```javascript
+// In ios-install.js, change constructor:
+constructor() {
+    this.cooldownDays = 14; // default: 30
+}
+
+// Change show delay in init() method:
+setTimeout(() => {
+    this.showInstallInstructions();
+}, 5000); // default: 10000 (10 seconds)
+```
+
+### Disable Features
+```javascript
+// Disable for specific pages
+if (window.location.pathname.includes('/login')) {
+    window.mobileEnhancements = null;
+}
+```
+
+## Browser Support
+
+| Feature | Chrome/Edge | Safari | Firefox | Samsung Internet |
+|---------|-------------|--------|---------|------------------|
+| Pull-to-refresh | ✓ | ✓ | ✓ | ✓ |
+| Network status | ✓ | ✓ | ✓ | ✓ |
+| Haptic feedback | ✓ | ✓ (iOS 13+) | Limited | ✓ |
+| Wake lock | ✓ | ✗ | Experimental | ✓ |
+| iOS install prompt | N/A | ✓ (iOS Safari only) | N/A | N/A |
+
+## Testing
+
+### Test Pull-to-Refresh
+1. Open admin inbox on mobile device
+2. Scroll to top of page (scroll position = 0)
+3. Touch screen and drag down
+4. Should see orange indicator appear
+5. Drag 80px+ and release
+6. Should see "Refreshing..." and data reload
+
+### Test iOS Install Prompt
+1. Open site in iOS Safari (not standalone)
+2. Wait 10 seconds
+3. Should see modal with installation instructions
+4. Tap "Maybe Later"
+5. Reload page - should NOT see modal (30-day cooldown)
+6. Clear localStorage to test again: `localStorage.removeItem('ios-install-dismissed')`
+
+### Test Network Status
+1. Open site on mobile
+2. Turn off WiFi/mobile data
+3. Should see red "You're offline" banner
+4. Turn on WiFi/mobile data
+5. Should see green "Back online" banner (auto-hides after 3s)
+
+### Test Haptic Feedback
+1. Open site on mobile with vibration enabled
+2. Pull-to-refresh and release - should feel medium vibration
+3. Wait for data reload - should feel success pattern (3 short buzzes)
+4. Go offline - should feel warning vibration
+5. Come back online - should feel success vibration
+
+## Analytics Events
+
+The mobile features automatically track:
+
+```javascript
+// iOS Install Prompt
+trackEvent('PWA', 'iOS_Install_Shown', 'Modal');
+trackEvent('PWA', 'iOS_Install_Dismissed', 'Modal');
+
+// Device Capabilities (on page load)
+trackEvent('Device', 'Capabilities', JSON.stringify({
+    standalone: true/false,
+    touchscreen: true/false,
+    orientation: 'portrait-primary',
+    connection: '4g',
+    memory: 8,
+    cores: 8,
+    maxTouchPoints: 5,
+    vibration: true/false,
+    wakeLock: true/false,
+    share: true/false,
+    clipboard: true/false
+}));
+```
+
+## Troubleshooting
+
+### Pull-to-refresh not working
+**Symptoms**: Dragging down doesn't show indicator
+
+**Solutions**:
+- Check page has data containers (`.submissions-container`, etc.)
+- Ensure scroll position is at top (0)
+- Check browser console for errors
+- Verify mobile-enhancements.js is loaded: `console.log(window.mobileEnhancements)`
+
+### iOS install prompt not showing
+**Symptoms**: No modal appears on iOS Safari
+
+**Solutions**:
+- Check browser is iOS Safari: `console.log(window.iosInstallPrompt.isIOSSafari())`
+- Check not already installed: `console.log(window.iosInstallPrompt.isStandalone())`
+- Check not recently dismissed: `localStorage.getItem('ios-install-dismissed')`
+- Wait 10 seconds after page load
+- Clear localStorage: `localStorage.removeItem('ios-install-dismissed')`
+
+### Haptic feedback not working
+**Symptoms**: No vibration on mobile
+
+**Solutions**:
+- Check device supports vibration: `console.log('vibrate' in navigator)`
+- Check device not in silent mode (iOS blocks vibration in silent mode)
+- Test with: `navigator.vibrate(200)`
+- Some Android devices require user interaction before allowing vibration
+
+### Network status banner stuck
+**Symptoms**: Banner doesn't disappear after coming online
+
+**Solutions**:
+- Reload page
+- Check browser console for JavaScript errors
+- Verify online/offline event listeners: `window.addEventListener('online', () => console.log('Online!'))`
+
+## Performance
+
+**JavaScript Bundle Size**:
+- mobile-enhancements.js: ~12 KB minified
+- ios-install.js: ~8 KB minified
+- Total: ~20 KB additional JavaScript
+
+**Impact**:
+- Minimal - features only activate on mobile devices
+- Desktop users: Feature detection exits early (~1ms)
+- Mobile users: Initialization ~5ms on modern devices
+
+**Caching**:
+- Both files cached by service worker (v1.1.0)
+- Offline access guaranteed
+- CDN-served for fast delivery
+
+## Future Enhancements
+
+Potential additions:
+- [ ] Background sync for offline form submissions
+- [ ] Push notifications for project updates
+- [ ] Shake gesture to refresh
+- [ ] Long-press context menus
+- [ ] Swipe navigation between pages
+- [ ] Share target API (receive shared content)
+- [ ] Shortcuts API (quick actions from home screen)
+- [ ] Badge API (unread count on app icon)
+
+## Support
+
+For issues or questions:
+- Check browser console for error messages
+- Review this documentation
+- Test on multiple devices (iOS, Android)
+- Check service worker status: DevTools → Application → Service Workers

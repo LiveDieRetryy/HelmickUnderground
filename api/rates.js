@@ -1,9 +1,17 @@
 // Vercel Serverless Function to manage rates data
+// In-memory cache for rates data
+let ratesCache = null;
+let cacheTimestamp = null;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 export default async function handler(req, res) {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    
+    // Add cache headers
+    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
     
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
@@ -17,6 +25,15 @@ export default async function handler(req, res) {
     try {
         // GET - Read rates data
         if (req.method === 'GET') {
+            // Check cache first
+            const now = Date.now();
+            if (ratesCache && cacheTimestamp && (now - cacheTimestamp < CACHE_TTL)) {
+                console.log('[Cache] Returning cached rates data');
+                return res.status(200).json(ratesCache);
+            }
+            
+            console.log('[Cache] Fetching fresh rates data');
+            
             // Try to fetch from GitHub first
             if (GITHUB_TOKEN) {
                 const response = await fetch(
@@ -33,6 +50,11 @@ export default async function handler(req, res) {
                     const data = await response.json();
                     const content = Buffer.from(data.content, 'base64').toString('utf-8');
                     const ratesData = JSON.parse(content);
+                    
+                    // Update cache
+                    ratesCache = ratesData;
+                    cacheTimestamp = Date.now();
+                    
                     return res.status(200).json(ratesData);
                 }
             }
@@ -47,6 +69,11 @@ export default async function handler(req, res) {
             }
             
             const ratesData = await publicResponse.json();
+            
+            // Update cache
+            ratesCache = ratesData;
+            cacheTimestamp = Date.now();
+            
             return res.status(200).json(ratesData);
         }
         
@@ -57,6 +84,10 @@ export default async function handler(req, res) {
             }
             
             const ratesData = req.body;
+            
+            // Invalidate cache on update
+            ratesCache = null;
+            cacheTimestamp = null;
             
             // First, get current file to get its SHA
             const getResponse = await fetch(

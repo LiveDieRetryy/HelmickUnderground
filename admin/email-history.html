@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="sidebar.css">
     <script src="shared-navbar.js"></script>
+    <script src="utils.js"></script>
     <style>
         body {
             background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
@@ -169,14 +170,51 @@
             font-size: 1.2rem;
         }
 
+        .emails-table tr:hover {
+            background: rgba(255, 107, 26, 0.05);
+        }
+
+        /* Mobile responsive table */
         @media (max-width: 768px) {
             .emails-table {
-                font-size: 0.85rem;
+                display: block;
             }
-
-            .emails-table th,
+            
+            .emails-table thead {
+                display: none;
+            }
+            
+            .emails-table tbody {
+                display: block;
+            }
+            
+            .emails-table tr {
+                display: block;
+                background: rgba(255, 107, 26, 0.05);
+                border: 1px solid rgba(255, 107, 26, 0.3);
+                border-radius: 12px;
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
             .emails-table td {
-                padding: 0.75rem 0.5rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                padding: 0.75rem 0;
+                border: none;
+            }
+            
+            .emails-table td::before {
+                content: attr(data-label);
+                font-weight: 700;
+                color: var(--primary-color);
+                margin-right: 1rem;
+                min-width: 80px;
+            }
+            
+            .emails-table tr:hover {
+                background: rgba(255, 107, 26, 0.1);
             }
         }
     </style>
@@ -287,13 +325,13 @@
                             const sentDate = new Date(email.sent_at);
                             return `
                                 <tr>
-                                    <td><span class="email-type-badge type-${email.email_type}">${email.email_type}</span></td>
-                                    <td>
+                                    <td data-label="Type"><span class="email-type-badge type-${email.email_type}">${email.email_type}</span></td>
+                                    <td data-label="Recipient">
                                         <div style="font-weight: 600;">${email.recipient_name || 'N/A'}</div>
                                         <div style="color: var(--gray); font-size: 0.85rem;">${email.recipient_email}</div>
                                     </td>
-                                    <td>${email.subject || 'N/A'}</td>
-                                    <td>${sentDate.toLocaleDateString()} ${sentDate.toLocaleTimeString()}</td>
+                                    <td data-label="Subject">${email.subject || 'N/A'}</td>
+                                    <td data-label="Sent">${sentDate.toLocaleDateString()} ${sentDate.toLocaleTimeString()}</td>
                                 </tr>
                             `;
                         }).join('')}

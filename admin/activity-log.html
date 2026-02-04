@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Activity Log - Helmick Underground</title>
+    <link rel="icon" type="image/png" href="../logo.png">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="sidebar.css">
+    <script src="shared-navbar.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: var(--card-dark);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(255, 107, 26, 0.1);
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 2rem;
+        }
+
+        .back-btn {
+            background: rgba(255, 107, 26, 0.1);
+            color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            background: var(--primary-color);
+            color: var(--bg-dark);
+            transform: translateX(-4px);
+        }
+
+        .filter-container {
+            background: var(--card-dark);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 107, 26, 0.2);
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-container select,
+        .filter-container input {
+            background: rgba(255, 107, 26, 0.05);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            color: var(--white);
+            font-size: 1rem;
+        }
+
+        .filter-container select:focus,
+        .filter-container input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 107, 26, 0.1);
+        }
+
+        .log-entry {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255, 107, 26, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .log-entry:hover {
+            border-color: var(--primary-color);
+            transform: translateX(8px);
+            box-shadow: 0 4px 20px rgba(255, 107, 26, 0.15);
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .log-action {
+            display: inline-block;
+            padding: 0.35rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .log-action.create {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .log-action.read {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .log-action.update {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .log-action.delete {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .log-resource {
+            color: var(--white);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .log-details {
+            color: var(--gray);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .log-meta {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 107, 26, 0.1);
+            color: var(--gray);
+            font-size: 0.85rem;
+        }
+
+        .log-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .pagination button {
+            background: rgba(255, 107, 26, 0.1);
+            color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: var(--primary-color);
+            color: var(--bg-dark);
+        }
+
+        .pagination button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .pagination span {
+            color: var(--gray);
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray);
+            font-size: 1.1rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--gray);
+        }
+
+        .empty-state h3 {
+            color: var(--white);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="shared-navbar"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1>📋 Activity Log</h1>
+            <a href="dashboard.html" class="back-btn">← Back to Dashboard</a>
+        </div>
+
+        <div class="filter-container">
+            <label style="color: var(--gray); font-weight: 600;">Filter by:</label>
+            <select id="resourceFilter" onchange="loadActivityLog()">
+                <option value="">All Resources</option>
+                <option value="customer">Customers</option>
+                <option value="project">Projects</option>
+                <option value="invoice">Invoices</option>
+                <option value="submission">Submissions</option>
+            </select>
+            <select id="actionFilter" onchange="loadActivityLog()">
+                <option value="">All Actions</option>
+                <option value="create">Create</option>
+                <option value="read">Read</option>
+                <option value="update">Update</option>
+                <option value="delete">Delete</option>
+            </select>
+            <input type="text" id="adminFilter" placeholder="Filter by admin email..." onchange="loadActivityLog()" style="flex: 1; max-width: 300px;">
+        </div>
+
+        <div id="logContainer">
+            <div class="loading">Loading activity log...</div>
+        </div>
+
+        <div class="pagination" id="pagination" style="display: none;">
+            <button id="prevBtn" onclick="previousPage()">← Previous</button>
+            <span id="pageInfo">Page 1</span>
+            <button id="nextBtn" onclick="nextPage()">Next →</button>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        let currentPage = 1;
+        const pageSize = 50;
+        let totalLogs = 0;
+
+        async function loadActivityLog() {
+            const container = document.getElementById('logContainer');
+            container.innerHTML = '<div class="loading">Loading activity log...</div>';
+
+            const resource = document.getElementById('resourceFilter').value;
+            const action = document.getElementById('actionFilter').value;
+            const adminEmail = document.getElementById('adminFilter').value;
+
+            const offset = (currentPage - 1) * pageSize;
+            let url = `/api/activity-log?limit=${pageSize}&offset=${offset}`;
+            
+            if (resource) url += `&resource=${resource}`;
+            if (action) url += `&action=${action}`;
+            if (adminEmail) url += `&adminEmail=${encodeURIComponent(adminEmail)}`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to load activity log');
+
+                const data = await response.json();
+                totalLogs = data.total;
+
+                if (data.logs.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>No Activity Found</h3>
+                            <p>No activity logs match your current filters.</p>
+                        </div>
+                    `;
+                    document.getElementById('pagination').style.display = 'none';
+                    return;
+                }
+
+                container.innerHTML = data.logs.map(log => `
+                    <div class="log-entry">
+                        <div class="log-header">
+                            <div>
+                                <span class="log-action ${log.action}">${log.action}</span>
+                                <div class="log-resource" style="margin-top: 0.5rem;">
+                                    ${log.resource} #${log.resource_id}
+                                </div>
+                            </div>
+                            <div style="text-align: right; color: var(--gray); font-size: 0.9rem;">
+                                ${new Date(log.timestamp).toLocaleString()}
+                            </div>
+                        </div>
+                        ${log.details && Object.keys(log.details).length > 0 ? `
+                            <div class="log-details">
+                                <strong>Details:</strong>
+                                <pre style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; margin-top: 0.5rem; overflow-x: auto;">${JSON.stringify(log.details, null, 2)}</pre>
+                            </div>
+                        ` : ''}
+                        <div class="log-meta">
+                            <span>👤 ${log.admin_email}</span>
+                            ${log.ip_address ? `<span>🌐 ${log.ip_address}</span>` : ''}
+                            ${log.user_agent ? `<span title="${log.user_agent}">💻 ${log.user_agent.split(' ')[0]}...</span>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+                // Update pagination
+                const totalPages = Math.ceil(totalLogs / pageSize);
+                document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages} (${totalLogs} total)`;
+                document.getElementById('prevBtn').disabled = currentPage === 1;
+                document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+                document.getElementById('pagination').style.display = 'flex';
+
+            } catch (error) {
+                console.error('Error loading activity log:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Error</h3>
+                        <p>Failed to load activity log. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function nextPage() {
+            currentPage++;
+            loadActivityLog();
+        }
+
+        function previousPage() {
+            currentPage--;
+            loadActivityLog();
+        }
+
+        // Load on page load
+        checkAuth();
+        loadActivityLog();
+    </script>
+</body>
+</html>

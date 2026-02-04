@@ -6,7 +6,12 @@ if (!sessionStorage.getItem('adminLoggedIn')) {
 let currentProject = null;
 let customerId = null;
 
-// Load project details
+/**
+ * Load project details from API
+ * Gets project ID from URL query parameter
+ * @returns {Promise<void>}
+ * @throws {Error} If project not found or load fails
+ */
 async function loadProjectDetails() {
     // Get project ID and customer ID from URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -35,7 +40,20 @@ async function loadProjectDetails() {
     }
 }
 
-// Display project information
+/**
+ * Display project information in UI
+ * @param {Object} project - Project object from database
+ * @param {string} project.project_name - Name of project
+ * @param {string} project.project_number - Project number
+ * @param {string} project.status - Project status (planning|in_progress|completed|cancelled|on_hold)
+ * @param {number} project.total_estimate - Total estimated cost
+ * @param {number} project.total_billed - Total amount billed
+ * @param {string} [project.job_address] - Job site address
+ * @param {Date} [project.start_date] - Project start date
+ * @param {Date} [project.estimated_completion] - Estimated completion date
+ * @param {Date} [project.actual_completion] - Actual completion date
+ * @returns {void}
+ */
 function displayProject(project) {
     // Project name and number
     document.getElementById('projectName').textContent = project.project_name;

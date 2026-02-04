@@ -1,5 +1,33 @@
 const { sql } = require('@vercel/postgres');
+const { sendErrorResponse, validateRequiredFields } = require('./error-handler');
+const { requireAuth } = require('./auth-middleware');
+const { requireCsrfToken } = require('./csrf-middleware');
+const { enforceRateLimit } = require('./rate-limiter');
 
+/**
+ * Invoice API Handler
+ * Manages invoice CRUD operations with status management
+ * 
+ * @param {import('http').IncomingMessage} req - Request object
+ * @param {import('http').ServerResponse} res - Response object
+ * @returns {Promise<void>}
+ * 
+ * @endpoint GET /api/invoices?action=all - Get all invoices
+ * @endpoint GET /api/invoices?action=stats - Get invoice statistics
+ * @endpoint GET /api/invoices?action=customer&customer_name=Name - Get customer invoices
+ * @endpoint GET /api/invoices?id=123 - Get single invoice
+ * @endpoint POST /api/invoices - Create invoice
+ * @endpoint PUT /api/invoices?id=123 - Update invoice
+ * @endpoint PUT /api/invoices?action=status&id=123 - Update invoice status only
+ * @endpoint DELETE /api/invoices?id=123 - Delete invoice
+ * 
+ * @example
+ * // Update invoice status
+ * fetch('/api/invoices?action=status&id=123', {
+ *   method: 'PUT',
+ *   body: JSON.stringify({ status: 'paid' })
+ * })
+ */
 module.exports = async function handler(req, res) {
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -9,6 +37,22 @@ module.exports = async function handler(req, res) {
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
+    }
+
+    // Require authentication for all invoice operations
+    if (!requireAuth(req, res)) {
+        return; // requireAuth already sent error response
+    }
+
+    // Require CSRF token for state-changing operations
+    if ((req.method === 'POST' || req.method === 'PUT' || req.method === 'DELETE') && !requireCsrfToken(req, res)) {
+        return; // CSRF validation failed, error response already sent
+    }
+
+    // Apply rate limiting
+    const limitType = req.method === 'GET' ? 'apiRead' : 'apiWrite';
+    if (!enforceRateLimit(req, res, limitType)) {
+        return; // Rate limit exceeded, error response already sent
     }
 
     try {
@@ -37,6 +81,12 @@ module.exports = async function handler(req, res) {
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `;
+        
+        // Create indexes for frequently queried columns
+        await sql`CREATE INDEX IF NOT EXISTS idx_invoices_customer_name ON invoices(customer_name)`;
+        await sql`CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status)`;
+        await sql`CREATE INDEX IF NOT EXISTS idx_invoices_invoice_date ON invoices(invoice_date DESC)`;
+        await sql`CREATE INDEX IF NOT EXISTS idx_invoices_due_date ON invoices(due_date)`;
 
         // Add job columns if they don't exist (for existing tables)
         await sql`
@@ -262,7 +312,7 @@ module.exports = async function handler(req, res) {
                 const validStatuses = ['draft', 'sent', 'paid', 'overdue', 'cancelled'];
                 
                 if (!validStatuses.includes(status)) {
-                    return res.status(400).json({ error: 'Invalid status' });
+                    return sendErrorResponse(res, 'VALIDATION_ERROR', `Invalid status. Must be one of: ${validStatuses.join(', ')}`);
                 }
                 
                 await sql`
@@ -288,14 +338,10 @@ module.exports = async function handler(req, res) {
             }
         }
 
-        return res.status(400).json({ error: 'Invalid request' });
+        return sendErrorResponse(res, 'VALIDATION_ERROR', 'Invalid request');
 
     } catch (error) {
         console.error('Invoice API error:', error);
-        return res.status(500).json({ 
-            error: 'Internal server error', 
-            message: error.message,
-            details: error.toString()
-        });
+        return sendErrorResponse(res, 'DATABASE_ERROR', error.message, error);
     }
 };

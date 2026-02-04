@@ -1,0 +1,160 @@
+====================================
+JWT AUTHENTICATION SETUP GUIDE
+====================================
+
+The admin system now uses JWT (JSON Web Tokens) for secure authentication.
+
+ENVIRONMENT VARIABLES REQUIRED:
+--------------------------------
+
+1. JWT_SECRET (CRITICAL - Required for production)
+   - Secret key for signing JWT tokens
+   - Generate a secure random string (32+ characters)
+   - Example: openssl rand -base64 32
+   - Set in Vercel: JWT_SECRET=your_generated_secret_here
+
+2. ADMIN_USERNAME
+   - Username for admin login
+   - Default: 'admin'
+   - Set in Vercel: ADMIN_USERNAME=your_username
+
+3. ADMIN_PASSWORD_HASH
+   - Bcrypt hash of admin password (NOT plain text password!)
+   - Generate using the hash-password endpoint (see below)
+   - Set in Vercel: ADMIN_PASSWORD_HASH=your_bcrypt_hash
+
+4. ADMIN_EMAIL
+   - Email address for admin user
+   - Used in JWT token payload
+   - Set in Vercel: ADMIN_EMAIL=admin@helmickunderground.com
+
+
+SETUP STEPS:
+------------
+
+Step 1: Generate JWT Secret
+   Run in terminal: openssl rand -base64 32
+   Copy the output and set as JWT_SECRET environment variable
+
+Step 2: Generate Password Hash
+   a) Make a test API call to generate hash (development only):
+      POST https://your-site.vercel.app/api/auth?action=hash-password
+      Body: { "password": "YourSecurePassword123" }
+   
+   b) Copy the returned hash
+   
+   c) Set as ADMIN_PASSWORD_HASH environment variable
+
+Step 3: Set Environment Variables in Vercel
+   a) Go to Vercel Dashboard > Your Project > Settings > Environment Variables
+   b) Add:
+      - JWT_SECRET (your generated secret)
+      - ADMIN_PASSWORD_HASH (the bcrypt hash from step 2)
+      - ADMIN_USERNAME (optional, default: admin)
+      - ADMIN_EMAIL (optional, default: admin@helmickunderground.com)
+   
+   c) Deploy to apply changes
+
+Step 4: Test Authentication
+   a) Visit https://your-site.vercel.app/admin/login.html
+   b) Login with your username and password
+   c) Verify you're redirected to dashboard
+   d) Check that API requests work correctly
+
+
+SECURITY FEATURES:
+------------------
+
+✓ JWT tokens signed with secret key
+✓ HttpOnly cookies prevent XSS attacks
+✓ SameSite=Strict prevents CSRF attacks
+✓ Bcrypt password hashing with 10 rounds
+✓ 8-hour token expiration
+✓ Server-side token verification on all protected endpoints
+✓ Automatic logout on token expiration
+
+
+PROTECTED API ENDPOINTS:
+------------------------
+
+All admin API endpoints now require authentication:
+- /api/customers (GET, POST, PUT, DELETE)
+- /api/invoices (GET, POST, PUT, DELETE)
+- /api/projects (GET, POST, PUT, DELETE)
+- /api/contact-submissions (GET, PUT) - POST is public for contact form
+- /api/email-history (GET, POST, DELETE)
+- /api/gallery (POST, PUT, DELETE) - GET is public for viewing
+
+Unauthenticated requests return:
+{
+  "success": false,
+  "error": "AUTHENTICATION_ERROR",
+  "message": "Authentication required. Please login.",
+  "statusCode": 401
+}
+
+
+AUTHENTICATION FLOW:
+--------------------
+
+1. User visits /admin/login.html
+2. User submits username/password
+3. POST /api/auth validates credentials with bcrypt
+4. Server generates JWT token with user info
+5. Server sets HttpOnly cookie with token
+6. Client stores token in localStorage as backup
+7. All subsequent API requests include:
+   - Authorization: Bearer <token> header
+   - HttpOnly cookie (automatic)
+8. Server validates token on each protected endpoint
+9. Token expires after 8 hours (automatic logout)
+
+
+MIGRATION FROM OLD AUTH:
+------------------------
+
+The old sessionStorage authentication has been removed:
+- sessionStorage.setItem('adminLoggedIn', 'true') no longer works
+- All API endpoints now verify JWT token server-side
+- Old sessions will be automatically logged out
+- Users must login again with new system
+
+
+TROUBLESHOOTING:
+----------------
+
+Issue: "Authentication required" error
+Fix: Ensure JWT_SECRET is set in environment variables and redeploy
+
+Issue: "Invalid username or password"
+Fix: Verify ADMIN_PASSWORD_HASH matches your password's bcrypt hash
+
+Issue: Token expires too quickly
+Fix: Adjust JWT_EXPIRES_IN in api/auth-middleware.js (default: 8 hours)
+
+Issue: CORS errors
+Fix: Ensure credentials: 'include' is set in fetch requests
+
+Issue: Can't login after deployment
+Fix: Check Vercel logs for errors, verify all env variables are set
+
+
+DEVELOPMENT NOTES:
+------------------
+
+- The hash-password endpoint is disabled in production (NODE_ENV check)
+- JWT_SECRET has a fallback for development (insecure, dev only!)
+- In dev, current credentials: username='admin', password='password123'
+- All API files use requireAuth middleware for consistency
+- Client-side auth check uses /api/auth?action=verify endpoint
+
+
+FUTURE IMPROVEMENTS:
+--------------------
+
+TODO: Move credentials from environment variables to database
+TODO: Add multiple user support with roles (admin, viewer, etc.)
+TODO: Add password reset functionality
+TODO: Add session management (view active sessions, revoke tokens)
+TODO: Add login attempt tracking and rate limiting
+TODO: Add 2FA (two-factor authentication)

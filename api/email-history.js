@@ -1,4 +1,7 @@
 const { sql } = require('@vercel/postgres');
+const { requireAuth } = require('./auth-middleware');
+const { requireCsrfToken } = require('./csrf-middleware');
+const { enforceRateLimit } = require('./rate-limiter');
 
 module.exports = async function handler(req, res) {
     // Set CORS headers
@@ -9,6 +12,29 @@ module.exports = async function handler(req, res) {
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
+    }
+
+    // Require authentication for email history access
+    if (!requireAuth(req, res)) {
+        return; // requireAuth already sent error response
+    }
+
+    // Require CSRF token for state-changing operations
+    if ((req.method === 'POST' || req.method === 'DELETE') && !requireCsrfToken(req, res)) {
+        return; // CSRF validation failed, error response already sent
+    }
+
+    // Apply rate limiting
+    // Email sending is heavily rate limited (10 per hour)
+    if (req.method === 'POST') {
+        if (!enforceRateLimit(req, res, 'email')) {
+            return; // Rate limit exceeded, error response already sent
+        }
+    } else {
+        const limitType = req.method === 'GET' ? 'apiRead' : 'apiWrite';
+        if (!enforceRateLimit(req, res, limitType)) {
+            return; // Rate limit exceeded, error response already sent
+        }
     }
 
     try {

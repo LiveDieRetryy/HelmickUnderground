@@ -132,11 +132,35 @@ async function loadData() {
         const daysSince = Math.max(1, Math.ceil((new Date() - oldest) / (1000 * 60 * 60 * 24)));
         const avgDaily = Math.round(analyticsData.length / daysSince);
 
-        // Update stats
-        document.getElementById('totalVisits').textContent = stats.total || 0;
-        document.getElementById('todayVisits').textContent = stats.today || 0;
-        document.getElementById('weekVisits').textContent = stats.week || 0;
+        // Update page view stats
+        document.getElementById('totalVisits').textContent = stats.pageViews?.total || 0;
+        document.getElementById('todayVisits').textContent = stats.pageViews?.today || 0;
+        document.getElementById('weekVisits').textContent = stats.pageViews?.week || 0;
         document.getElementById('avgVisits').textContent = avgDaily;
+        
+        // Update event stats if elements exist
+        const totalEventsEl = document.getElementById('totalEvents');
+        const todayEventsEl = document.getElementById('todayEvents');
+        if (totalEventsEl) totalEventsEl.textContent = stats.events?.total || 0;
+        if (todayEventsEl) todayEventsEl.textContent = stats.events?.today || 0;
+        
+        // Update conversion stats if elements exist
+        const totalConversionsEl = document.getElementById('totalConversions');
+        const todayConversionsEl = document.getElementById('todayConversions');
+        const conversionValueEl = document.getElementById('conversionValue');
+        if (totalConversionsEl) totalConversionsEl.textContent = stats.conversions?.total || 0;
+        if (todayConversionsEl) todayConversionsEl.textContent = stats.conversions?.today || 0;
+        if (conversionValueEl) conversionValueEl.textContent = stats.conversions?.totalValue || 0;
+        
+        // Create conversion funnel table if element exists
+        if (stats.conversions?.funnel && document.getElementById('conversionFunnelTable')) {
+            createConversionFunnelTable(stats.conversions.funnel);
+        }
+        
+        // Create top events table if element exists
+        if (stats.events?.top && document.getElementById('topEventsTable')) {
+            createTopEventsTable(stats.events.top);
+        }
 
         // Hide loading
         document.getElementById('loading').style.display = 'none';
@@ -216,19 +240,42 @@ function createVisitsChart() {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: window.innerWidth < 768 ? 1.5 : 2.5,
             plugins: {
-                legend: { display: false }
+                legend: { display: false },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    ticks: { color: '#999' },
+                    ticks: { 
+                        color: '#999',
+                        font: {
+                            size: window.innerWidth < 768 ? 10 : 12
+                        }
+                    },
                     grid: { color: 'rgba(255, 107, 26, 0.1)' }
                 },
                 x: {
-                    ticks: { color: '#999' },
+                    ticks: { 
+                        color: '#999',
+                        maxRotation: window.innerWidth < 768 ? 45 : 0,
+                        minRotation: window.innerWidth < 768 ? 45 : 0,
+                        font: {
+                            size: window.innerWidth < 768 ? 9 : 12
+                        }
+                    },
                     grid: { color: 'rgba(255, 107, 26, 0.1)' }
                 }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
             }
         }
     });
@@ -258,17 +305,41 @@ function createPagesChart() {
         options: {
             indexAxis: 'y',
             responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: window.innerWidth < 768 ? 0.8 : 1.2,
             plugins: {
-                legend: { display: false }
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        title: (context) => context[0].label,
+                        label: (context) => `Views: ${context.parsed.x}`
+                    }
+                }
             },
             scales: {
                 x: {
                     beginAtZero: true,
-                    ticks: { color: '#999' },
+                    ticks: { 
+                        color: '#999',
+                        font: {
+                            size: window.innerWidth < 768 ? 10 : 12
+                        }
+                    },
                     grid: { color: 'rgba(255, 107, 26, 0.1)' }
                 },
                 y: {
-                    ticks: { color: '#999' },
+                    ticks: { 
+                        color: '#999',
+                        font: {
+                            size: window.innerWidth < 768 ? 9 : 12
+                        },
+                        callback: function(value) {
+                            const label = this.getLabelForValue(value);
+                            return window.innerWidth < 768 && label.length > 20 
+                                ? label.substring(0, 17) + '...'
+                                : label;
+                        }
+                    },
                     grid: { display: false }
                 }
             }
@@ -298,10 +369,30 @@ function createDevicesChart() {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: window.innerWidth < 768 ? 1 : 1.5,
             plugins: {
                 legend: {
-                    position: 'bottom',
-                    labels: { color: '#999' }
+                    position: window.innerWidth < 768 ? 'bottom' : 'right',
+                    labels: { 
+                        color: '#999',
+                        padding: window.innerWidth < 768 ? 10 : 15,
+                        font: {
+                            size: window.innerWidth < 768 ? 11 : 13
+                        },
+                        boxWidth: window.innerWidth < 768 ? 15 : 20
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (context) => {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
                 }
             }
         }
@@ -336,10 +427,30 @@ function createBrowsersChart() {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: window.innerWidth < 768 ? 1 : 1.5,
             plugins: {
                 legend: {
-                    position: 'bottom',
-                    labels: { color: '#999' }
+                    position: window.innerWidth < 768 ? 'bottom' : 'right',
+                    labels: { 
+                        color: '#999',
+                        padding: window.innerWidth < 768 ? 10 : 15,
+                        font: {
+                            size: window.innerWidth < 768 ? 11 : 13
+                        },
+                        boxWidth: window.innerWidth < 768 ? 15 : 20
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (context) => {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
                 }
             }
         }
@@ -371,23 +482,65 @@ function createLocationsChart() {
         options: {
             indexAxis: 'y',
             responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: window.innerWidth < 768 ? 0.8 : 1.2,
             plugins: {
-                legend: { display: false }
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        title: (context) => context[0].label,
+                        label: (context) => `Visits: ${context.parsed.x}`
+                    }
+                }
             },
             scales: {
                 x: {
                     beginAtZero: true,
-                    ticks: { color: '#999' },
-                    grid: { color: 'rgba(255, 107, 26, 0.1)' }
+                    ticks: { 
+                        color: '#999',
+                        font: {
+                            size: window.innerWidth < 768 ? 10 : 12
+                        }
+                    },
+                    grid: { color: 'rgba(99, 102, 241, 0.1)' }
                 },
                 y: {
-                    ticks: { color: '#999' },
+                    ticks: { 
+                        color: '#999',
+                        font: {
+                            size: window.innerWidth < 768 ? 9 : 12
+                        },
+                        callback: function(value) {
+                            const label = this.getLabelForValue(value);
+                            return window.innerWidth < 768 && label.length > 20 
+                                ? label.substring(0, 17) + '...'
+                                : label;
+                        }
+                    },
                     grid: { display: false }
                 }
             }
         }
     });
 }
+
+// Handle window resize to recreate charts
+let resizeTimer;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+        // Destroy and recreate charts on significant resize
+        const charts = Chart.instances;
+        if (charts && charts.length > 0) {
+            const shouldRecreate = Math.abs(window.innerWidth - (window.lastWidth || window.innerWidth)) > 100;
+            if (shouldRecreate) {
+                charts.forEach(chart => chart.destroy());
+                loadAnalyticsData();
+                window.lastWidth = window.innerWidth;
+            }
+        }
+    }, 250);
+});
 
 // Recent visits table
 function createVisitsTable() {
@@ -413,6 +566,36 @@ function createVisitsTable() {
             </tr>
         `;
     }).join('');
+}
+
+// Top events table
+function createTopEventsTable(events) {
+    const tbody = document.querySelector('#topEventsTable tbody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = events.map((event, index) => `
+        <tr>
+            <td>${index + 1}</td>
+            <td>${event.category}</td>
+            <td>${event.action}</td>
+            <td>${event.count}</td>
+        </tr>
+    `).join('');
+}
+
+// Conversion funnel table
+function createConversionFunnelTable(conversions) {
+    const tbody = document.querySelector('#conversionFunnelTable tbody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = conversions.map((conversion, index) => `
+        <tr>
+            <td>${index + 1}</td>
+            <td>${conversion.goal_name}</td>
+            <td>${conversion.count}</td>
+            <td>${conversion.total_value}</td>
+        </tr>
+    `).join('');
 }
 
 // Load on page load

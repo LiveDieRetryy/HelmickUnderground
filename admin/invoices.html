@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="sidebar.css">
     <script src="shared-navbar.js"></script>
+    <script src="utils.js"></script>
     <style>
         body {
             background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
@@ -125,6 +126,18 @@
             gap: 1rem;
             margin-bottom: 2rem;
             flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .filter-bar {
+                flex-direction: column;
+            }
+            
+            .filter-input,
+            .filter-select {
+                width: 100%;
+                min-width: 100%;
+            }
         }
 
         .filter-input {
@@ -252,6 +265,55 @@
         .empty-state h3 {
             color: var(--white);
             margin-bottom: 1rem;
+        }
+
+        /* Mobile responsive table - card layout */
+        @media (max-width: 768px) {
+            .invoices-table {
+                display: block;
+            }
+            
+            .invoices-table thead {
+                display: none;
+            }
+            
+            .invoices-table tbody {
+                display: block;
+            }
+            
+            .invoices-table tr {
+                display: block;
+                background: rgba(255, 107, 26, 0.05);
+                border: 1px solid rgba(255, 107, 26, 0.3);
+                border-radius: 12px;
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .invoices-table td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.75rem 0;
+                border: none;
+            }
+            
+            .invoices-table td::before {
+                content: attr(data-label);
+                font-weight: 700;
+                color: var(--primary-color);
+                margin-right: 1rem;
+                min-width: 100px;
+            }
+            
+            .invoices-table tr:hover {
+                background: rgba(255, 107, 26, 0.1);
+            }
+            
+            .invoices-table td > div {
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
         }
     </style>
 </head>

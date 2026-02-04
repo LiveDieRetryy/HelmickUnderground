@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="sidebar.css">
     <script src="shared-navbar.js"></script>
+    <script src="utils.js"></script>
     <style>
         body {
             background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
@@ -682,6 +683,49 @@
             .delete-btn {
                 padding: 0.3rem 0.5rem;
                 font-size: 0.8rem;
+            }
+
+            /* Card layout for very small screens */
+            @media (max-width: 600px) {
+                .rates-table {
+                    display: block;
+                }
+                
+                .rates-table thead {
+                    display: none;
+                }
+                
+                .rates-table tbody {
+                    display: block;
+                }
+                
+                .rates-table tr {
+                    display: block;
+                    background: rgba(255, 107, 26, 0.05);
+                    border: 1px solid rgba(255, 107, 26, 0.3);
+                    border-radius: 12px;
+                    padding: 1rem;
+                    margin-bottom: 1rem;
+                }
+                
+                .rates-table td {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 0.75rem 0;
+                    border: none;
+                }
+                
+                .rates-table td::before {
+                    content: attr(data-label);
+                    font-weight: 700;
+                    color: var(--primary-color);
+                    margin-right: 1rem;
+                }
+                
+                .rates-table tr:hover {
+                    background: rgba(255, 107, 26, 0.1);
+                }
             }
         }
 

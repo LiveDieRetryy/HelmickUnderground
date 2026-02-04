@@ -1,12 +1,26 @@
 // Vercel Serverless Function to manage gallery data
+import { requireAuth } from './auth-middleware.js';
+import { requireCsrfToken } from './csrf-middleware.js';
+
 export default async function handler(req, res) {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
+    }
+
+    // Authentication required for write operations (POST, PUT, DELETE)
+    // GET requests are public for viewing gallery
+    if (req.method !== 'GET' && !requireAuth(req, res)) {
+        return; // requireAuth already sent error response
+    }
+
+    // Require CSRF token for write operations
+    if ((req.method === 'POST' || req.method === 'PUT' || req.method === 'DELETE') && !requireCsrfToken(req, res)) {
+        return; // CSRF validation failed, error response already sent
     }
     
     const GITHUB_TOKEN = process.env.GITHUB_TOKEN;

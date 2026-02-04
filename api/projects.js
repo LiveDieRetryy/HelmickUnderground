@@ -1,4 +1,8 @@
 const { sql } = require('@vercel/postgres');
+const { sendErrorResponse, validateRequiredFields } = require('./error-handler');
+const { requireAuth } = require('./auth-middleware');
+const { requireCsrfToken } = require('./csrf-middleware');
+const { enforceRateLimit } = require('./rate-limiter');
 
 module.exports = async function handler(req, res) {
     // Enable CORS
@@ -12,11 +16,25 @@ module.exports = async function handler(req, res) {
         return;
     }
 
+    // Require authentication for all project operations
+    if (!requireAuth(req, res)) {
+        return; // requireAuth already sent error response
+    }
+
+    // Require CSRF token for state-changing operations
+    if ((req.method === 'POST' || req.method === 'PUT' || req.method === 'DELETE') && !requireCsrfToken(req, res)) {
+        return; // CSRF validation failed, error response already sent
+    }
+
+    // Apply rate limiting
+    const limitType = req.method === 'GET' ? 'apiRead' : 'apiWrite';
+    if (!enforceRateLimit(req, res, limitType)) {
+        return; // Rate limit exceeded, error response already sent
+    }
+
     // Check if database is configured
     if (!process.env.POSTGRES_URL && !process.env.POSTGRES_PRISMA_URL) {
-        return res.status(503).json({ 
-            error: 'Database not configured. Please add Vercel Postgres to your project.' 
-        });
+        return sendErrorResponse(res, 'SERVICE_UNAVAILABLE', 'Database not configured. Please add Vercel Postgres to your project.');
     }
 
     try {
@@ -44,6 +62,12 @@ module.exports = async function handler(req, res) {
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `;
+        
+        // Create indexes for frequently queried columns
+        await sql`CREATE INDEX IF NOT EXISTS idx_projects_customer_id ON projects(customer_id)`;
+        await sql`CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status)`;
+        await sql`CREATE INDEX IF NOT EXISTS idx_projects_created_at ON projects(created_at DESC)`;
+        await sql`CREATE INDEX IF NOT EXISTS idx_projects_start_date ON projects(start_date DESC)`;
 
         // Add columns if they don't exist (for existing tables)
         await sql`
@@ -221,9 +245,6 @@ module.exports = async function handler(req, res) {
 
     } catch (error) {
         console.error('Projects API error:', error);
-        return res.status(500).json({ 
-            error: error.message,
-            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
-        });
+        return sendErrorResponse(res, 'DATABASE_ERROR', error.message, error);
     }
 };

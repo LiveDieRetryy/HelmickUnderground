@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customer Details - Helmick Underground Admin</title>
     <link rel="stylesheet" href="sidebar.css">
+    <script src="utils.js"></script>
     <style>
         :root {
             --primary-color: #ff6b1a;
@@ -244,6 +245,49 @@
 
         .line-items-table tbody tr:hover {
             background: rgba(255, 107, 26, 0.05);
+        }
+
+        /* Mobile responsive table */
+        @media (max-width: 768px) {
+            .line-items-table {
+                display: block;
+            }
+            
+            .line-items-table thead {
+                display: none;
+            }
+            
+            .line-items-table tbody {
+                display: block;
+            }
+            
+            .line-items-table tr {
+                display: block;
+                background: rgba(255, 107, 26, 0.05);
+                border: 1px solid rgba(255, 107, 26, 0.3);
+                border-radius: 12px;
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .line-items-table td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.75rem 0;
+                border: none;
+            }
+            
+            .line-items-table td::before {
+                content: attr(data-label);
+                font-weight: 700;
+                color: var(--primary-color);
+                margin-right: 1rem;
+            }
+            
+            .line-items-table tr:hover {
+                background: rgba(255, 107, 26, 0.1);
+            }
         }
 
         .empty-state {

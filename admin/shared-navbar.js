@@ -1,5 +1,45 @@
 // Shared Admin Navbar
 function loadAdminNavbar() {
+    // Load logger if not already loaded
+    if (!document.querySelector('script[src="/admin/logger.js"]')) {
+        const loggerScript = document.createElement('script');
+        loggerScript.src = '/admin/logger.js';
+        loggerScript.defer = true;
+        document.head.appendChild(loggerScript);
+    }
+    
+    // Load offline handler if not already loaded
+    if (!document.querySelector('script[src="/admin/offline-handler.js"]')) {
+        const offlineScript = document.createElement('script');
+        offlineScript.src = '/admin/offline-handler.js';
+        offlineScript.defer = true;
+        document.head.appendChild(offlineScript);
+    }
+    
+    // Load retry handler if not already loaded
+    if (!document.querySelector('script[src="/admin/retry-handler.js"]')) {
+        const retryScript = document.createElement('script');
+        retryScript.src = '/admin/retry-handler.js';
+        retryScript.defer = true;
+        document.head.appendChild(retryScript);
+    }
+    
+    // Load optimistic UI handler if not already loaded
+    if (!document.querySelector('script[src="/admin/optimistic-ui.js"]')) {
+        const optimisticScript = document.createElement('script');
+        optimisticScript.src = '/admin/optimistic-ui.js';
+        optimisticScript.defer = true;
+        document.head.appendChild(optimisticScript);
+    }
+    
+    // Load cache manager if not already loaded
+    if (!document.querySelector('script[src="/admin/cache-manager.js"]')) {
+        const cacheScript = document.createElement('script');
+        cacheScript.src = '/admin/cache-manager.js';
+        cacheScript.defer = true;
+        document.head.appendChild(cacheScript);
+    }
+    
     const navbarHTML = `
         <nav class="sidebar" id="sidebar">
             <div class="sidebar-logo">
@@ -48,6 +88,10 @@ function loadAdminNavbar() {
                 <a href="/admin/analytics.html" class="sidebar-nav-item">
                     <span class="sidebar-nav-item-icon">📈</span>
                     <span class="sidebar-nav-item-text">Analytics</span>
+                </a>
+                <a href="/admin/activity-log.html" class="sidebar-nav-item">
+                    <span class="sidebar-nav-item-icon">📋</span>
+                    <span class="sidebar-nav-item-text">Activity Log</span>
                 </a>
                 
                 <div style="padding: 0.5rem 1.5rem 0.15rem; color: rgba(255, 107, 26, 0.7); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Settings</div>

@@ -1,5 +1,50 @@
 const { sql } = require('@vercel/postgres');
+const { sendErrorResponse, validateRequiredFields, validateEmail } = require('./error-handler');
+const { requireAuth } = require('./auth-middleware');
+const { requireCsrfToken } = require('./csrf-middleware');
+const { enforceRateLimit } = require('./rate-limiter');
+const { logActivity } = require('./activity-log');
 
+/**
+ * Contact Submissions API Handler
+ * Manages contact form submissions with status workflow
+ * 
+ * @param {import('http').IncomingMessage} req - Request object
+ * @param {import('http').ServerResponse} res - Response object
+ * @returns {Promise<void>}
+ * 
+ * @endpoint GET /api/contact-submissions?action=all - Get all submissions
+ * @endpoint GET /api/contact-submissions?action=stats - Get status statistics
+ * @endpoint GET /api/contact-submissions?id=123 - Get single submission
+ * @endpoint POST /api/contact-submissions - Create submission (public form)
+ * @endpoint PUT /api/contact-submissions?id=123 - Update submission
+ * @endpoint PUT /api/contact-submissions?action=status&id=123 - Update status only
+ * 
+ * @status unread - New submission
+ * @status read - Viewed by admin
+ * @status acknowledged - Auto-reply sent
+ * @status contacted - Follow-up communication sent
+ * @status scheduled - Appointment scheduled
+ * @status quoted - Quote sent
+ * @status accepted - Quote accepted
+ * @status invoiced - Invoice created
+ * @status completed - Work finished
+ * @status declined - Quote declined
+ * @status spam - Marked as spam
+ * 
+ * @example
+ * // Submit contact form
+ * fetch('/api/contact-submissions', {
+ *   method: 'POST',
+ *   body: JSON.stringify({
+ *     name: 'John Doe',
+ *     email: 'john@example.com',
+ *     phone: '515-555-0123',
+ *     services: ['trenching', 'excavating'],
+ *     message: 'Need help with project'
+ *   })
+ * })
+ */
 module.exports = async function handler(req, res) {
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -9,6 +54,31 @@ module.exports = async function handler(req, res) {
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
+    }
+
+    // Require authentication for admin operations (GET, PUT)
+    // POST is public for contact form submissions
+    if (req.method !== 'POST' && !requireAuth(req, res)) {
+        return; // requireAuth already sent error response
+    }
+
+    // Require CSRF token for admin update operations (PUT)
+    if (req.method === 'PUT' && !requireCsrfToken(req, res)) {
+        return; // CSRF validation failed, error response already sent
+    }
+
+    // Apply rate limiting
+    // Contact form submissions are heavily rate limited (3 per 15 min)
+    // Admin operations use standard API limits
+    if (req.method === 'POST') {
+        if (!enforceRateLimit(req, res, 'contactForm')) {
+            return; // Rate limit exceeded, error response already sent
+        }
+    } else {
+        const limitType = req.method === 'GET' ? 'apiRead' : 'apiWrite';
+        if (!enforceRateLimit(req, res, limitType)) {
+            return; // Rate limit exceeded, error response already sent
+        }
     }
 
     try {
@@ -27,6 +97,11 @@ module.exports = async function handler(req, res) {
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `;
+        
+        // Create indexes for frequently queried columns
+        await sql`CREATE INDEX IF NOT EXISTS idx_contact_submissions_status ON contact_submissions(status)`;
+        await sql`CREATE INDEX IF NOT EXISTS idx_contact_submissions_timestamp ON contact_submissions(timestamp DESC)`;
+        await sql`CREATE INDEX IF NOT EXISTS idx_contact_submissions_email ON contact_submissions(email)`;
         
         // Add notes column if it doesn't exist (for existing databases)
         await sql`
@@ -298,11 +373,20 @@ module.exports = async function handler(req, res) {
             }
             
             if (action === 'delete' && id) {
+                // Get submission before deleting for logging
+                const { rows: beforeDelete } = await sql`SELECT * FROM contact_submissions WHERE id = ${id}`;
+                
                 // Delete submission
                 await sql`
                     DELETE FROM contact_submissions 
                     WHERE id = ${id}
                 `;
+                
+                // Log activity
+                if (beforeDelete.length > 0 && req.user) {
+                    await logActivity('delete', 'submission', parseInt(id), req.user.email, { name: beforeDelete[0].name });
+                }
+                
                 return res.status(200).json({ success: true });
             }
         }
@@ -384,17 +468,19 @@ module.exports = async function handler(req, res) {
                 `;
             }
             
+            // Log activity
+            if (req.user) {
+                const details = { status, notes, scheduled_date, quote_data, invoice_id };
+                await logActivity('update', 'submission', parseInt(id), req.user.email, details);
+            }
+            
             return res.status(200).json({ success: true });
         }
 
-        return res.status(400).json({ error: 'Invalid request' });
+        return sendErrorResponse(res, 'VALIDATION_ERROR', 'Invalid request');
 
     } catch (error) {
         console.error('Contact submissions API error:', error);
-        return res.status(500).json({ 
-            error: 'Internal server error', 
-            message: error.message,
-            details: error.toString()
-        });
+        return sendErrorResponse(res, 'DATABASE_ERROR', error.message, error);
     }
 }

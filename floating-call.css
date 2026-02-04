@@ -17,9 +17,18 @@
     animation: pulse 2s infinite;
 }
 
-.floating-call-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 12px 32px rgba(255, 107, 26, 0.6);
+/* Hover only on devices with hover capability */
+@media (hover: hover) {
+    .floating-call-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 12px 32px rgba(255, 107, 26, 0.6);
+    }
+}
+
+/* Touch feedback for all devices */
+.floating-call-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 4px 16px rgba(255, 107, 26, 0.4);
 }
 
 .floating-call-btn svg {
@@ -93,8 +102,15 @@
     transition: color 0.3s ease;
 }
 
-.call-modal-close:hover {
+@media (hover: hover) {
+    .call-modal-close:hover {
+        color: var(--primary-color);
+    }
+}
+
+.call-modal-close:active {
     color: var(--primary-color);
+    transform: scale(0.9);
 }
 
 .call-option {
@@ -110,10 +126,18 @@
     transition: all 0.3s ease;
 }
 
-.call-option:hover {
-    background: rgba(255, 107, 26, 0.2);
+@media (hover: hover) {
+    .call-option:hover {
+        background: rgba(255, 107, 26, 0.2);
+        border-color: var(--primary-color);
+        transform: translateX(8px);
+    }
+}
+
+.call-option:active {
+    background: rgba(255, 107, 26, 0.25);
     border-color: var(--primary-color);
-    transform: translateX(8px);
+    transform: scale(0.98);
 }
 
 .call-option svg {

@@ -1,4 +1,16 @@
-// Mobile Navigation Toggle
+/**
+ * Main JavaScript for Helmick Underground LLC Website
+ * Handles navigation, scroll behavior, and contact form submission
+ */
+
+// ============================================================================
+// MOBILE NAVIGATION
+// ============================================================================
+
+/**
+ * Mobile Navigation Toggle
+ * Handles hamburger menu click and nav link clicks
+ */
 const hamburger = document.querySelector('.hamburger');
 const navMenu = document.querySelector('.nav-menu');
 const navLinks = document.querySelectorAll('.nav-link');
@@ -18,7 +30,14 @@ navLinks.forEach(link => {
     });
 });
 
-// Smooth scrolling for navigation links
+// ============================================================================
+// SMOOTH SCROLLING
+// ============================================================================
+
+/**
+ * Smooth scrolling for anchor links
+ * Accounts for fixed navbar height
+ */
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         e.preventDefault();
@@ -27,7 +46,15 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             const offset = 70; // Height of fixed navbar
             const targetPosition = target.offsetTop - offset;
             window.scrollTo({
-                top: targetPosition,
+   ============================================================================
+// NAVBAR SCROLL BEHAVIOR
+// ============================================================================
+
+/**
+ * Navbar scroll behavior
+ * Auto-hides navbar when scrolling down, shows when scrolling up
+ * Always shows navbar after 2 seconds of no scrolling
+ */
                 behavior: 'smooth'
             });
         }
@@ -56,7 +83,18 @@ window.addEventListener('scroll', () => {
             navbar.classList.remove('navbar-hidden');
             navbar.classList.add('navbar-visible');
         }
-    } else {
+   ============================================================================
+// CONTACT FORM HANDLING
+// ============================================================================
+
+/**
+ * Contact form submission with spam protection
+ * Features:
+ * - Honeypot field (bot trap)
+ * - Timing check (too fast = bot)
+ * - reCAPTCHA v3
+ * - Dual submission to Web3Forms (email) and internal API (admin inbox)
+ */
         // At top of page, always show navbar
         navbar.classList.remove('navbar-hidden');
         navbar.classList.add('navbar-visible');
@@ -311,4 +349,66 @@ if (callModal) {
             closeCallModal();
         }
     });
+}
+
+// Service Worker Registration
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then((registration) => {
+                console.log('✅ Service Worker registered:', registration.scope);
+                
+                // Check for updates
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    console.log('🔄 Service Worker update found');
+                    
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            // New service worker available
+                            console.log('⚡ New version available! Refresh to update.');
+                            showUpdateNotification();
+                        }
+                    });
+                });
+            })
+            .catch((error) => {
+                console.error('❌ Service Worker registration failed:', error);
+            });
+    });
+}
+
+// Show update notification
+function showUpdateNotification() {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        background: linear-gradient(135deg, #ff6b1a 0%, #ff8f26 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        z-index: 100000;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        animation: slideUp 0.3s ease-out;
+    `;
+    
+    notification.innerHTML = `
+        <span style="font-weight: 600;">New version available!</span>
+        <button onclick="window.location.reload()" style="
+            background: white;
+            color: #ff6b1a;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        ">Refresh</button>
+    `;
+    
+    document.body.appendChild(notification);
 }

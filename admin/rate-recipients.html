@@ -175,12 +175,44 @@
 
         @media (max-width: 768px) {
             .recipients-table {
-                font-size: 0.85rem;
+                display: block;
             }
-
-            .recipients-table th,
+            
+            .recipients-table thead {
+                display: none;
+            }
+            
+            .recipients-table tbody {
+                display: block;
+            }
+            
+            .recipients-table tr {
+                display: block;
+                background: rgba(255, 107, 26, 0.05);
+                border: 1px solid rgba(255, 107, 26, 0.3);
+                border-radius: 12px;
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
             .recipients-table td {
-                padding: 0.75rem 0.5rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.75rem 0;
+                border: none;
+            }
+            
+            .recipients-table td::before {
+                content: attr(data-label);
+                font-weight: 700;
+                color: var(--primary-color);
+                margin-right: 1rem;
+                min-width: 100px;
+            }
+            
+            .recipients-table tr:hover {
+                background: rgba(255, 107, 26, 0.1);
             }
         }
     </style>
@@ -293,11 +325,11 @@
 
                     html += `
                         <tr>
-                            <td><span class="email-type-badge email-type-${recipient.email_type}">${typeDisplay}</span></td>
-                            <td>${recipient.recipient_email}</td>
-                            <td>${recipient.recipient_name || '-'}</td>
-                            <td>${dateStr}</td>
-                            <td>${timeStr}</td>
+                            <td data-label="Type"><span class="email-type-badge email-type-${recipient.email_type}">${typeDisplay}</span></td>
+                            <td data-label="Email">${recipient.recipient_email}</td>
+                            <td data-label="Name">${recipient.recipient_name || '-'}</td>
+                            <td data-label="Date">${dateStr}</td>
+                            <td data-label="Time">${timeStr}</td>
                         </tr>
                     `;
                 });

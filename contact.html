@@ -110,10 +110,10 @@
                 <div class="divider"></div>
                 <p>Proudly serving Eastern Iowa communities</p>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; margin-top: 2rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; margin-top: 2rem;" class="service-area-grid">
                 <div style="background: #1a1a1a; padding: 2rem; border-radius: 12px; border: 1px solid rgba(255,107,26,0.2); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);">
                     <h3 style="color: #ff6b1a; font-size: 1.5rem; margin-bottom: 1.5rem;">Cities We Serve</h3>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 1rem; line-height: 2;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 1rem; line-height: 2;" class="cities-grid">
                         <div>
                             <p style="margin: 0.5rem 0;">✓ Cedar Rapids</p>
                             <p style="margin: 0.5rem 0;">✓ Iowa City</p>
@@ -163,7 +163,7 @@
             <div class="contact-form-wrapper">
                 <h3>Request a Quote</h3>
                 <p class="form-subtitle">Tell us about your project needs and we'll get in touch with you soon</p>
-                <form class="contact-form" id="contactForm">
+                <form class="contact-form" id="contactForm" data-validate>
                     <!-- Web3Forms Access Key - Replace with your own from https://web3forms.com -->
                     <input type="hidden" name="access_key" value="409865e2-11a8-4a38-8ede-2736d27e1756">
                     <input type="hidden" name="subject" value="New Quote Request - Helmick Underground">
@@ -176,7 +176,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="name">Name *</label>
-                            <input type="text" id="name" name="name" required>
+                            <input type="text" id="name" name="name" required minlength="2">
                         </div>
                         <div class="form-group">
                             <label for="phone">Phone *</label>
@@ -394,7 +394,11 @@
         </div>
     </div>
 
+    <script src="form-validator.js"></script>
     <script src="analytics.js"></script>
+    <script src="pwa-install.js"></script>
+    <script src="ios-install.js"></script>
+    <script src="mobile-enhancements.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
