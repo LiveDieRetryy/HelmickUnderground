@@ -12,6 +12,13 @@ export default async function handler(req, res) {
         return;
     }
 
+    // Check if database is configured
+    if (!process.env.POSTGRES_URL && !process.env.POSTGRES_PRISMA_URL) {
+        return res.status(503).json({ 
+            error: 'Database not configured. Please add Vercel Postgres to your project.' 
+        });
+    }
+
     try {
         // Create projects table if it doesn't exist
         await sql`
@@ -214,6 +221,9 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error('Projects API error:', error);
-        return res.status(500).json({ error: error.message });
+        return res.status(500).json({ 
+            error: error.message,
+            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 }
