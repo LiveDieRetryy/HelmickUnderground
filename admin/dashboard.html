@@ -24,16 +24,20 @@
                 
                 if (response.status === 401) {
                     // Only redirect on explicit 401 Unauthorized
+                    console.log('Not authenticated, redirecting to login');
                     window.location.href = '/admin/index.html';
                     return;
                 }
                 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('Auth check result:', data);
                     if (!data.authenticated) {
+                        console.log('User not authenticated, redirecting');
                         window.location.href = '/admin/index.html';
+                    } else {
+                        console.log('✅ User authenticated successfully');
                     }
-                    // Authenticated successfully - page will continue loading
                 } else {
                     // Network error or other issue - log but don't redirect
                     console.error('Auth verification failed with status:', response.status);
@@ -44,8 +48,10 @@
             }
         }
         
-        // Run auth check immediately
-        checkAuth();
+        // Delay auth check to let page load first
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(checkAuth, 500);
+        });
     </script>
     <style>
         body {
