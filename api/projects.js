@@ -1,8 +1,8 @@
 const { sql } = require('@vercel/postgres');
-const { sendErrorResponse, validateRequiredFields } = require('./error-handler');
-const { requireAuth } = require('./auth-middleware');
-const { requireCsrfToken } = require('./csrf-middleware');
-const { enforceRateLimit } = require('./rate-limiter');
+const { sendErrorResponse, validateRequiredFields } = require('../lib/error-handler');
+const { requireAuth } = require('../lib/auth-middleware');
+const { requireCsrfToken } = require('../lib/csrf-middleware');
+const { enforceRateLimit } = require('../lib/rate-limiter');
 
 module.exports = async function handler(req, res) {
     // Enable CORS

@@ -1,5 +1,5 @@
 const { sql } = require('@vercel/postgres');
-const { sendErrorResponse, validateRequiredFields, withErrorHandling } = require('./error-handler');const { requireAuth } = require('./auth-middleware');
+const { sendErrorResponse, validateRequiredFields, withErrorHandling } = require('../lib/error-handler');const { requireAuth } = require('../lib/auth-middleware');
 const { logActivity } = require('./activity-log');
 /**
  * Customer API Handler

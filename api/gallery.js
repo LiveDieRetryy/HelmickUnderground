@@ -1,6 +1,6 @@
 // Vercel Serverless Function to manage gallery data
-import { requireAuth } from './auth-middleware.js';
-import { requireCsrfToken } from './csrf-middleware.js';
+import { requireAuth } from '../lib/auth-middleware.js';
+import { requireCsrfToken } from '../lib/csrf-middleware.js';
 
 export default async function handler(req, res) {
     // Enable CORS

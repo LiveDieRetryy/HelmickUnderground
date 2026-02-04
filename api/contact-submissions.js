@@ -1,8 +1,8 @@
 const { sql } = require('@vercel/postgres');
-const { sendErrorResponse, validateRequiredFields, validateEmail } = require('./error-handler');
-const { requireAuth } = require('./auth-middleware');
-const { requireCsrfToken } = require('./csrf-middleware');
-const { enforceRateLimit } = require('./rate-limiter');
+const { sendErrorResponse, validateRequiredFields, validateEmail } = require('../lib/error-handler');
+const { requireAuth } = require('../lib/auth-middleware');
+const { requireCsrfToken } = require('../lib/csrf-middleware');
+const { enforceRateLimit } = require('../lib/rate-limiter');
 const { logActivity } = require('./activity-log');
 
 /**

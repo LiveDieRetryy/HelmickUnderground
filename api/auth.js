@@ -4,9 +4,9 @@
  */
 
 const bcrypt = require('bcryptjs');
-const { generateToken, verifyToken, extractToken, setAuthCookie, clearAuthCookie } = require('./auth-middleware');
-const { generateAndSetCsrfToken, clearCsrfCookie, CSRF_HEADER_NAME } = require('./csrf-middleware');
-const { enforceRateLimit } = require('./rate-limiter');
+const { generateToken, verifyToken, extractToken, setAuthCookie, clearAuthCookie } = require('../lib/auth-middleware');
+const { generateAndSetCsrfToken, clearCsrfCookie, CSRF_HEADER_NAME } = require('../lib/csrf-middleware');
+const { enforceRateLimit } = require('../lib/rate-limiter');
 
 // TEMPORARY: Hardcoded admin credentials
 // TODO: Move to database with proper user management
