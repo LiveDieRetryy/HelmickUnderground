@@ -141,8 +141,10 @@
                         window.location.href = '/admin/dashboard.html';
                     }
                 }
+                // If not ok or not authenticated, stay on login page (don't redirect)
             } catch (error) {
-                console.log('Not authenticated');
+                // Network error - stay on login page, don't redirect
+                console.log('Auth verification unavailable:', error.message);
             }
         }
 

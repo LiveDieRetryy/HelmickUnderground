@@ -22,18 +22,25 @@
                     credentials: 'include'
                 });
                 
-                if (!response.ok) {
+                if (response.status === 401) {
+                    // Only redirect on explicit 401 Unauthorized
                     window.location.href = '/admin/index.html';
                     return;
                 }
                 
-                const data = await response.json();
-                if (!data.authenticated) {
-                    window.location.href = '/admin/index.html';
+                if (response.ok) {
+                    const data = await response.json();
+                    if (!data.authenticated) {
+                        window.location.href = '/admin/index.html';
+                    }
+                    // Authenticated successfully - page will continue loading
+                } else {
+                    // Network error or other issue - log but don't redirect
+                    console.error('Auth verification failed with status:', response.status);
                 }
             } catch (error) {
-                console.error('Auth check failed:', error);
-                window.location.href = '/admin/index.html';
+                // Network error - log but don't redirect to avoid infinite loops
+                console.error('Auth check network error:', error);
             }
         }
         
