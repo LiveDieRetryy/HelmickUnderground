@@ -15,13 +15,7 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "dev": "vercel dev",
-    "build": "vercel build",
-    "deploy": "vercel --prod",
-    "deploy:staging": "vercel",
-    "lint": "echo 'No linter configured'",
-    "format": "echo 'No formatter configured'"
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@octokit/rest": "^20.0.2",
