@@ -137,9 +137,9 @@ function selectTool(tool) {
 // Get mouse position
 function getMousePos(e) {
     const rect = canvas.getBoundingClientRect();
-    return (e.clientX - rect.left - offsetX) / scale,
-        y: (e.clientY - rect.top - offsetY) / scalet,
-        y: e.clientY - rect.top
+    return {
+        x: (e.clientX - rect.left - offsetX) / scale,
+        y: (e.clientY - rect.top - offsetY) / scale
     };
 }
 
@@ -900,7 +900,26 @@ function drawShapeOnContext(ctx, shape) {
         ctx.arc(shape.x, shape.y, shape.radius, 0, Math.PI * 2);
         ctx.stroke();
     } else if (shape.type === 'text') {
-   Zoom functions
+        ctx.fillStyle = shape.color;
+        ctx.font = `${shape.fontSize}px Arial`;
+        ctx.fillText(shape.text, shape.x, shape.y);
+    }
+    
+    ctx.restore();
+}
+
+// Go back
+function goBack() {
+    if (shapes.length > 0) {
+        if (confirm('You have unsaved changes. Are you sure you want to go back?')) {
+            window.location.href = `project-details.html?id=${projectId}&customer_id=${customerId}`;
+        }
+    } else {
+        window.location.href = `project-details.html?id=${projectId}&customer_id=${customerId}`;
+    }
+}
+
+// Zoom functions
 function zoomIn() {
     scale = Math.min(scale * 1.2, 5); // Max 5x zoom
     redraw();
@@ -941,24 +960,15 @@ function handleWheel(e) {
     redraw();
 }
 
-//      ctx.fillStyle = shape.color;
-        ctx.font = `${shape.fontSize}px Arial`;
-        ctx.fillText(shape.text, shape.x, shape.y);
-    }
-    
-    ctx.restore();
-}
-
-// Go back
-function goBack() {
-    if (shapes.length > 0) {
-        if (confirm('You have unsaved changes. Are you sure you want to go back?')) {
-            window.location.href = `project-details.html?id=${projectId}&customer_id=${customerId}`;
-        }
-    } else {
-        window.location.href = `project-details.html?id=${projectId}&customer_id=${customerId}`;
-    }
-}
+// Expose functions to window for onclick handlers
+window.selectTool = selectTool;
+window.clearCanvas = clearCanvas;
+window.undo = undo;
+window.saveRedline = saveRedline;
+window.goBack = goBack;
+window.zoomIn = zoomIn;
+window.zoomOut = zoomOut;
+window.resetZoom = resetZoom;
 
 // Initialize on load
 window.addEventListener('DOMContentLoaded', init);
