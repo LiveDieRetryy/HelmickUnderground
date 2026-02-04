@@ -38,6 +38,33 @@ module.exports = async function handler(req, res) {
             )
         `;
 
+        // Add job columns if they don't exist (for existing tables)
+        await sql`
+            DO $$ 
+            BEGIN 
+                BEGIN
+                    ALTER TABLE invoices ADD COLUMN IF NOT EXISTS job_number VARCHAR(100);
+                EXCEPTION
+                    WHEN duplicate_column THEN NULL;
+                END;
+                BEGIN
+                    ALTER TABLE invoices ADD COLUMN IF NOT EXISTS job_address VARCHAR(255);
+                EXCEPTION
+                    WHEN duplicate_column THEN NULL;
+                END;
+                BEGIN
+                    ALTER TABLE invoices ADD COLUMN IF NOT EXISTS job_city VARCHAR(100);
+                EXCEPTION
+                    WHEN duplicate_column THEN NULL;
+                END;
+                BEGIN
+                    ALTER TABLE invoices ADD COLUMN IF NOT EXISTS job_state VARCHAR(2);
+                EXCEPTION
+                    WHEN duplicate_column THEN NULL;
+                END;
+            END $$;
+        `;
+
         if (req.method === 'POST') {
             const { action } = req.query;
             

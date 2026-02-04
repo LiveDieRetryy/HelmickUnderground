@@ -47,9 +47,14 @@ function displayInvoices(invoices) {
         const invoiceDate = new Date(invoice.invoice_date).toLocaleDateString();
         const dueDate = new Date(invoice.due_date).toLocaleDateString();
         
+        // Build invoice number display with job number if available
+        const invoiceDisplay = invoice.job_number 
+            ? `${invoice.invoice_number}<br><span style="color: var(--gray); font-size: 0.85rem;">Job: ${invoice.job_number}</span>`
+            : invoice.invoice_number;
+        
         return `
             <tr>
-                <td>${invoice.invoice_number}</td>
+                <td>${invoiceDisplay}</td>
                 <td>${invoice.customer_name}</td>
                 <td>${invoiceDate}</td>
                 <td>${dueDate}</td>

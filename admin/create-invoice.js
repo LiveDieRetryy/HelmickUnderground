@@ -1133,7 +1133,8 @@ async function downloadInvoicePDF() {
         
         // Parse customer name to separate business name and contact person
         let businessName = customerName;
-        let contactPerson = '';\n        if (customerName.includes(' - Attn: ')) {
+        let contactPerson = '';
+        if (customerName.includes(' - Attn: ')) {
             const parts = customerName.split(' - Attn: ');
             businessName = parts[0];
             contactPerson = parts[1];
