@@ -204,6 +204,19 @@ async function loadProjects() {
         if (response.ok) {
             projects = await response.json();
             displayProjects();
+            
+            // Check if we need to auto-open edit modal from URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const editProjectId = urlParams.get('edit_project');
+            if (editProjectId) {
+                // Wait a bit for the DOM to be ready, then open the edit modal
+                setTimeout(() => {
+                    editProject(parseInt(editProjectId));
+                    // Clean up URL without reloading page
+                    const newUrl = window.location.pathname + '?id=' + urlParams.get('id');
+                    window.history.replaceState({}, '', newUrl);
+                }, 300);
+            }
         }
     } catch (error) {
         console.error('Error loading projects:', error);
