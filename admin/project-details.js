@@ -176,6 +176,10 @@ function viewFile(url, fileName) {
     document.getElementById('fileViewerTitle').textContent = fileName;
     
     const content = document.getElementById('fileViewerContent');
+    const loader = document.getElementById('fileLoader');
+    
+    // Show loader
+    loader.style.display = 'block';
     
     // Use download_url if available (from GitHub API response)
     let viewUrl = url;
@@ -191,11 +195,40 @@ function viewFile(url, fileName) {
     
     if (isPdf) {
         // Use Google Docs viewer for PDFs to avoid download issues
-        content.innerHTML = `<iframe src="https://docs.google.com/viewer?url=${encodeURIComponent(viewUrl)}&embedded=true" style="width: 100%; height: 100%; border: none;"></iframe>`;
+        const iframe = document.createElement('iframe');
+        iframe.src = `https://docs.google.com/viewer?url=${encodeURIComponent(viewUrl)}&embedded=true`;
+        iframe.style.cssText = 'width: 100%; height: 100%; border: none; background: white;';
+        
+        iframe.onload = function() {
+            loader.style.display = 'none';
+        };
+        
+        // Clear content and add iframe
+        content.innerHTML = '';
+        content.appendChild(loader);
+        content.appendChild(iframe);
     } else if (isImage) {
-        content.innerHTML = `<img src="${viewUrl}" alt="${fileName}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+        const img = document.createElement('img');
+        img.src = viewUrl;
+        img.alt = fileName;
+        img.style.cssText = 'max-width: 100%; max-height: 100%; object-fit: contain; background: white;';
+        
+        img.onload = function() {
+            loader.style.display = 'none';
+        };
+        
+        img.onerror = function() {
+            loader.innerHTML = 'Failed to load image';
+            loader.style.color = 'red';
+        };
+        
+        // Clear content and add image
+        content.innerHTML = '';
+        content.appendChild(loader);
+        content.appendChild(img);
     } else {
-        content.innerHTML = `<div style="color: white; text-align: center; padding: 2rem;">
+        loader.style.display = 'none';
+        content.innerHTML = `<div style="color: #666; text-align: center; padding: 2rem;">
             <p style="margin-bottom: 1rem;">Preview not available for this file type</p>
             <a href="${url}" target="_blank" class="btn btn-primary">Open in new tab</a>
         </div>`;
