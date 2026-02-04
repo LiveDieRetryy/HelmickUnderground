@@ -1,6 +1,6 @@
-import { sql } from '@vercel/postgres';
+const { sql } = require('@vercel/postgres');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -226,4 +226,4 @@ export default async function handler(req, res) {
             details: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
-}
+};
