@@ -206,24 +206,19 @@ document.addEventListener('DOMContentLoaded', () => {
             web3FormData.append('access_key', formData.get('access_key'));
             web3FormData.append('subject', formData.get('subject'));
             web3FormData.append('from_name', formData.get('from_name'));
-            web3FormData.append('email_to', 'helmickunderground@gmail.com');
-            
-            // Custom email template styling
-            web3FormData.append('template', 'styled');
-            web3FormData.append('header_color', '#ff6b1a');
-            web3FormData.append('bg_color', '#1a1a1a');
-            web3FormData.append('text_color', '#ffffff');
-            web3FormData.append('button_color', '#ff6b1a');
             
             web3FormData.append('name', formData.get('name'));
             web3FormData.append('email', formData.get('email'));
             web3FormData.append('phone', formData.get('phone'));
             web3FormData.append('message', formData.get('message'));
+            
             // Add services as comma-separated string
             const services = Array.from(formData.getAll('services')).join(', ');
             if (services) {
-                web3FormData.append('services', services);
+                web3FormData.append('Services Requested', services);
             }
+            
+            console.log('Submitting to Web3Forms with services:', services);
             
             // Send to both Web3Forms (for email) and our API (for admin inbox)
             const [web3Response, apiResponse] = await Promise.all([
@@ -247,14 +242,17 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Web3Forms response:', web3Data);
             
             // Try to parse API response if it succeeded
+            let apiSuccess = false;
             if (apiResponse && apiResponse.ok) {
                 const apiData = await apiResponse.json();
                 console.log('Submission saved to admin inbox:', apiData);
+                apiSuccess = apiData.success;
             } else {
                 console.error('Admin inbox API failed:', apiResponse?.error || 'Unknown error');
             }
             
-            if (web3Data.success) {
+            // Show success if either Web3Forms OR API succeeded
+            if (web3Data.success || apiSuccess) {
                 // Success message
                 formMessage.innerHTML = `
                     <div style="background: rgba(34, 197, 94, 0.2); border: 2px solid #22c55e; color: #22c55e; padding: 1.5rem; border-radius: 12px; margin-top: 1.5rem; text-align: center;">
@@ -265,8 +263,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `;
                 contactForm.reset();
+                grecaptcha.reset();
             } else {
-                throw new Error('Form submission failed');
+                throw new Error('Both email and inbox submission failed');
             }
         } catch (error) {
             // Error message
