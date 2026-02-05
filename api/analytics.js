@@ -2,14 +2,53 @@ const { sql } = require('@vercel/postgres');
 
 // Helper to parse user agent
 function parseUserAgent(ua) {
+    if (!ua) return { deviceType: 'Unknown', browser: 'Unknown' };
+    
     const deviceType = /mobile|android|iphone|ipad|tablet/i.test(ua) ? 'Mobile' : 'Desktop';
     
     let browser = 'Unknown';
-    if (ua.includes('Chrome')) browser = 'Chrome';
-    else if (ua.includes('Firefox')) browser = 'Firefox';
-    else if (ua.includes('Safari') && !ua.includes('Chrome')) browser = 'Safari';
-    else if (ua.includes('Edge')) browser = 'Edge';
-    else if (ua.includes('MSIE') || ua.includes('Trident')) browser = 'IE';
+    
+    // Check for specific browsers first (order matters!)
+    // Edge must be checked before Chrome since Edge contains "Chrome" in UA
+    if (ua.includes('Edg/') || ua.includes('Edge/')) {
+        browser = 'Edge';
+    }
+    // Opera must be checked before Chrome
+    else if (ua.includes('OPR/') || ua.includes('Opera/')) {
+        browser = 'Opera';
+    }
+    // Brave browser
+    else if (ua.includes('Brave/')) {
+        browser = 'Brave';
+    }
+    // Samsung Internet
+    else if (ua.includes('SamsungBrowser/')) {
+        browser = 'Samsung Internet';
+    }
+    // Chrome (check after Edge, Opera, Brave)
+    else if (ua.includes('Chrome/') || ua.includes('CriOS/')) {
+        browser = 'Chrome';
+    }
+    // Safari (check after Chrome since Chrome includes Safari)
+    else if (ua.includes('Safari/') && !ua.includes('Chrome')) {
+        browser = 'Safari';
+    }
+    // Firefox
+    else if (ua.includes('Firefox/') || ua.includes('FxiOS/')) {
+        browser = 'Firefox';
+    }
+    // Internet Explorer
+    else if (ua.includes('MSIE') || ua.includes('Trident/')) {
+        browser = 'Internet Explorer';
+    }
+    // DuckDuckGo
+    else if (ua.includes('DuckDuckGo/')) {
+        browser = 'DuckDuckGo';
+    }
+    // Vivaldi
+    else if (ua.includes('Vivaldi/')) {
+        browser = 'Vivaldi';
+    }
     
     return { deviceType, browser };
 }
