@@ -14,41 +14,24 @@
     <script src="shared-navbar.js"></script>
     <script src="utils.js"></script>
     <script>
-        // Check authentication on page load
+        // TEMPORARY: Disable auth check for debugging
         async function checkAuth() {
+            console.log('🔍 Auth check temporarily disabled for debugging');
             try {
                 const response = await fetch('/api/auth?action=verify', {
                     method: 'GET',
                     credentials: 'include'
                 });
-                
-                if (response.status === 401) {
-                    // Only redirect on explicit 401 Unauthorized
-                    console.log('Not authenticated, redirecting to login');
-                    window.location.href = '/admin/index.html';
-                    return;
-                }
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('Auth check result:', data);
-                    if (!data.authenticated) {
-                        console.log('User not authenticated, redirecting');
-                        window.location.href = '/admin/index.html';
-                    } else {
-                        console.log('✅ User authenticated successfully');
-                    }
-                } else {
-                    // Network error or other issue - log but don't redirect
-                    console.error('Auth verification failed with status:', response.status);
-                }
+                console.log('Auth API status:', response.status);
+                const data = await response.json();
+                console.log('Auth API response:', data);
             } catch (error) {
-                // Network error - log but don't redirect to avoid infinite loops
-                console.error('Auth check network error:', error);
+                console.error('Auth API error:', error);
             }
+            // DO NOT REDIRECT - let page load for debugging
         }
         
-        // Delay auth check to let page load first
+        // Run check but don't redirect
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(checkAuth, 500);
         });

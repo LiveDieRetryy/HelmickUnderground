@@ -128,24 +128,9 @@
     <script>
         // Check if user is already logged in
         async function checkAuth() {
-            try {
-                const response = await fetch('/api/auth?action=verify', {
-                    method: 'GET',
-                    credentials: 'include'
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.authenticated) {
-                        // Already logged in, redirect to dashboard
-                        window.location.href = '/admin/dashboard.html';
-                    }
-                }
-                // If not ok or not authenticated, stay on login page (don't redirect)
-            } catch (error) {
-                // Network error - stay on login page, don't redirect
-                console.log('Auth verification unavailable:', error.message);
-            }
+            console.log('🔍 Login page - checking if already authenticated');
+            // TEMPORARY: Disable auto-redirect for debugging
+            return;
         }
 
         // Login form handler
