@@ -9,7 +9,6 @@
     <title>Contact Us | Helmick Underground LLC | Get a Free Quote</title>
     <link rel="icon" type="image/png" sizes="32x32" href="logo.png">
     <link rel="apple-touch-icon" sizes="180x180" href="logo.png">
-    <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#ff6b1a">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="floating-call.css">
@@ -101,6 +100,45 @@
             </div>
         </div>
     </nav>
+
+    <!-- Mobile Navigation & Auto-hide Navbar Script -->
+    <script>
+        (function() {
+            const hamburger = document.querySelector('.hamburger');
+            const navMenu = document.querySelector('.nav-menu');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const navbar = document.querySelector('.navbar');
+            let lastScroll = 0;
+
+            if (hamburger && navMenu) {
+                hamburger.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navMenu.classList.toggle('active');
+                    hamburger.classList.toggle('active');
+                });
+
+                navLinks.forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        navMenu.classList.remove('active');
+                        hamburger.classList.remove('active');
+                    });
+                });
+            }
+
+            window.addEventListener('scroll', function() {
+                const currentScroll = window.pageYOffset;
+                if (currentScroll > lastScroll && currentScroll > 100) {
+                    navbar.classList.add('navbar-hidden');
+                    navbar.classList.remove('navbar-visible');
+                } else {
+                    navbar.classList.remove('navbar-hidden');
+                    navbar.classList.add('navbar-visible');
+                }
+                lastScroll = currentScroll;
+            });
+        })();
+    </script>
 
     <!-- Service Area Map Section -->
     <section class="service-area-section" style="padding: 4rem 0; background: #0a0a0a; margin-top: 70px;">

@@ -180,12 +180,14 @@
         </div>
     </nav>
 
-    <!-- Mobile Navigation Script -->
+    <!-- Mobile Navigation & Auto-hide Navbar Script -->
     <script>
         (function() {
             const hamburger = document.querySelector('.hamburger');
             const navMenu = document.querySelector('.nav-menu');
             const navLinks = document.querySelectorAll('.nav-link');
+            const navbar = document.querySelector('.navbar');
+            let lastScroll = 0;
 
             if (hamburger && navMenu) {
                 hamburger.addEventListener('click', function(e) {
@@ -202,6 +204,18 @@
                     });
                 });
             }
+
+            window.addEventListener('scroll', function() {
+                const currentScroll = window.pageYOffset;
+                if (currentScroll > lastScroll && currentScroll > 100) {
+                    navbar.classList.add('navbar-hidden');
+                    navbar.classList.remove('navbar-visible');
+                } else {
+                    navbar.classList.remove('navbar-hidden');
+                    navbar.classList.add('navbar-visible');
+                }
+                lastScroll = currentScroll;
+            });
         })();
     </script>
 
