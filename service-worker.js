@@ -87,6 +87,11 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    // Skip non-GET requests (POST, PUT, DELETE, etc.) - they can't be cached
+    if (request.method !== 'GET') {
+        return;
+    }
+
     // Determine cache strategy based on request type
     let strategy;
     
