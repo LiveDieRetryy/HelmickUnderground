@@ -251,9 +251,14 @@ body {
         min-height: 70vh;
         padding: 3rem 0;
     }
-}
-        min-height: 70vh;
-        padding: 2rem 0;
+
+    .hero-content {
+        padding: 2rem 0 3rem;
+    }
+
+    .hero-logo {
+        max-width: 280px;
+        margin-bottom: 1.5rem;
     }
 }
 
