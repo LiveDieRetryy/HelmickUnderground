@@ -50,7 +50,7 @@
         localStorage.removeItem('admin_user');
         localStorage.removeItem('csrf_token'); // Clear CSRF token
         sessionStorage.removeItem('adminLoggedIn'); // Remove old auth method
-        window.location.href = '/admin/login.html';
+        window.location.href = '/admin/index.html';
     }
 
     /**

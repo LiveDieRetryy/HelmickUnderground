@@ -18,7 +18,7 @@
 function checkAuth() {
     const isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
     if (!isLoggedIn) {
-        window.location.href = '/admin/login.html';
+        window.location.href = '/admin/index.html';
         return false;
     }
     return true;
@@ -29,7 +29,7 @@ function checkAuth() {
  */
 function logout() {
     sessionStorage.removeItem('adminLoggedIn');
-    window.location.href = '/admin/login.html';
+    window.location.href = '/admin/index.html';
 }
 
 /**
@@ -235,7 +235,7 @@ async function apiFetch(url, options = {}, cacheTTL = 0) {
             if (window.adminAuth) {
                 window.adminAuth.redirectToLogin();
             } else {
-                window.location.href = '/admin/login.html';
+                window.location.href = '/admin/index.html';
             }
             throw new Error('Unauthorized - please login again');
         }

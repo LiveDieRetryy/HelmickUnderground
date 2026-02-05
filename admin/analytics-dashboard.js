@@ -2,7 +2,7 @@
 function checkAuth() {
     const isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
     if (!isLoggedIn) {
-        window.location.href = '/admin/login.html';
+        window.location.href = '/admin/index.html';
         return false;
     }
     return true;

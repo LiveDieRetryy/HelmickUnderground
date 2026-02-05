@@ -1,6 +1,6 @@
 // Check auth
 if (!sessionStorage.getItem('adminLoggedIn')) {
-    window.location.href = '/admin/login.html';
+    window.location.href = '/admin/index.html';
 }
 
 let currentProject = null;
