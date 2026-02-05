@@ -224,36 +224,17 @@
 
         // Load dashboard statistics
         async function loadDashboardStats() {
-            try {
-                // Load gallery count
-                const galleryResponse = await fetch('/api/gallery');
-                if (galleryResponse.ok) {
-                    const galleryData = await galleryResponse.json();
-                    const count = galleryData.items ? galleryData.items.length : 0;
-                    document.getElementById('galleryCount').textContent = count;
-                }
-
-                // Load analytics stats
-                const analyticsResponse = await fetch('/api/analytics?action=stats');
-                if (analyticsResponse.ok) {
-                    const analyticsData = await analyticsResponse.json();
-                    document.getElementById('totalVisits').textContent = analyticsData.totalVisits || 0;
-                    document.getElementById('todayVisits').textContent = analyticsData.todayVisits || 0;
-                }
-
-                // Load unread submissions count
-                const submissionsResponse = await fetch('/api/contact-submissions?action=stats');
-                if (submissionsResponse.ok) {
-                    const stats = await submissionsResponse.json();
-                    document.getElementById('unreadQuotes').textContent = stats.unread || 0;
-                }
-            } catch (error) {
-                console.error('Error loading dashboard stats:', error);
-            }
+            console.log('📊 Loading dashboard stats (DISABLED for debugging)');
+            // TEMPORARILY DISABLED - APIs are failing
+            return;
         }
 
         // Load upcoming appointments
         async function loadUpcomingAppointments() {
+            console.log('📅 Loading appointments (DISABLED for debugging)');
+            // TEMPORARILY DISABLED - APIs are failing
+            return;
+        }
             try {
                 const response = await fetch('/api/contact-submissions?action=all');
                 if (!response.ok) throw new Error('Failed to load appointments');
@@ -305,32 +286,9 @@
         
         // Update inbox notification badge
         async function updateNotificationBadge() {
-            try {
-                const response = await fetch('/api/contact-submissions?action=stats');
-                if (!response.ok) return;
-                
-                const stats = await response.json();
-                const unreadCount = stats.unread || 0;
-                    
-                if (unreadCount > 0) {
-                    const inboxNavItem = document.querySelector('a[href="/admin/inbox.html"]');
-                    if (inboxNavItem) {
-                        // Remove existing badge if present
-                        const existingBadge = inboxNavItem.querySelector('.notification-badge');
-                        if (existingBadge) {
-                            existingBadge.remove();
-                        }
-                        
-                        // Add new badge
-                        const badge = document.createElement('span');
-                        badge.className = 'notification-badge';
-                        badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
-                        inboxNavItem.appendChild(badge);
-                    }
-                }
-            } catch (error) {
-                console.error('Error updating notification badge:', error);
-            }
+            console.log('🔔 Updating notification badge (DISABLED for debugging)');
+            // TEMPORARILY DISABLED - APIs are failing
+            return;
         }
         
         // Wait for navbar to load, then update badge
