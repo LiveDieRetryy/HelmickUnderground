@@ -14,26 +14,32 @@
     <script src="shared-navbar.js"></script>
     <script src="utils.js"></script>
     <script>
-        // TEMPORARY: Disable auth check for debugging
+        // Check authentication on page load
         async function checkAuth() {
-            console.log('🔍 Auth check temporarily disabled for debugging');
             try {
                 const response = await fetch('/api/auth?action=verify', {
                     method: 'GET',
                     credentials: 'include'
                 });
-                console.log('Auth API status:', response.status);
+                
+                if (response.status === 401 || !response.ok) {
+                    window.location.href = '/admin/index.html';
+                    return;
+                }
+                
                 const data = await response.json();
-                console.log('Auth API response:', data);
+                if (!data.authenticated) {
+                    window.location.href = '/admin/index.html';
+                }
             } catch (error) {
-                console.error('Auth API error:', error);
+                console.error('Auth check error:', error);
+                // Don't redirect on network errors
             }
-            // DO NOT REDIRECT - let page load for debugging
         }
         
-        // Run check but don't redirect
+        // Run auth check after DOM loads
         window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(checkAuth, 500);
+            setTimeout(checkAuth, 100);
         });
     </script>
     <style>

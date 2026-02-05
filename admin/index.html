@@ -128,9 +128,21 @@
     <script>
         // Check if user is already logged in
         async function checkAuth() {
-            console.log('🔍 Login page - checking if already authenticated');
-            // TEMPORARY: Disable auto-redirect for debugging
-            return;
+            try {
+                const response = await fetch('/api/auth?action=verify', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.authenticated) {
+                        window.location.href = '/admin/dashboard.html';
+                    }
+                }
+            } catch (error) {
+                // Stay on login page if check fails
+            }
         }
 
         // Login form handler
@@ -162,11 +174,8 @@
                     if (data.csrfToken) {
                         sessionStorage.setItem('csrfToken', data.csrfToken);
                     }
-                    console.log('✅ Login successful!');
-                    console.log('Cookies should be set:', document.cookie);
-                    // TEMPORARY: Don't redirect, just show success
-                    alert('Login successful! Check console for details.');
-                    // window.location.href = '/admin/dashboard.html';
+                    // Redirect to dashboard
+                    window.location.href = '/admin/dashboard.html';
                 } else {
                     errorDiv.textContent = data.message || 'Invalid username or password. Please try again.';
                     errorDiv.style.display = 'block';
