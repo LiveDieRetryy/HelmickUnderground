@@ -207,6 +207,14 @@ document.addEventListener('DOMContentLoaded', () => {
             web3FormData.append('subject', formData.get('subject'));
             web3FormData.append('from_name', formData.get('from_name'));
             web3FormData.append('email_to', 'helmickunderground@gmail.com');
+            
+            // Custom email template styling
+            web3FormData.append('template', 'styled');
+            web3FormData.append('header_color', '#ff6b1a');
+            web3FormData.append('bg_color', '#1a1a1a');
+            web3FormData.append('text_color', '#ffffff');
+            web3FormData.append('button_color', '#ff6b1a');
+            
             web3FormData.append('name', formData.get('name'));
             web3FormData.append('email', formData.get('email'));
             web3FormData.append('phone', formData.get('phone'));
