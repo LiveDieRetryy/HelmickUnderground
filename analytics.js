@@ -53,19 +53,22 @@
 
     // Track page view
     function trackPageView() {
-        // Check if user was tracked in the last 30 minutes
+        // Check if this exact page was tracked in the last 5 seconds (prevent duplicates on same page)
+        const lastTrackedPage = localStorage.getItem('lastAnalyticsPage');
         const lastTracked = localStorage.getItem('lastAnalyticsTrack');
         const now = Date.now();
-        const thirtyMinutes = 30 * 60 * 1000; // 30 minutes in milliseconds
+        const fiveSeconds = 5 * 1000; // 5 seconds in milliseconds
+        const currentPage = window.location.pathname;
         
-        if (lastTracked && (now - parseInt(lastTracked)) < thirtyMinutes) {
-            console.debug('Analytics: Skipping duplicate tracking (within 30min window)');
+        // Only skip if same page was tracked within 5 seconds
+        if (lastTracked && lastTrackedPage === currentPage && (now - parseInt(lastTracked)) < fiveSeconds) {
+            console.debug('Analytics: Skipping duplicate tracking (same page within 5sec)');
             return;
         }
         
         const data = {
             action: 'log',
-            page: window.location.pathname,
+            page: currentPage,
             referrer: document.referrer || 'direct',
             userAgent: navigator.userAgent,
             screenWidth: window.screen.width,
@@ -83,8 +86,9 @@
             body: JSON.stringify(data)
         }).then(response => {
             if (response.ok) {
-                // Store timestamp of successful tracking
+                // Store timestamp and page of successful tracking
                 localStorage.setItem('lastAnalyticsTrack', now.toString());
+                localStorage.setItem('lastAnalyticsPage', currentPage);
             }
         }).catch(err => {
             // Silently fail - don't disrupt user experience
