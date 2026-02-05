@@ -1011,10 +1011,11 @@ async function saveAndSendQuote() {
         if (!updateRes.ok) throw new Error('Failed to update submission');
 
         // Send quote email via API
-        const emailRes = await fetch('/api/send-quote', {
+        const emailRes = await fetch('/api/send-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+                emailType: 'quote',
                 to: currentSubmission.email,
                 customerName: currentSubmission.name,
                 quoteData: quoteData

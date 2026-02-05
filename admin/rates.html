@@ -1224,12 +1224,13 @@
                 sendBtn.textContent = 'Sending...';
                 sendBtn.disabled = true;
 
-                const response = await fetch('/api/send-rates-email', {
+                const response = await fetch('/api/send-email', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
+                        emailType: 'rates',
                         recipientEmail: recipientEmail,
                         ratesData: currentRates
                     })

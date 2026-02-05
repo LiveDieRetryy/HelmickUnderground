@@ -132,22 +132,48 @@ module.exports = async function handler(req, res) {
                 const city = decodeURIComponent(req.headers['x-vercel-ip-city'] || 'Unknown');
                 const region = decodeURIComponent(req.headers['x-vercel-ip-country-region'] || 'Unknown');
                 
-                // Filter out bots and crawlers
+                // Enhanced bot and suspicious traffic filtering
                 const botPatterns = [
                     /bot/i, /crawler/i, /spider/i, /googlebot/i, /bingbot/i, 
                     /slurp/i, /duckduckbot/i, /baiduspider/i, /yandexbot/i,
                     /facebookexternalhit/i, /twitterbot/i, /linkedinbot/i,
-                    /whatsapp/i, /lighthouse/i, /headless/i, /phantom/i
+                    /whatsapp/i, /lighthouse/i, /headless/i, /phantom/i,
+                    /curl/i, /wget/i, /python/i, /java/i, /ruby/i, /perl/i,
+                    /scrapy/i, /httpclient/i, /go-http/i, /axios/i, /node-fetch/i,
+                    /check_http/i, /pingdom/i, /uptime/i, /monitoring/i, /scanner/i,
+                    /semrush/i, /ahrefs/i, /majestic/i, /moz/i, /screaming/i
                 ];
                 
                 const isBot = botPatterns.some(pattern => pattern.test(userAgent || ''));
                 
-                // Filter out Vercel infrastructure locations
-                const vercelCities = ['Santa Clara', 'San Jose', 'Omaha', 'Ashburn', 'Frankfurt'];
-                const isVercelInfra = vercelCities.includes(city);
+                // Filter out Vercel infrastructure and common hosting locations
+                const infrastructureCities = [
+                    'Santa Clara', 'San Jose', 'Omaha', 'Ashburn', 'Frankfurt',
+                    'Amsterdam', 'Brandenburg', 'Dublin', 'London', 'Paris',
+                    'Singapore', 'Tokyo', 'Mumbai', 'Sao Paulo', 'Sydney'
+                ];
+                const isInfrastructure = infrastructureCities.includes(city);
                 
-                // Skip logging if bot or Vercel infrastructure
-                if (isBot || isVercelInfra) {
+                // Filter suspicious referrers (common spam patterns)
+                const suspiciousReferrers = [
+                    /semalt/i, /buttons-for-website/i, /best-seo/i, /free-share/i,
+                    /success-seo/i, /floating-share/i, /get-free-traffic/i
+                ];
+                const hasSuspiciousReferrer = suspiciousReferrers.some(pattern => 
+                    pattern.test(referrer || '')
+                );
+                
+                // Only log traffic that's likely legitimate
+                // Allow US traffic from non-infrastructure cities, and Midwest states
+                const isLikelyLegitimate = 
+                    !isBot && 
+                    !isInfrastructure && 
+                    !hasSuspiciousReferrer &&
+                    (country === 'US' || country === 'United States' || 
+                     ['Iowa', 'IA', 'Illinois', 'Nebraska', 'Minnesota', 'Missouri', 'Wisconsin'].includes(region));
+                
+                // Skip logging if not legitimate
+                if (!isLikelyLegitimate) {
                     return res.status(200).json({ success: true, filtered: true });
                 }
                 

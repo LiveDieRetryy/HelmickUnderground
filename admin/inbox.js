@@ -602,12 +602,13 @@ async function sendAcknowledgmentEmail(id) {
     btn.innerHTML = '<span>📧</span><span>Sending...</span>';
 
     try {
-        const response = await fetch('/api/send-acknowledgment', {
+        const response = await fetch('/api/send-email', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
+                emailType: 'acknowledgment',
                 name: sub.name,
                 email: sub.email,
                 services: sub.services
