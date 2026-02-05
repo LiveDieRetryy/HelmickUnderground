@@ -644,9 +644,28 @@ async function deleteProject(projectId) {
     }
 }
 
-// Load projects when page loads
+// Load projects for current customer
+async function loadProjects() {
+    if (!currentCustomerId) {
+        console.error('No customer ID set');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/projects?customer_id=${currentCustomerId}`);
+        if (response.ok) {
+            const data = await response.json();
+            projects = data.projects || [];
+            displayProjects();
+        }
+    } catch (error) {
+        console.error('Error loading projects:', error);
+    }
+}
+
+// Load customer details when page loads
 setTimeout(() => {
-    loadProjects();
+    loadCustomerDetails();
 }, 500);
 
 // Success notification function
