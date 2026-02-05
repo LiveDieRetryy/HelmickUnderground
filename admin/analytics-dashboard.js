@@ -115,7 +115,7 @@ async function loadData() {
         console.log('Analytics response:', dataRes.status);
         console.log('Stats response:', statsRes.status);
 
-        if (!dataRes.ok || !statsRes.ok) {
+        if (!dataRes.ok) {
             const errorText = await dataRes.text();
             console.error('Error response:', errorText);
             throw new Error('Failed to load analytics');
@@ -123,20 +123,28 @@ async function loadData() {
 
         const response = await dataRes.json();
         analyticsData = response.entries || [];
-        const stats = await statsRes.json();
 
         console.log('Loaded analytics:', analyticsData.length, 'entries');
-        console.log('Stats:', stats);
+        console.log('Response:', response);
 
-        // Calculate average daily
-        const oldest = analyticsData.length > 0 ? new Date(analyticsData[analyticsData.length - 1].timestamp) : new Date();
-        const daysSince = Math.max(1, Math.ceil((new Date() - oldest) / (1000 * 60 * 60 * 24)));
-        const avgDaily = Math.round(analyticsData.length / daysSince);
+        // Calculate average daily based on unique visitors
+        const uniqueVisitorsByDay = {};
+        analyticsData.forEach(entry => {
+            const date = new Date(entry.timestamp).toDateString();
+            if (!uniqueVisitorsByDay[date]) {
+                uniqueVisitorsByDay[date] = new Set();
+            }
+            uniqueVisitorsByDay[date].add(entry.ip);
+        });
+        
+        const daysWithVisits = Object.keys(uniqueVisitorsByDay).length;
+        const totalUniqueVisitors = new Set(analyticsData.map(e => e.ip)).size;
+        const avgDaily = daysWithVisits > 0 ? Math.round(totalUniqueVisitors / daysWithVisits) : 0;
 
-        // Update page view stats
-        document.getElementById('totalVisits').textContent = stats.pageViews?.total || 0;
-        document.getElementById('todayVisits').textContent = stats.pageViews?.today || 0;
-        document.getElementById('weekVisits').textContent = stats.pageViews?.week || 0;
+        // Update page view stats from the response
+        document.getElementById('totalVisits').textContent = response.pageViews?.total || 0;
+        document.getElementById('todayVisits').textContent = response.pageViews?.today || 0;
+        document.getElementById('weekVisits').textContent = response.pageViews?.week || 0;
         document.getElementById('avgVisits').textContent = avgDaily;
 
         // Hide loading
