@@ -265,28 +265,6 @@ function updateCustomerStatsFromData(stats) {
     document.getElementById('invoicedAmountValue').textContent = `$${stats.totalInvoiced.toFixed(2)}`;
 }
 
-// Initialize on page load
-
-            displayProjects();
-            
-            // Check if we need to auto-open edit modal from URL parameter
-            const urlParams = new URLSearchParams(window.location.search);
-            const editProjectId = urlParams.get('edit_project');
-            if (editProjectId) {
-                // Wait a bit for the DOM to be ready, then open the edit modal
-                setTimeout(() => {
-                    editProject(parseInt(editProjectId));
-                    // Clean up URL without reloading page
-                    const newUrl = window.location.pathname + '?id=' + urlParams.get('id');
-                    window.history.replaceState({}, '', newUrl);
-                }, 300);
-            }
-        }
-    } catch (error) {
-        console.error('Error loading projects:', error);
-    }
-}
-
 // Display projects with filtering
 function displayProjects() {
     const filteredProjects = currentFilter === 'all' 
