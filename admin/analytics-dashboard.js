@@ -334,10 +334,20 @@ function createPagesChart() {
 
 // Device types chart
 function createDevicesChart() {
-    const deviceCounts = {};
+    // Count unique IPs per device type
+    const deviceIPs = {};
     analyticsData.forEach(entry => {
         const deviceType = entry.device_type || entry.deviceType || 'Unknown';
-        deviceCounts[deviceType] = (deviceCounts[deviceType] || 0) + 1;
+        if (!deviceIPs[deviceType]) {
+            deviceIPs[deviceType] = new Set();
+        }
+        deviceIPs[deviceType].add(entry.ip);
+    });
+    
+    // Convert to counts
+    const deviceCounts = {};
+    Object.entries(deviceIPs).forEach(([device, ips]) => {
+        deviceCounts[device] = ips.size;
     });
 
     new Chart(document.getElementById('devicesChart'), {
@@ -387,9 +397,20 @@ function createDevicesChart() {
 
 // Browsers chart
 function createBrowsersChart() {
-    const browserCounts = {};
+    // Count unique IPs per browser
+    const browserIPs = {};
     analyticsData.forEach(entry => {
-        browserCounts[entry.browser] = (browserCounts[entry.browser] || 0) + 1;
+        const browser = entry.browser || 'Unknown';
+        if (!browserIPs[browser]) {
+            browserIPs[browser] = new Set();
+        }
+        browserIPs[browser].add(entry.ip);
+    });
+    
+    // Convert to counts
+    const browserCounts = {};
+    Object.entries(browserIPs).forEach(([browser, ips]) => {
+        browserCounts[browser] = ips.size;
     });
 
     const sorted = Object.entries(browserCounts)
@@ -445,10 +466,20 @@ function createBrowsersChart() {
 
 // Top locations chart
 function createLocationsChart() {
-    const locationCounts = {};
+    // Count unique IPs per location
+    const locationIPs = {};
     analyticsData.forEach(entry => {
         const loc = entry.city && entry.country ? `${entry.city}, ${entry.country}` : entry.country || 'Unknown';
-        locationCounts[loc] = (locationCounts[loc] || 0) + 1;
+        if (!locationIPs[loc]) {
+            locationIPs[loc] = new Set();
+        }
+        locationIPs[loc].add(entry.ip);
+    });
+    
+    // Convert to counts
+    const locationCounts = {};
+    Object.entries(locationIPs).forEach(([loc, ips]) => {
+        locationCounts[loc] = ips.size;
     });
 
     const sorted = Object.entries(locationCounts)
@@ -460,7 +491,7 @@ function createLocationsChart() {
         data: {
             labels: sorted.map(([loc]) => loc),
             datasets: [{
-                label: 'Visits',
+                label: 'Unique Visitors',
                 data: sorted.map(([, count]) => count),
                 backgroundColor: 'rgba(99, 102, 241, 0.7)'
             }]
@@ -475,7 +506,7 @@ function createLocationsChart() {
                 tooltip: {
                     callbacks: {
                         title: (context) => context[0].label,
-                        label: (context) => `Visits: ${context.parsed.x}`
+                        label: (context) => `Unique Visitors: ${context.parsed.x}`
                     }
                 }
             },
