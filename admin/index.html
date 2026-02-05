@@ -179,8 +179,17 @@
                 const data = await response.json();
                 
                 if (response.ok && data.success) {
-                    // Store CSRF token and auth flag
+                    // Store JWT token in localStorage
+                    if (data.token) {
+                        localStorage.setItem('auth_token', data.token);
+                    }
+                    // Store user info
+                    if (data.user) {
+                        localStorage.setItem('admin_user', JSON.stringify(data.user));
+                    }
+                    // Store CSRF token
                     if (data.csrfToken) {
+                        localStorage.setItem('csrf_token', data.csrfToken);
                         sessionStorage.setItem('csrfToken', data.csrfToken);
                     }
                     sessionStorage.setItem('adminLoggedIn', 'true');
