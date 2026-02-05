@@ -328,7 +328,8 @@ function createPagesChart() {
 function createDevicesChart() {
     const deviceCounts = {};
     analyticsData.forEach(entry => {
-        deviceCounts[entry.deviceType] = (deviceCounts[entry.deviceType] || 0) + 1;
+        const deviceType = entry.device_type || entry.deviceType || 'Unknown';
+        deviceCounts[deviceType] = (deviceCounts[deviceType] || 0) + 1;
     });
 
     new Chart(document.getElementById('devicesChart'), {
@@ -570,7 +571,7 @@ function createVisitsTable() {
                 <td>${dateStr}</td>
                 <td>${formatPageName(entry.page)}</td>
                 <td>${entry.city && entry.country ? `${entry.city}, ${entry.country}` : entry.country || 'Unknown'}</td>
-                <td>${entry.deviceType || 'Unknown'}</td>
+                <td>${entry.device_type || 'Unknown'}</td>
                 <td>${entry.browser || 'Unknown'}</td>
             </tr>
         `;
