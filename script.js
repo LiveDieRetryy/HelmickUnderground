@@ -65,7 +65,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
  * Navbar scroll behavior
  * Auto-hides navbar when scrolling down, shows when scrolling up
  * Always shows navbar after 2 seconds of no scrolling
- */);
+ */
 
 // Navbar background change on scroll
 let lastScrollTop = 0;
