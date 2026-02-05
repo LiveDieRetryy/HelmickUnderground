@@ -162,8 +162,11 @@
                     if (data.csrfToken) {
                         sessionStorage.setItem('csrfToken', data.csrfToken);
                     }
-                    // Redirect to dashboard
-                    window.location.href = '/admin/dashboard.html';
+                    console.log('✅ Login successful!');
+                    console.log('Cookies should be set:', document.cookie);
+                    // TEMPORARY: Don't redirect, just show success
+                    alert('Login successful! Check console for details.');
+                    // window.location.href = '/admin/dashboard.html';
                 } else {
                     errorDiv.textContent = data.message || 'Invalid username or password. Please try again.';
                     errorDiv.style.display = 'block';
