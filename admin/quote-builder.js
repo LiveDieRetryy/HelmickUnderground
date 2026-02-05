@@ -974,9 +974,13 @@ async function saveAndSendQuote() {
 
     try {
         // Update submission with quote data and change status to "quoted"
+        const csrfToken = window.adminAuth?.getCsrfToken();
         const updateRes = await fetch('/api/contact-submissions', {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                ...(csrfToken && { 'x-csrf-token': csrfToken })
+            },
             body: JSON.stringify({
                 id: submissionId,
                 status: 'quoted',
@@ -989,7 +993,10 @@ async function saveAndSendQuote() {
         // Send quote email via API
         const emailRes = await fetch('/api/send-email', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                ...(csrfToken && { 'x-csrf-token': csrfToken })
+            },
             body: JSON.stringify({
                 emailType: 'quote',
                 to: currentSubmission.email,
