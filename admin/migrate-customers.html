@@ -323,6 +323,26 @@
             
             addLog('Starting migration process...', 'info');
             
+            // Get fresh CSRF token from cookie
+            function getCsrfTokenFromCookie() {
+                const cookies = document.cookie.split(';');
+                for (let cookie of cookies) {
+                    const [name, value] = cookie.trim().split('=');
+                    if (name === 'csrfToken') {
+                        return decodeURIComponent(value);
+                    }
+                }
+                return null;
+            }
+
+            const csrfToken = getCsrfTokenFromCookie();
+            if (!csrfToken) {
+                addLog('✗ No CSRF token found. Please log out and log back in.', 'error');
+                migrateBtn.disabled = false;
+                migrateBtn.textContent = '🔄 Migrate to Database';
+                return;
+            }
+            
             let successCount = 0;
             let errorCount = 0;
             let skippedCount = 0;
@@ -365,12 +385,11 @@
                     }
 
                     // Create customer in database
-                    const csrfToken = sessionStorage.getItem('csrfToken');
                     const response = await fetch('/api/customers', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            ...(csrfToken && { 'X-CSRF-Token': csrfToken })
+                            'X-CSRF-Token': csrfToken
                         },
                         credentials: 'include',
                         body: JSON.stringify(customerData)
