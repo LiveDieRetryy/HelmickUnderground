@@ -121,7 +121,8 @@ async function loadData() {
             throw new Error('Failed to load analytics');
         }
 
-        analyticsData = await dataRes.json();
+        const response = await dataRes.json();
+        analyticsData = response.entries || [];
         const stats = await statsRes.json();
 
         console.log('Loaded analytics:', analyticsData.length, 'entries');
