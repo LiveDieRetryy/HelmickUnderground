@@ -52,7 +52,7 @@ function loadAdminNavbar() {
                     <span class="sidebar-nav-item-text">Dashboard</span>
                 </a>
                 
-                <div style="padding: 0.5rem 1.5rem 0.15rem; color: rgba(255, 107, 26, 0.7); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Customer Management</div>
+                <div class="sidebar-section-header">Customer Management</div>
                 <a href="/admin/customers.html" class="sidebar-nav-item">
                     <span class="sidebar-nav-item-icon">👥</span>
                     <span class="sidebar-nav-item-text">Customers</span>
@@ -66,7 +66,7 @@ function loadAdminNavbar() {
                     <span class="sidebar-nav-item-text">Schedule</span>
                 </a>
                 
-                <div style="padding: 0.5rem 1.5rem 0.15rem; color: rgba(255, 107, 26, 0.7); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Financial</div>
+                <div class="sidebar-section-header">Financial</div>
                 <a href="/admin/rates.html" class="sidebar-nav-item">
                     <span class="sidebar-nav-item-icon">💰</span>
                     <span class="sidebar-nav-item-text">Rates Management</span>
@@ -80,7 +80,7 @@ function loadAdminNavbar() {
                     <span class="sidebar-nav-item-text">Build Quote</span>
                 </a>
                 
-                <div style="padding: 0.5rem 1.5rem 0.15rem; color: rgba(255, 107, 26, 0.7); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Content & Analytics</div>
+                <div class="sidebar-section-header">Content & Analytics</div>
                 <a href="/admin/gallery-manager.html" class="sidebar-nav-item">
                     <span class="sidebar-nav-item-icon">📸</span>
                     <span class="sidebar-nav-item-text">Gallery Manager</span>
@@ -94,7 +94,7 @@ function loadAdminNavbar() {
                     <span class="sidebar-nav-item-text">Activity Log</span>
                 </a>
                 
-                <div style="padding: 0.5rem 1.5rem 0.15rem; color: rgba(255, 107, 26, 0.7); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Settings</div>
+                <div class="sidebar-section-header">Settings</div>
                 <a href="/admin/rate-recipients.html" class="sidebar-nav-item">
                     <span class="sidebar-nav-item-icon">📧</span>
                     <span class="sidebar-nav-item-text">Email Recipients</span>
