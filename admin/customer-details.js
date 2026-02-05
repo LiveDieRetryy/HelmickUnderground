@@ -392,12 +392,16 @@ function removeFile(index) {
 async function saveProject(event) {
     event.preventDefault();
     
-    const customer = customers[currentCustomerIndex];
+    if (!currentCustomer) {
+        alert('Customer not loaded');
+        return;
+    }
+    
     const projectId = document.getElementById('projectId').value;
     
     const projectData = {
         project_number: document.getElementById('projectNumber').value,
-        customer_id: customer.email,
+        customer_id: currentCustomerId,
         project_name: document.getElementById('projectName').value,
         job_address: document.getElementById('projectJobAddress').value,
         job_city: document.getElementById('projectJobCity').value,
@@ -558,13 +562,13 @@ async function editProject(projectId) {
 
 // View project details
 async function viewProject(projectId) {
-    window.location.href = `project-details.html?id=${projectId}&customer_id=${currentCustomerIndex}`;
+    window.location.href = `project-details.html?id=${projectId}&customer_id=${currentCustomerId}`;
 }
 
 // Create invoice for project
 function createInvoiceForProject(projectId) {
     const project = projects.find(p => p.id === projectId);
-    const customer = customers[currentCustomerIndex];
+    const customer = currentCustomer;
     
     if (!project) return;
     
