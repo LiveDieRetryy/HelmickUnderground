@@ -1513,6 +1513,24 @@ section {
         width: 100%;
         margin: 0.5rem 0;
     }
+
+    /* Service Area Map - Mobile Optimization */
+    .service-area-grid {
+        grid-template-columns: 1fr !important;
+        gap: 2rem !important;
+    }
+
+    .service-area-grid > div:last-child {
+        height: 350px !important;
+    }
+
+    .service-area-grid > div:last-child iframe {
+        height: 350px !important;
+    }
+
+    .cities-grid {
+        grid-template-columns: 1fr !important;
+    }
 }
  
  
