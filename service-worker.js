@@ -172,12 +172,14 @@ async function networkFirst(request) {
         const response = await fetch(request);
         
         if (response.ok) {
+            // Clone response before caching to avoid "body already used" error
+            const responseClone = response.clone();
             // Cache successful responses
             const cacheName = request.url.includes('/api/') 
                 ? API_CACHE_NAME 
                 : CACHE_NAME;
             const cache = await caches.open(cacheName);
-            cache.put(request, response.clone());
+            cache.put(request, responseClone);
         }
         
         return response;
@@ -206,10 +208,12 @@ async function staleWhileRevalidate(request) {
     const cached = await caches.match(request);
     
     // Fetch in background to update cache
-    const fetchPromise = fetch(request).then((response) => {
+    const fetchPromise = fetch(request).then(async (response) => {
         if (response.ok) {
-            const cache = caches.open(CACHE_NAME);
-            cache.then(c => c.put(request, response.clone()));
+            // Clone before using to avoid "body already used" error
+            const responseClone = response.clone();
+            const cache = await caches.open(CACHE_NAME);
+            await cache.put(request, responseClone);
         }
         return response;
     }).catch(() => cached); // Fallback to cache on error
