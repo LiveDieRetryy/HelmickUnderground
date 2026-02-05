@@ -520,11 +520,10 @@ window.addEventListener('resize', () => {
     }, 250);
 });
 
-// Recent visits table
+// Recent visits table - grouped by visitor session
 function createVisitsTable() {
     const tbody = document.querySelector('#visitsTable tbody');
-    const recent = analyticsData.slice(0, 50);
-
+    
     // Helper function to format page names
     function formatPageName(path) {
         if (!path || path === '/') return 'Home';
@@ -557,8 +556,47 @@ function createVisitsTable() {
         return pageNames[path] || path;
     }
 
-    tbody.innerHTML = recent.map(entry => {
-        const date = new Date(entry.timestamp);
+    // Group visits by IP address
+    const sessionsByIP = {};
+    
+    analyticsData.forEach(entry => {
+        const ip = entry.ip || 'unknown';
+        
+        if (!sessionsByIP[ip]) {
+            sessionsByIP[ip] = {
+                ip: ip,
+                visits: [],
+                firstVisit: entry.timestamp,
+                location: '',
+                device: entry.device_type || 'Unknown',
+                browser: entry.browser || 'Unknown'
+            };
+            
+            // Format location
+            if (entry.city && entry.region && entry.country) {
+                sessionsByIP[ip].location = `${entry.city}, ${entry.region}, ${entry.country}`;
+            } else if (entry.city && entry.country) {
+                sessionsByIP[ip].location = `${entry.city}, ${entry.country}`;
+            } else if (entry.country) {
+                sessionsByIP[ip].location = entry.country;
+            } else {
+                sessionsByIP[ip].location = 'Unknown';
+            }
+        }
+        
+        sessionsByIP[ip].visits.push({
+            page: entry.page,
+            timestamp: entry.timestamp
+        });
+    });
+
+    // Convert to array and sort by most recent first
+    const sessions = Object.values(sessionsByIP)
+        .sort((a, b) => new Date(b.firstVisit) - new Date(a.firstVisit))
+        .slice(0, 50); // Limit to 50 unique visitors
+
+    tbody.innerHTML = sessions.map((session, index) => {
+        const date = new Date(session.firstVisit);
         const dateStr = date.toLocaleString('en-US', { 
             month: 'short', 
             day: 'numeric',
@@ -566,27 +604,59 @@ function createVisitsTable() {
             minute: '2-digit'
         });
 
-        // Format location with city, state/region, country
-        let location = 'Unknown';
-        if (entry.city && entry.region && entry.country) {
-            location = `${entry.city}, ${entry.region}, ${entry.country}`;
-        } else if (entry.city && entry.country) {
-            location = `${entry.city}, ${entry.country}`;
-        } else if (entry.country) {
-            location = entry.country;
-        }
+        const detailsId = `session-details-${index}`;
+        const visitsList = session.visits
+            .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+            .map(visit => {
+                const visitTime = new Date(visit.timestamp).toLocaleTimeString('en-US', { 
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                return `<div style="padding: 0.5rem 0; border-bottom: 1px solid rgba(255, 107, 26, 0.1);">
+                    <span style="color: var(--gray); font-size: 0.85rem;">${visitTime}</span>
+                    <span style="color: var(--white); margin-left: 1rem;">${formatPageName(visit.page)}</span>
+                </div>`;
+            }).join('');
 
         return `
-            <tr>
+            <tr style="cursor: pointer; transition: background 0.2s;" onclick="toggleSessionDetails('${detailsId}')" onmouseover="this.style.background='rgba(255, 107, 26, 0.05)'" onmouseout="this.style.background=''">
+                <td style="text-align: center;">
+                    <span id="toggle-${detailsId}" style="display: inline-block; transition: transform 0.3s;">▶</span>
+                </td>
                 <td>${dateStr}</td>
-                <td>${formatPageName(entry.page)}</td>
-                <td>${location}</td>
-                <td>${entry.device_type || 'Unknown'}</td>
-                <td>${entry.browser || 'Unknown'}</td>
+                <td>${session.location}</td>
+                <td style="color: var(--primary-color); font-weight: 600;">${session.visits.length} page${session.visits.length !== 1 ? 's' : ''}</td>
+                <td>${session.device}</td>
+                <td>${session.browser}</td>
+            </tr>
+            <tr id="${detailsId}" style="display: none;">
+                <td colspan="6" style="background: rgba(255, 107, 26, 0.03); padding: 0;">
+                    <div style="padding: 1rem 2rem; max-height: 400px; overflow-y: auto;">
+                        <h4 style="color: var(--primary-color); margin: 0 0 1rem 0; font-size: 0.9rem;">Page Views (${session.visits.length} total)</h4>
+                        ${visitsList}
+                    </div>
+                </td>
             </tr>
         `;
     }).join('');
 }
+
+// Toggle session details
+window.toggleSessionDetails = function(detailsId) {
+    const detailsRow = document.getElementById(detailsId);
+    const toggleIcon = document.getElementById(`toggle-${detailsId}`);
+    
+    if (detailsRow.style.display === 'none') {
+        detailsRow.style.display = 'table-row';
+        toggleIcon.style.transform = 'rotate(90deg)';
+        toggleIcon.textContent = '▼';
+    } else {
+        detailsRow.style.display = 'none';
+        toggleIcon.style.transform = 'rotate(0deg)';
+        toggleIcon.textContent = '▶';
+    }
+};
 
 // Load on page load
 checkAuth();
