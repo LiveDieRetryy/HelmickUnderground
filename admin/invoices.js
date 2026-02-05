@@ -671,7 +671,7 @@ async function sendInvoiceEmail(id) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                type: 'invoice',
+                emailType: 'custom',
                 to: to,
                 subject: subject,
                 html: htmlContent,
