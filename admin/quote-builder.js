@@ -988,7 +988,11 @@ async function saveAndSendQuote() {
             })
         });
 
-        if (!updateRes.ok) throw new Error('Failed to update submission');
+        if (!updateRes.ok) {
+            const errorData = await updateRes.json().catch(() => ({}));
+            console.error('Failed to update submission:', updateRes.status, errorData);
+            throw new Error(errorData.error || 'Failed to update submission');
+        }
 
         // Send quote email via API
         const emailRes = await fetch('/api/send-email', {
