@@ -690,36 +690,12 @@ function printQuote() {
     printWindow.focus();
     
     setTimeout(() => {
-    </div>
-    
-    <!-- Bottom Section with Totals and Footer -->
-    <div class="bottom-section" style="padding: 0.5rem; background: white;">
-        <!-- Totals -->
-        <div style="background: #f5f5f5; padding: 0.8rem; border-radius: 8px; margin-bottom: 0.5rem; border: 1px solid #e0e0e0;">
-            <table style="width: 100%; border-collapse: collapse;">
-                <tr style="border-bottom: 1px solid #d0d0d0;">
-                    <td style="padding: 0.3rem; text-align: right; font-weight: 600; color: #666; font-size: 0.85rem;">Subtotal:</td>
-                    <td style="padding: 0.3rem; text-align: right; font-weight: 600; color: #000; font-size: 0.85rem; width: 120px;">$${subtotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                </tr>
-                ${taxRate > 0 ? `
-                <tr style="border-bottom: 1px solid #d0d0d0;">
-                    <td style="padding: 0.3rem; text-align: right; color: #666; font-size: 0.85rem;">Tax (${(taxRate * 100).toFixed(0)}%):</td>
-                    <td style="padding: 0.3rem; text-align: right; color: #000; font-size: 0.85rem;">$${tax.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                </tr>
-                ` : ''}
-                <tr style="background: #ff6b1a;">
-                    <td style="padding: 0.6rem; text-align: right; font-weight: 700; color: white; font-size: 1.1rem;">Total:</td>
-                    <td style="padding: 0.6rem; text-align: right; font-weight: 700; color: white; font-size: 1.1rem;">$${total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                </tr>
-            </table>
-        </div>
-        
-        <!-- Footer -->
-        <div style="padding-top: 0.5rem; border-top: 1px solid #d0d0d0; text-align: center;">
-            <p style="margin: 0; color: #666; font-size: 0.75rem;">Thank you for your business!</p>
-            <p style="margin: 0.2rem 0; color: #666; font-size: 0.75rem;">Questions? Contact us at HelmickUnderground@gmail.com</p>
-        </div>
-ownload quote as PDF
+        printWindow.print();
+        printWindow.close();
+    }, 250);
+}
+
+// Download quote as PDF
 async function downloadQuotePDF() {
     try {
         const { jsPDF } = window.jspdf;
