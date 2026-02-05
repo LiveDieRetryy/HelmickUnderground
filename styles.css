@@ -245,6 +245,16 @@ body {
     .nav-link::after {
         display: none;
     }
+
+    /* Reduce hero section height on mobile */
+    .hero {
+        min-height: 70vh;
+        padding: 3rem 0;
+    }
+}
+        min-height: 70vh;
+        padding: 2rem 0;
+    }
 }
 
 /* Hero Section */
