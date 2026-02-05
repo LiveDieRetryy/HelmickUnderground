@@ -89,7 +89,12 @@ window.addEventListener('scroll', () => {
             navbar.classList.remove('navbar-hidden');
             navbar.classList.add('navbar-visible');
         }
-   ============================================================================
+    }
+
+    lastScrollTop = currentScroll;
+});
+
+// ============================================================================
 // CONTACT FORM HANDLING
 // ============================================================================
 
