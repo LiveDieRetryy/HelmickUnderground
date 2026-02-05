@@ -89,23 +89,7 @@ window.addEventListener('scroll', () => {
             navbar.classList.remove('navbar-hidden');
             navbar.classList.add('navbar-visible');
         }
-    }
-
-    lastScrollTop = currentScroll;
-});
-
-// ============================================================================
-// CONTACT FORM HANDLING
-// ============================================================================
-
-/**
- * Contact form submission with spam protection
- * Features:
- * - Honeypot field (bot trap)
- * - Timing check (too fast = bot)
- * - reCAPTCHA v3
- * - Dual submission to Web3Forms (email) and internal API (admin inbox)
- */
+    } else {
         // At top of page, always show navbar
         navbar.classList.remove('navbar-hidden');
         navbar.classList.add('navbar-visible');
@@ -129,7 +113,6 @@ window.addEventListener('scroll', () => {
  * Handles form validation, spam prevention, and submission to both Web3Forms and API
  */
 document.addEventListener('DOMContentLoaded', () => {
-    // Contact Form Handling
     const contactForm = document.getElementById('contactForm');
 
     if (contactForm) {
