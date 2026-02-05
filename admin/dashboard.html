@@ -16,20 +16,29 @@
     <script>
         // Check authentication on page load
         async function checkAuth() {
+            console.log('🔐 Running auth check...');
             try {
                 const response = await fetch('/api/auth?action=verify', {
                     method: 'GET',
                     credentials: 'include'
                 });
                 
+                console.log('Auth response status:', response.status);
+                
                 if (response.status === 401 || !response.ok) {
+                    console.log('⛔ Not authenticated, redirecting to login');
                     window.location.href = '/admin/index.html';
                     return;
                 }
                 
                 const data = await response.json();
+                console.log('Auth data:', data);
+                
                 if (!data.authenticated) {
+                    console.log('⛔ Not authenticated (data.authenticated = false), redirecting');
                     window.location.href = '/admin/index.html';
+                } else {
+                    console.log('✅ Authentication verified, staying on dashboard');
                 }
             } catch (error) {
                 console.error('Auth check error:', error);
@@ -37,9 +46,10 @@
             }
         }
         
-        // Run auth check after DOM loads
+        // Run auth check after DOM loads with longer delay
         window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(checkAuth, 100);
+            console.log('📄 DOM loaded, scheduling auth check');
+            setTimeout(checkAuth, 1000);
         });
     </script>
     <style>
