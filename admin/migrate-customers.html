@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Customer Migration Tool - Helmick Underground</title>
+    <link rel="icon" type="image/png" href="../logo.png">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="sidebar.css">
+    <script src="shared-navbar.js"></script>
+    <script src="utils.js"></script>
+    <script>
+        // Check authentication on page load
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/auth?action=verify', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    window.location.href = '/admin/index.html';
+                    return false;
+                }
+                
+                const data = await response.json();
+                if (!data.authenticated) {
+                    window.location.href = '/admin/index.html';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                window.location.href = '/admin/index.html';
+                return false;
+            }
+        }
+        
+        // Run auth check immediately
+        checkAuth();
+    </script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+            min-height: 100vh;
+        }
+
+        .migration-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+
+        .migration-card {
+            background: var(--card-dark);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            box-shadow: 0 8px 32px rgba(255, 107, 26, 0.1);
+        }
+
+        .migration-header {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            color: var(--white);
+        }
+
+        .warning-box {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            color: var(--white);
+        }
+
+        .status-box {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            color: var(--white);
+            display: none;
+        }
+
+        .customer-preview {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .customer-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--white);
+        }
+
+        .customer-item:last-child {
+            border-bottom: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #ff8c42 100%);
+            color: var(--white);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 26, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 26, 0.5);
+        }
+
+        .btn:disabled {
+            background: #6b7280;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color) 0%, #10b981 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .log-item {
+            padding: 0.5rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+            border-left: 3px solid var(--primary-color);
+            margin: 0.5rem 0;
+            padding-left: 1rem;
+        }
+
+        .log-success {
+            border-color: #10b981;
+            color: #10b981;
+        }
+
+        .log-error {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .log-info {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <div class="mobile-menu-toggle" id="mobileMenuToggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        
+        <div class="main-content">
+            <div class="migration-container">
+                <div class="migration-card">
+                    <h1 class="migration-header">
+                        <span>🔄</span>
+                        Customer Data Migration
+                    </h1>
+
+                    <div class="info-box">
+                        <h3 style="margin-top: 0;">📋 What This Does</h3>
+                        <p>This tool will migrate customer data from your browser's localStorage to the database. This is a one-time migration for customers that were saved locally before the database system was implemented.</p>
+                    </div>
+
+                    <div class="warning-box">
+                        <h3 style="margin-top: 0;">⚠️ Important Notes</h3>
+                        <ul>
+                            <li>This migration is safe - it will not delete your local data</li>
+                            <li>Customers already in the database will be skipped</li>
+                            <li>Run this from the same browser where customers were originally saved</li>
+                            <li>You can run this multiple times safely</li>
+                        </ul>
+                    </div>
+
+                    <div id="detectionStatus" style="margin: 1.5rem 0;">
+                        <button onclick="scanLocalStorage()" class="btn">
+                            🔍 Scan for Local Customers
+                        </button>
+                    </div>
+
+                    <div id="previewSection" style="display: none;">
+                        <h3 style="color: var(--white);">Found <span id="customerCount">0</span> Customers</h3>
+                        <div id="customerPreview" class="customer-preview"></div>
+                        
+                        <div style="margin-top: 1.5rem;">
+                            <button onclick="startMigration()" class="btn" id="migrateBtn">
+                                ⬆️ Migrate to Database
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="progress-bar" id="progressBar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+
+                    <div id="migrationLog"></div>
+
+                    <div class="status-box" id="statusBox"></div>
+
+                    <div style="margin-top: 2rem; text-align: center;">
+                        <a href="/admin/customers.html" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">
+                            ← Back to Customers
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let localCustomers = [];
+
+        function addLog(message, type = 'info') {
+            const logDiv = document.getElementById('migrationLog');
+            const logItem = document.createElement('div');
+            logItem.className = `log-item log-${type}`;
+            logItem.textContent = message;
+            logDiv.appendChild(logItem);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function scanLocalStorage() {
+            addLog('Scanning localStorage for customer data...', 'info');
+            
+            try {
+                const saved = localStorage.getItem('customers');
+                if (!saved) {
+                    addLog('No customer data found in localStorage', 'error');
+                    document.getElementById('detectionStatus').innerHTML = `
+                        <div class="warning-box">
+                            <h3 style="margin-top: 0;">No Local Data Found</h3>
+                            <p>No customer data was found in your browser's localStorage. Either:</p>
+                            <ul>
+                                <li>Customers have already been migrated</li>
+                                <li>You're using a different browser than where customers were saved</li>
+                                <li>LocalStorage data was cleared</li>
+                            </ul>
+                        </div>
+                    `;
+                    return;
+                }
+
+                localCustomers = JSON.parse(saved);
+                
+                if (localCustomers.length === 0) {
+                    addLog('LocalStorage exists but contains no customers', 'error');
+                    return;
+                }
+
+                addLog(`Found ${localCustomers.length} customers in localStorage`, 'success');
+                
+                document.getElementById('customerCount').textContent = localCustomers.length;
+                document.getElementById('previewSection').style.display = 'block';
+                
+                const preview = document.getElementById('customerPreview');
+                preview.innerHTML = localCustomers.map((customer, index) => `
+                    <div class="customer-item">
+                        <strong>${customer.name}</strong> - ${customer.type}
+                        ${customer.phone ? `<br>Phone: ${customer.phone}` : ''}
+                        ${customer.email ? `<br>Email: ${customer.email}` : ''}
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error scanning localStorage:', error);
+                addLog(`Error scanning localStorage: ${error.message}`, 'error');
+            }
+        }
+
+        async function startMigration() {
+            const migrateBtn = document.getElementById('migrateBtn');
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            
+            migrateBtn.disabled = true;
+            migrateBtn.textContent = '⏳ Migrating...';
+            progressBar.style.display = 'block';
+            
+            addLog('Starting migration process...', 'info');
+            
+            let successCount = 0;
+            let errorCount = 0;
+            let skippedCount = 0;
+
+            for (let i = 0; i < localCustomers.length; i++) {
+                const customer = localCustomers[i];
+                const progress = ((i + 1) / localCustomers.length) * 100;
+                progressFill.style.width = progress + '%';
+
+                try {
+                    // Prepare customer data for database
+                    const customerData = {
+                        name: customer.name,
+                        type: customer.type || 'residential',
+                        contact_person: customer.contactPerson || '',
+                        phone: customer.phone || '',
+                        email: customer.email || '',
+                        preferred_contact: customer.preferredContact || 'phone',
+                        address: customer.address || '',
+                        city: customer.city || '',
+                        state: customer.state || '',
+                        zip: customer.zip || '',
+                        notes: customer.notes || '',
+                        custom_line_items: customer.customLineItems || []
+                    };
+
+                    // Check if customer already exists
+                    const checkResponse = await fetch('/api/customers?action=all');
+                    const existingCustomers = await checkResponse.json();
+                    
+                    const exists = existingCustomers.customers?.some(c => 
+                        c.name.toLowerCase() === customer.name.toLowerCase() &&
+                        c.phone === customer.phone
+                    );
+
+                    if (exists) {
+                        addLog(`Skipped: ${customer.name} (already in database)`, 'info');
+                        skippedCount++;
+                        continue;
+                    }
+
+                    // Create customer in database
+                    const response = await fetch('/api/customers', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify(customerData)
+                    });
+
+                    if (response.ok) {
+                        addLog(`✓ Migrated: ${customer.name}`, 'success');
+                        successCount++;
+                    } else {
+                        const error = await response.json();
+                        addLog(`✗ Failed: ${customer.name} - ${error.error || 'Unknown error'}`, 'error');
+                        errorCount++;
+                    }
+
+                } catch (error) {
+                    console.error(`Error migrating customer ${customer.name}:`, error);
+                    addLog(`✗ Failed: ${customer.name} - ${error.message}`, 'error');
+                    errorCount++;
+                }
+
+                // Small delay to avoid overwhelming the API
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            // Show completion status
+            const statusBox = document.getElementById('statusBox');
+            statusBox.style.display = 'block';
+            statusBox.innerHTML = `
+                <h3 style="margin-top: 0; color: #10b981;">✓ Migration Complete!</h3>
+                <p><strong>Successfully migrated:</strong> ${successCount} customers</p>
+                ${skippedCount > 0 ? `<p><strong>Skipped:</strong> ${skippedCount} (already in database)</p>` : ''}
+                ${errorCount > 0 ? `<p style="color: #ef4444;"><strong>Errors:</strong> ${errorCount} customers failed</p>` : ''}
+                <p style="margin-top: 1rem;">You can now safely use the customer database!</p>
+            `;
+
+            migrateBtn.textContent = '✓ Migration Complete';
+            addLog('Migration process completed', 'success');
+        }
+
+        // Auto-scan on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const checkButton = document.querySelector('button[onclick="scanLocalStorage()"]');
+                if (checkButton) {
+                    checkButton.click();
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>
