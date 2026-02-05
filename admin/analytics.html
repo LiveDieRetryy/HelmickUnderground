@@ -14,18 +14,6 @@
     <link rel="stylesheet" href="sidebar.css">
     <script src="shared-navbar.js"></script>
     <script src="utils.js"></script>
-                if (!data.authenticated) {
-                    window.location.href = '/admin/index.html';
-                }
-            } catch (error) {
-                console.error('Auth check failed:', error);
-                window.location.href = '/admin/index.html';
-            }
-        }
-        
-        // Run auth check immediately
-        checkAuth();
-    </script>
     <style>
         body {
             background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
