@@ -524,6 +524,38 @@ function createVisitsTable() {
     const tbody = document.querySelector('#visitsTable tbody');
     const recent = analyticsData.slice(0, 50);
 
+    // Helper function to format page names
+    function formatPageName(path) {
+        if (!path || path === '/') return 'Home';
+        
+        const pageNames = {
+            '/about': 'About',
+            '/about.html': 'About',
+            '/contact': 'Contact',
+            '/contact.html': 'Contact',
+            '/services': 'Services',
+            '/services.html': 'Services',
+            '/gallery': 'Gallery',
+            '/gallery.html': 'Gallery',
+            '/rates': 'Rates',
+            '/rates.html': 'Rates',
+            '/privacy-policy': 'Privacy Policy',
+            '/privacy-policy.html': 'Privacy Policy',
+            '/terms-of-service': 'Terms of Service',
+            '/terms-of-service.html': 'Terms of Service',
+            '/thank-you': 'Thank You',
+            '/thank-you.html': 'Thank You'
+        };
+        
+        // Check for service pages
+        if (path.includes('/services/')) {
+            const serviceName = path.replace('/services/', '').replace('.html', '').replace(/-/g, ' ');
+            return serviceName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+        
+        return pageNames[path] || path;
+    }
+
     tbody.innerHTML = recent.map(entry => {
         const date = new Date(entry.timestamp);
         const dateStr = date.toLocaleString('en-US', { 
@@ -536,7 +568,7 @@ function createVisitsTable() {
         return `
             <tr>
                 <td>${dateStr}</td>
-                <td>${entry.page || '/'}</td>
+                <td>${formatPageName(entry.page)}</td>
                 <td>${entry.city && entry.country ? `${entry.city}, ${entry.country}` : entry.country || 'Unknown'}</td>
                 <td>${entry.deviceType || 'Unknown'}</td>
                 <td>${entry.browser || 'Unknown'}</td>
