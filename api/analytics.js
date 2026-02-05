@@ -250,9 +250,9 @@ module.exports = async function handler(req, res) {
                 
                 const pageViewStats = await sql`
                     SELECT 
-                        COUNT(DISTINCT ip) as total,
-                        COUNT(DISTINCT CASE WHEN DATE(timestamp) = CURRENT_DATE THEN ip END) as today,
-                        COUNT(DISTINCT CASE WHEN timestamp >= CURRENT_DATE - INTERVAL '7 days' THEN ip END) as week
+                        COUNT(DISTINCT ip)::integer as total,
+                        COUNT(DISTINCT CASE WHEN DATE(timestamp) = CURRENT_DATE THEN ip END)::integer as today,
+                        COUNT(DISTINCT CASE WHEN timestamp >= CURRENT_DATE - INTERVAL '7 days' THEN ip END)::integer as week
                     FROM analytics
                 `;
                 
@@ -354,9 +354,9 @@ module.exports = async function handler(req, res) {
                 // Calculate statistics - count unique visitors (IP addresses)
                 const stats = await sql`
                     SELECT 
-                        COUNT(DISTINCT ip) as total,
-                        COUNT(DISTINCT CASE WHEN DATE(timestamp) = CURRENT_DATE THEN ip END) as today,
-                        COUNT(DISTINCT CASE WHEN timestamp >= CURRENT_DATE - INTERVAL '7 days' THEN ip END) as week
+                        COUNT(DISTINCT ip)::integer as total,
+                        COUNT(DISTINCT CASE WHEN DATE(timestamp) = CURRENT_DATE THEN ip END)::integer as today,
+                        COUNT(DISTINCT CASE WHEN timestamp >= CURRENT_DATE - INTERVAL '7 days' THEN ip END)::integer as week
                     FROM analytics
                 `;
                 
