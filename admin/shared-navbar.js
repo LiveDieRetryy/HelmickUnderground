@@ -152,6 +152,11 @@ function loadAdminNavbar() {
                 console.error('Logout error:', error);
             }
             
+            // Clear localStorage tokens
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('csrf_token');
+            localStorage.removeItem('admin_user');
+            
             // Clear any session storage
             sessionStorage.removeItem('adminLoggedIn');
             sessionStorage.removeItem('csrfToken');
