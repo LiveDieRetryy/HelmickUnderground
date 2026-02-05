@@ -365,10 +365,12 @@
                     }
 
                     // Create customer in database
+                    const csrfToken = sessionStorage.getItem('csrfToken');
                     const response = await fetch('/api/customers', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            ...(csrfToken && { 'X-CSRF-Token': csrfToken })
                         },
                         credentials: 'include',
                         body: JSON.stringify(customerData)
