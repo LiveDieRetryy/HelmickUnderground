@@ -1,6 +1,37 @@
-// Check auth
-if (!sessionStorage.getItem('adminLoggedIn')) {
-    window.location.href = '/admin/index.html';
+// Check auth with JWT token
+async function checkAuth() {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+        window.location.href = '/admin/index.html';
+        return false;
+    }
+    
+    try {
+        const response = await fetch('/api/auth?action=verify', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            credentials: 'include'
+        });
+        
+        if (!response.ok) {
+            window.location.href = '/admin/index.html';
+            return false;
+        }
+        
+        const data = await response.json();
+        if (!data.authenticated) {
+            window.location.href = '/admin/index.html';
+            return false;
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('Auth check failed:', error);
+        window.location.href = '/admin/index.html';
+        return false;
+    }
 }
 
 let currentProject = null;
@@ -13,6 +44,12 @@ let customerId = null;
  * @throws {Error} If project not found or load fails
  */
 async function loadProjectDetails() {
+    // Check authentication first
+    const isAuthenticated = await checkAuth();
+    if (!isAuthenticated) {
+        return;
+    }
+    
     // Get project ID and customer ID from URL
     const urlParams = new URLSearchParams(window.location.search);
     const projectId = urlParams.get('id');

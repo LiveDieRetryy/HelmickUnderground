@@ -195,11 +195,7 @@ function displayCustomers(searchTerm = '') {
                 ` : ''}
                 
                 <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255, 107, 26, 0.15); color: var(--gray); font-size: 0.85rem;">
- **
- * Open modal to add a new customer
- * Resets form and prepares for new entry
- * @returns {void}
- */Date(customer.created_at || Date.now()).toLocaleDateString()}
+                    Added: ${new Date(customer.created_at || Date.now()).toLocaleDateString()}
                 </div>
             </div>
         `;
