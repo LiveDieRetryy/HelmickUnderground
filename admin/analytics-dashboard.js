@@ -566,11 +566,21 @@ function createVisitsTable() {
             minute: '2-digit'
         });
 
+        // Format location with city, state/region, country
+        let location = 'Unknown';
+        if (entry.city && entry.region && entry.country) {
+            location = `${entry.city}, ${entry.region}, ${entry.country}`;
+        } else if (entry.city && entry.country) {
+            location = `${entry.city}, ${entry.country}`;
+        } else if (entry.country) {
+            location = entry.country;
+        }
+
         return `
             <tr>
                 <td>${dateStr}</td>
                 <td>${formatPageName(entry.page)}</td>
-                <td>${entry.city && entry.country ? `${entry.city}, ${entry.country}` : entry.country || 'Unknown'}</td>
+                <td>${location}</td>
                 <td>${entry.device_type || 'Unknown'}</td>
                 <td>${entry.browser || 'Unknown'}</td>
             </tr>
