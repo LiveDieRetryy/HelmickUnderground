@@ -177,7 +177,12 @@ module.exports = async function handler(req, res) {
             
             if (action === 'all') {
                 // Return all analytics (most recent first, limit to last 1000)
-                const result = await sq including events and conversions
+                const result = await sql`
+                    SELECT * FROM analytics
+                    ORDER BY timestamp DESC
+                    LIMIT 1000
+                `;
+                
                 const pageViewStats = await sql`
                     SELECT 
                         COUNT(*) as total,
@@ -275,17 +280,10 @@ module.exports = async function handler(req, res) {
                 params.push(parseInt(limit));
                 
                 const result = await sql.query(query, params);
-                return res.status(200).json(result.rows   city: row.city,
-                    region: row.region,
-                    deviceType: row.device_type,
-                    browser: row.browser,
-                    screenResolution: row.screen_resolution,
-                    language: row.language
-                }));
-                
-                return res.status(200).json(formattedData);
+                return res.status(200).json(result.rows);
             }
             
+            // Return basic stats by default
             if (action === 'stats') {
                 // Calculate statistics
                 const stats = await sql`
@@ -297,9 +295,9 @@ module.exports = async function handler(req, res) {
                 `;
                 
                 return res.status(200).json({
-                    total: parseInt(stats.rows[0].total) || 0,
-                    today: parseInt(stats.rows[0].today) || 0,
-                    week: parseInt(stats.rows[0].week) || 0
+                    totalVisits: parseInt(stats.rows[0].total) || 0,
+                    todayVisits: parseInt(stats.rows[0].today) || 0,
+                    weekVisits: parseInt(stats.rows[0].week) || 0
                 });
             }
         }
