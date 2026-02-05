@@ -323,19 +323,28 @@
             
             addLog('Starting migration process...', 'info');
             
-            // Get fresh CSRF token from cookie
-            function getCsrfTokenFromCookie() {
-                const cookies = document.cookie.split(';');
-                for (let cookie of cookies) {
-                    const [name, value] = cookie.trim().split('=');
-                    if (name === 'csrfToken') {
-                        return decodeURIComponent(value);
+            // Get CSRF token from localStorage (set during login)
+            let csrfToken = localStorage.getItem('csrf_token');
+            
+            // If not in localStorage, try to refresh it from server
+            if (!csrfToken) {
+                addLog('Fetching CSRF token...', 'info');
+                try {
+                    const csrfResponse = await fetch('/api/auth?action=csrf', {
+                        method: 'GET',
+                        credentials: 'include'
+                    });
+                    const csrfData = await csrfResponse.json();
+                    
+                    if (csrfData.success && csrfData.csrfToken) {
+                        csrfToken = csrfData.csrfToken;
+                        localStorage.setItem('csrf_token', csrfToken);
                     }
+                } catch (error) {
+                    console.error('Failed to get CSRF token:', error);
                 }
-                return null;
             }
-
-            const csrfToken = getCsrfTokenFromCookie();
+            
             if (!csrfToken) {
                 addLog('✗ No CSRF token found. Please log out and log back in.', 'error');
                 migrateBtn.disabled = false;
