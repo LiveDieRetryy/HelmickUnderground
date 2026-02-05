@@ -226,6 +226,7 @@ module.exports = async function handler(req, res) {
                 `;
                 
                 return res.status(200).json({
+                    entries: result.rows,
                     pageViews: {
                         total: parseInt(pageViewStats.rows[0].total) || 0,
                         today: parseInt(pageViewStats.rows[0].today) || 0,
