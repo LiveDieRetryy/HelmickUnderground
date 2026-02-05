@@ -138,30 +138,6 @@ async function loadData() {
         document.getElementById('todayVisits').textContent = stats.pageViews?.today || 0;
         document.getElementById('weekVisits').textContent = stats.pageViews?.week || 0;
         document.getElementById('avgVisits').textContent = avgDaily;
-        
-        // Update event stats if elements exist
-        const totalEventsEl = document.getElementById('totalEvents');
-        const todayEventsEl = document.getElementById('todayEvents');
-        if (totalEventsEl) totalEventsEl.textContent = stats.events?.total || 0;
-        if (todayEventsEl) todayEventsEl.textContent = stats.events?.today || 0;
-        
-        // Update conversion stats if elements exist
-        const totalConversionsEl = document.getElementById('totalConversions');
-        const todayConversionsEl = document.getElementById('todayConversions');
-        const conversionValueEl = document.getElementById('conversionValue');
-        if (totalConversionsEl) totalConversionsEl.textContent = stats.conversions?.total || 0;
-        if (todayConversionsEl) todayConversionsEl.textContent = stats.conversions?.today || 0;
-        if (conversionValueEl) conversionValueEl.textContent = stats.conversions?.totalValue || 0;
-        
-        // Create conversion funnel table if element exists
-        if (stats.conversions?.funnel && document.getElementById('conversionFunnelTable')) {
-            createConversionFunnelTable(stats.conversions.funnel);
-        }
-        
-        // Create top events table if element exists
-        if (stats.events?.top && document.getElementById('topEventsTable')) {
-            createTopEventsTable(stats.events.top);
-        }
 
         // Hide loading
         document.getElementById('loading').style.display = 'none';
@@ -567,36 +543,6 @@ function createVisitsTable() {
             </tr>
         `;
     }).join('');
-}
-
-// Top events table
-function createTopEventsTable(events) {
-    const tbody = document.querySelector('#topEventsTable tbody');
-    if (!tbody) return;
-    
-    tbody.innerHTML = events.map((event, index) => `
-        <tr>
-            <td>${index + 1}</td>
-            <td>${event.category}</td>
-            <td>${event.action}</td>
-            <td>${event.count}</td>
-        </tr>
-    `).join('');
-}
-
-// Conversion funnel table
-function createConversionFunnelTable(conversions) {
-    const tbody = document.querySelector('#conversionFunnelTable tbody');
-    if (!tbody) return;
-    
-    tbody.innerHTML = conversions.map((conversion, index) => `
-        <tr>
-            <td>${index + 1}</td>
-            <td>${conversion.goal_name}</td>
-            <td>${conversion.count}</td>
-            <td>${conversion.total_value}</td>
-        </tr>
-    `).join('');
 }
 
 // Load on page load
