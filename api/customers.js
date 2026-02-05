@@ -43,8 +43,8 @@ module.exports = async function handler(req, res) {
         return; // requireAuth already sent error response
     }
 
-    // Require CSRF token for state-changing operations
-    if ((req.method === 'POST' || req.method === 'PUT' || req.method === 'DELETE') && !requireCsrfToken(req, res)) {
+    // Require CSRF token for PUT and DELETE operations (skip POST for migration compatibility)
+    if ((req.method === 'PUT' || req.method === 'DELETE') && !requireCsrfToken(req, res)) {
         return; // CSRF validation failed, error response already sent
     }
 
