@@ -50,7 +50,14 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             const offset = 70; // Height of fixed navbar
             const targetPosition = target.offsetTop - offset;
             window.scrollTo({
-   ============================================================================
+                top: targetPosition,
+                behavior: 'smooth'
+            });
+        }
+    });
+});
+
+// ============================================================================
 // NAVBAR SCROLL BEHAVIOR
 // ============================================================================
 
@@ -58,12 +65,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
  * Navbar scroll behavior
  * Auto-hides navbar when scrolling down, shows when scrolling up
  * Always shows navbar after 2 seconds of no scrolling
- */
-                behavior: 'smooth'
-            });
-        }
-    });
-});
+ */);
 
 // Navbar background change on scroll
 let lastScrollTop = 0;
@@ -113,10 +115,19 @@ window.addEventListener('scroll', () => {
     }, 2000);
 });
 
-// Contact Form Handling
-const contactForm = document.getElementById('contactForm');
+// ============================================================================
+// CONTACT FORM HANDLING
+// ============================================================================
 
-if (contactForm) {
+/**
+ * Contact Form Submission Handler
+ * Handles form validation, spam prevention, and submission to both Web3Forms and API
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    // Contact Form Handling
+    const contactForm = document.getElementById('contactForm');
+
+    if (contactForm) {
     // Set form load timestamp for spam detection
     const formLoadTime = Date.now();
     const timestampField = document.getElementById('form_timestamp');
@@ -207,6 +218,7 @@ if (contactForm) {
             web3FormData.append('access_key', formData.get('access_key'));
             web3FormData.append('subject', formData.get('subject'));
             web3FormData.append('from_name', formData.get('from_name'));
+            web3FormData.append('email_to', 'helmickunderground@gmail.com');
             web3FormData.append('name', formData.get('name'));
             web3FormData.append('email', formData.get('email'));
             web3FormData.append('phone', formData.get('phone'));
@@ -231,18 +243,19 @@ if (contactForm) {
                     body: JSON.stringify(submissionData)
                 }).catch(err => {
                     console.error('API submission error:', err);
-                    return null; // Don't fail the whole form if API fails
+                    return { ok: false, error: err.message }; // Return error object instead of null
                 })
             ]);
             
             const web3Data = await web3Response.json();
+            console.log('Web3Forms response:', web3Data);
             
             // Try to parse API response if it succeeded
             if (apiResponse && apiResponse.ok) {
                 const apiData = await apiResponse.json();
                 console.log('Submission saved to admin inbox:', apiData);
             } else {
-                console.warn('Admin inbox API failed, but email was sent');
+                console.error('Admin inbox API failed:', apiResponse?.error || 'Unknown error');
             }
             
             if (web3Data.success) {
@@ -280,7 +293,12 @@ if (contactForm) {
             }, 10000);
         }
     });
-}
+    }
+});
+
+// ============================================================================
+// INTERSECTION OBSERVER FOR ANIMATIONS
+// ============================================================================
 
 // Intersection Observer for fade-in animations
 const observerOptions = {
