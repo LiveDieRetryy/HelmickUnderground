@@ -63,54 +63,51 @@ export default async function handler(req, res) {
         `;
 
         if (req.method === 'GET') {
-            const { resource, resourceId, adminEmail, limit = 100, offset = 0 } = req.query;
+            const { resource, action, adminEmail, limit = 100, offset = 0 } = req.query;
 
-            let query = 'SELECT * FROM activity_log WHERE 1=1';
-            const params = [];
-            let paramCount = 1;
+            // Build filters
+            const filters = [];
+            if (resource) filters.push(sql`resource = ${resource}`);
+            if (action) filters.push(sql`action = ${action}`);
+            if (adminEmail) filters.push(sql`admin_email = ${adminEmail}`);
 
-            if (resource) {
-                query += ` AND resource = $${paramCount++}`;
-                params.push(resource);
+            // Get logs with filters
+            let result;
+            if (filters.length > 0) {
+                result = await sql`
+                    SELECT * FROM activity_log
+                    WHERE ${filters.reduce((acc, filter, idx) => 
+                        idx === 0 ? filter : sql`${acc} AND ${filter}`
+                    )}
+                    ORDER BY timestamp DESC
+                    LIMIT ${parseInt(limit)}
+                    OFFSET ${parseInt(offset)}
+                `;
+            } else {
+                result = await sql`
+                    SELECT * FROM activity_log
+                    ORDER BY timestamp DESC
+                    LIMIT ${parseInt(limit)}
+                    OFFSET ${parseInt(offset)}
+                `;
             }
 
-            if (resourceId) {
-                query += ` AND resource_id = $${paramCount++}`;
-                params.push(parseInt(resourceId));
+            // Get total count with same filters
+            let countResult;
+            if (filters.length > 0) {
+                countResult = await sql`
+                    SELECT COUNT(*)::integer as count FROM activity_log
+                    WHERE ${filters.reduce((acc, filter, idx) => 
+                        idx === 0 ? filter : sql`${acc} AND ${filter}`
+                    )}
+                `;
+            } else {
+                countResult = await sql`
+                    SELECT COUNT(*)::integer as count FROM activity_log
+                `;
             }
-
-            if (adminEmail) {
-                query += ` AND admin_email = $${paramCount++}`;
-                params.push(adminEmail);
-            }
-
-            query += ` ORDER BY timestamp DESC LIMIT $${paramCount++} OFFSET $${paramCount++}`;
-            params.push(parseInt(limit), parseInt(offset));
-
-            const result = await sql.query(query, params);
-
-            // Get total count
-            let countQuery = 'SELECT COUNT(*) FROM activity_log WHERE 1=1';
-            const countParams = [];
-            let countParamCount = 1;
-
-            if (resource) {
-                countQuery += ` AND resource = $${countParamCount++}`;
-                countParams.push(resource);
-            }
-
-            if (resourceId) {
-                countQuery += ` AND resource_id = $${countParamCount++}`;
-                countParams.push(parseInt(resourceId));
-            }
-
-            if (adminEmail) {
-                countQuery += ` AND admin_email = $${countParamCount++}`;
-                countParams.push(adminEmail);
-            }
-
-            const countResult = await sql.query(countQuery, countParams);
-            const total = parseInt(countResult.rows[0].count);
+            
+            const total = countResult.rows[0].count;
 
             return res.status(200).json({
                 logs: result.rows,
