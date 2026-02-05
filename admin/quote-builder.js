@@ -992,9 +992,11 @@ async function saveAndSendQuote() {
         // If CSRF token invalid, refresh and retry once
         if (!updateRes.ok && updateRes.status === 403) {
             const errorData = await updateRes.json().catch(() => ({}));
+            console.log('403 error details:', errorData);
             if (errorData.error === 'CSRF_TOKEN_INVALID' && window.adminAuth) {
                 console.log('CSRF token invalid, refreshing and retrying...');
                 const newToken = await window.adminAuth.refreshCsrfToken();
+                console.log('New token received:', newToken ? 'yes' : 'no');
                 if (newToken) {
                     // Retry with new token
                     updateRes = await fetch('/api/contact-submissions', {
@@ -1009,7 +1011,10 @@ async function saveAndSendQuote() {
                             quote_data: JSON.stringify(quoteData)
                         })
                     });
+                    console.log('Retry response status:', updateRes.status);
                 }
+            } else {
+                console.log('Not retrying - error:', errorData.error, 'adminAuth:', !!window.adminAuth);
             }
         }
 
