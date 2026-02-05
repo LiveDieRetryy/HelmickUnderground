@@ -36,6 +36,8 @@ async function checkAuth() {
 
 let currentCustomer = null;
 let currentCustomerId = null;
+let projects = [];
+let currentFilter = 'all';
 
 // Load customer details
 async function loadCustomerDetails() {
