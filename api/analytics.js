@@ -250,9 +250,9 @@ module.exports = async function handler(req, res) {
                 
                 const pageViewStats = await sql`
                     SELECT 
-                        COUNT(*) as total,
-                        SUM(CASE WHEN DATE(timestamp) = CURRENT_DATE THEN 1 ELSE 0 END) as today,
-                        SUM(CASE WHEN timestamp >= CURRENT_DATE - INTERVAL '7 days' THEN 1 ELSE 0 END) as week
+                        COUNT(DISTINCT ip) as total,
+                        COUNT(DISTINCT CASE WHEN DATE(timestamp) = CURRENT_DATE THEN ip END) as today,
+                        COUNT(DISTINCT CASE WHEN timestamp >= CURRENT_DATE - INTERVAL '7 days' THEN ip END) as week
                     FROM analytics
                 `;
                 
@@ -351,12 +351,12 @@ module.exports = async function handler(req, res) {
             
             // Return basic stats by default
             if (action === 'stats') {
-                // Calculate statistics
+                // Calculate statistics - count unique visitors (IP addresses)
                 const stats = await sql`
                     SELECT 
-                        COUNT(*) as total,
-                        SUM(CASE WHEN DATE(timestamp) = CURRENT_DATE THEN 1 ELSE 0 END) as today,
-                        SUM(CASE WHEN timestamp >= CURRENT_DATE - INTERVAL '7 days' THEN 1 ELSE 0 END) as week
+                        COUNT(DISTINCT ip) as total,
+                        COUNT(DISTINCT CASE WHEN DATE(timestamp) = CURRENT_DATE THEN ip END) as today,
+                        COUNT(DISTINCT CASE WHEN timestamp >= CURRENT_DATE - INTERVAL '7 days' THEN ip END) as week
                     FROM analytics
                 `;
                 
