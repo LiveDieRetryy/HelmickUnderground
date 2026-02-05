@@ -975,7 +975,8 @@ async function saveAndSendQuote() {
     try {
         // Update submission with quote data and change status to "quoted"
         const csrfToken = window.adminAuth?.getCsrfToken();
-        const updateRes = await fetch('/api/contact-submissions', {
+        
+        let updateRes = await fetch('/api/contact-submissions', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -987,6 +988,30 @@ async function saveAndSendQuote() {
                 quote_data: JSON.stringify(quoteData)
             })
         });
+
+        // If CSRF token invalid, refresh and retry once
+        if (!updateRes.ok && updateRes.status === 403) {
+            const errorData = await updateRes.json().catch(() => ({}));
+            if (errorData.error === 'CSRF_TOKEN_INVALID' && window.adminAuth) {
+                console.log('CSRF token invalid, refreshing and retrying...');
+                const newToken = await window.adminAuth.refreshCsrfToken();
+                if (newToken) {
+                    // Retry with new token
+                    updateRes = await fetch('/api/contact-submissions', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-csrf-token': newToken
+                        },
+                        body: JSON.stringify({
+                            id: submissionId,
+                            status: 'quoted',
+                            quote_data: JSON.stringify(quoteData)
+                        })
+                    });
+                }
+            }
+        }
 
         if (!updateRes.ok) {
             const errorData = await updateRes.json().catch(() => ({}));
