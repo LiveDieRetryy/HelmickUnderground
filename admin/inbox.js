@@ -675,10 +675,12 @@ async function markAsContacted(id) {
     if (notes === null) return; // User cancelled
     
     try {
+        const csrfToken = window.adminAuth?.getCsrfToken();
         const response = await fetch('/api/contact-submissions', {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                ...(csrfToken && { 'x-csrf-token': csrfToken })
             },
             body: JSON.stringify({ id, status: 'contacted', notes })
         });
@@ -728,10 +730,12 @@ async function saveNotes(id) {
     }
     
     try {
+        const csrfToken = window.adminAuth?.getCsrfToken();
         const response = await fetch('/api/contact-submissions', {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                ...(csrfToken && { 'x-csrf-token': csrfToken })
             },
             body: JSON.stringify({ id, status: 'contacted', notes })
         });
@@ -783,10 +787,12 @@ async function saveEditedNotes(id) {
     }
     
     try {
+        const csrfToken = window.adminAuth?.getCsrfToken();
         const response = await fetch('/api/contact-submissions', {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                ...(csrfToken && { 'x-csrf-token': csrfToken })
             },
             body: JSON.stringify({ id, notes })
         });
@@ -871,10 +877,12 @@ async function saveSchedule(id) {
     const scheduledDate = new Date(`${date}T${time}`).toISOString();
     
     try {
+        const csrfToken = window.adminAuth?.getCsrfToken();
         const response = await fetch('/api/contact-submissions', {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                ...(csrfToken && { 'x-csrf-token': csrfToken })
             },
             body: JSON.stringify({ id, status: 'scheduled', scheduled_date: scheduledDate })
         });
@@ -959,10 +967,12 @@ async function scheduleProject(id) {
     
     try {
         // Update submission with scheduled date and status using PUT
+        const csrfToken = window.adminAuth?.getCsrfToken();
         const response = await fetch('/api/contact-submissions', {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                ...(csrfToken && { 'x-csrf-token': csrfToken })
             },
             body: JSON.stringify({
                 id: id,
@@ -1063,9 +1073,13 @@ async function buildInvoiceFromQuote(id) {
     
     try {
         // Update status to invoiced
+        const csrfToken = window.adminAuth?.getCsrfToken();
         const response = await fetch('/api/contact-submissions', {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                ...(csrfToken && { 'x-csrf-token': csrfToken })
+            },
             body: JSON.stringify({ id: id, status: 'invoiced' })
         });
         
@@ -1097,9 +1111,13 @@ async function markAsPaid(submissionId, invoiceId) {
     
     try {
         // Update submission status to completed
+        const csrfToken = window.adminAuth?.getCsrfToken();
         const subResponse = await fetch('/api/contact-submissions', {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                ...(csrfToken && { 'x-csrf-token': csrfToken })
+            },
             body: JSON.stringify({ id: submissionId, status: 'completed' })
         });
         
@@ -1108,7 +1126,10 @@ async function markAsPaid(submissionId, invoiceId) {
         // Update invoice status to paid
         const invoiceResponse = await fetch(`/api/invoices?action=updateStatus&id=${invoiceId}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                ...(csrfToken && { 'x-csrf-token': csrfToken })
+            },
             body: JSON.stringify({ status: 'paid' })
         });
         
@@ -1176,10 +1197,14 @@ async function bulkUpdateStatus(newStatus) {
     if (!confirm(confirmMsg)) return;
     
     try {
+        const csrfToken = window.adminAuth?.getCsrfToken();
         const promises = Array.from(selectedSubmissions).map(id => 
             fetch('/api/contact-submissions', {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(csrfToken && { 'x-csrf-token': csrfToken })
+                },
                 body: JSON.stringify({ id, status: newStatus })
             })
         );
