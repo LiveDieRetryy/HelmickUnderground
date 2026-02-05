@@ -170,10 +170,11 @@
                 const data = await response.json();
                 
                 if (response.ok && data.success) {
-                    // Store CSRF token
+                    // Store CSRF token and auth flag
                     if (data.csrfToken) {
                         sessionStorage.setItem('csrfToken', data.csrfToken);
                     }
+                    sessionStorage.setItem('adminLoggedIn', 'true');
                     // Redirect to dashboard
                     window.location.href = '/admin/dashboard.html';
                 } else {

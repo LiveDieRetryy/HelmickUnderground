@@ -233,10 +233,44 @@
 
     <script src="./sidebar.js"></script>
     <script>
-        // Check auth
-        if (!sessionStorage.getItem('adminLoggedIn')) {
-            window.location.href = '/admin/index.html';
+        // Check auth with JWT verification
+        async function checkAuth() {
+            console.log('🔐 Checking authentication...');
+            try {
+                const response = await fetch('/api/auth?action=verify', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                console.log('Auth response status:', response.status);
+                
+                if (response.status === 401 || !response.ok) {
+                    console.log('⛔ Not authenticated, redirecting to login');
+                    window.location.href = '/admin/index.html';
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('Auth data:', data);
+                
+                if (!data.authenticated) {
+                    console.log('⛔ Auth check failed, redirecting to login');
+                    window.location.href = '/admin/index.html';
+                } else {
+                    console.log('✅ Authenticated, loading dashboard');
+                    // Load dashboard data after auth check passes
+                    loadDashboardStats();
+                    loadUpcomingAppointments();
+                    setTimeout(updateNotificationBadge, 100);
+                }
+            } catch (error) {
+                console.error('❌ Auth check error:', error);
+                window.location.href = '/admin/index.html';
+            }
         }
+        
+        // Run auth check immediately
+        checkAuth();
 
         // Load dashboard statistics
         async function loadDashboardStats() {
@@ -252,19 +286,12 @@
             return;
         }
 
-        // Load data on page load
-        loadDashboardStats();
-        loadUpcomingAppointments();
-        
         // Update inbox notification badge
         async function updateNotificationBadge() {
             console.log('🔔 Updating notification badge (DISABLED for debugging)');
             // TEMPORARILY DISABLED - APIs are failing
             return;
         }
-        
-        // Wait for navbar to load, then update badge
-        setTimeout(updateNotificationBadge, 100);
     </script>
 </body>
 </html>
