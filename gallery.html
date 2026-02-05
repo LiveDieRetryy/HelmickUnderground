@@ -84,6 +84,14 @@
             border: none;
         }
 
+        /* Hide TikTok promotional overlays */
+        #tiktok-hiring-banner,
+        [id*="tiktok"][id*="hiring"],
+        a[href*="careers.tiktok.com"] {
+            display: none !important;
+            visibility: hidden !important;
+        }
+
         .empty-gallery {
             text-align: center;
             padding: 4rem 2rem;
