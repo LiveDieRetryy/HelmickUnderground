@@ -13,42 +13,6 @@
     <link rel="stylesheet" href="sidebar.css">
     <script src="shared-navbar.js"></script>
     <script src="utils.js"></script>
-    <script>
-        // Check authentication on page load
-        async function checkAuth() {
-            try {
-                const token = localStorage.getItem('auth_token');
-                if (!token) {
-                    window.location.href = '/admin/index.html';
-                    return;
-                }
-                
-                const response = await fetch('/api/auth?action=verify', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                    credentials: 'include'
-                });
-                
-                if (!response.ok) {
-                    window.location.href = '/admin/index.html';
-                    return;
-                }
-                
-                const data = await response.json();
-                if (!data.authenticated) {
-                    window.location.href = '/admin/index.html';
-                }
-            } catch (error) {
-                console.error('Auth check failed:', error);
-                window.location.href = '/admin/index.html';
-            }
-        }
-        
-        // Run auth check immediately
-        checkAuth();
-    </script>
     <style>
         body {
             background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
