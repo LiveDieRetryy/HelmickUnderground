@@ -241,50 +241,6 @@
             // TEMPORARILY DISABLED - APIs are failing
             return;
         }
-            try {
-                const response = await fetch('/api/contact-submissions?action=all');
-                if (!response.ok) throw new Error('Failed to load appointments');
-                
-                const allSubmissions = await response.json();
-                const scheduledAppointments = allSubmissions
-                    .filter(s => (s.status === 'scheduled' || s.status === 'accepted') && s.scheduled_date)
-                    .sort((a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date))
-                    .slice(0, 5);
-                
-                const container = document.getElementById('upcomingAppointments');
-                
-                if (scheduledAppointments.length === 0) {
-                    container.innerHTML = '<p style="color: var(--gray); text-align: center; padding: 2rem;">No upcoming appointments</p>';
-                    return;
-                }
-                
-                container.innerHTML = scheduledAppointments.map(apt => {
-                    const date = new Date(apt.scheduled_date);
-                    const dateStr = date.toLocaleDateString('en-US', { 
-                        weekday: 'short',
-                        month: 'short', 
-                        day: 'numeric',
-                        hour: 'numeric',
-                        minute: '2-digit'
-                    });
-                    
-                    return `
-                        <div class="appointment-card" onclick="window.location.href='/admin/inbox.html'">
-                            <div style="color: var(--primary-color); font-weight: 700; margin-bottom: 0.5rem;">${dateStr}</div>
-                            <div style="color: var(--white); font-size: 1.1rem; font-weight: 600;">${apt.name}</div>
-                            <div style="color: var(--gray); margin-top: 0.5rem;">${apt.phone || apt.email}</div>
-                            ${apt.services && apt.services.length > 0 ? `
-                                <div style="margin-top: 0.5rem; color: var(--gray); font-size: 0.9rem;">
-                                    ${apt.services.join(', ')}
-                                </div>
-                            ` : ''}
-                        </div>
-                    `;
-                }).join('');
-            } catch (error) {
-                console.error('Error loading appointments:', error);
-            }
-        }
 
         // Load data on page load
         loadDashboardStats();
