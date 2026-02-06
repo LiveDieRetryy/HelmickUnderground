@@ -94,13 +94,7 @@ function displayInvoices(invoices) {
                             📧
                         </button>
                         <button onclick="deleteInvoice(${invoice.id})" class="btn-action btn-danger" title="Delete">
- **
- * Get CSS color for invoice status
- * @param {string} status - Invoice status (draft|sent|paid|overdue|cancelled)
- * @returns {string} Hex color code
- * @example
- * getStatusColor('paid') // Returns '#22c55e'
- */         🗑️
+                            🗑️
                         </button>
                     </div>
                 </td>
@@ -109,7 +103,13 @@ function displayInvoices(invoices) {
     }).join('');
 }
 
-// Get status color
+/**
+ * Get CSS color for invoice status
+ * @param {string} status - Invoice status (draft|sent|paid|overdue|cancelled)
+ * @returns {string} Hex color code
+ * @example
+ * getStatusColor('paid') // Returns '#22c55e'
+ */
 function getStatusColor(status) {
     switch(status?.toLowerCase()) {
         case 'draft': return '#6b7280';
