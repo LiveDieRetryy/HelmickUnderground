@@ -296,8 +296,17 @@
             if (adminEmail) url += `&adminEmail=${encodeURIComponent(adminEmail)}`;
 
             try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error('Failed to load activity log');
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch(url, {
+                    headers: {
+                        ...(token && { 'Authorization': `Bearer ${token}` })
+                    }
+                });
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('Activity log error:', errorData);
+                    throw new Error(errorData.details || errorData.error || 'Failed to load activity log');
+                }
 
                 const data = await response.json();
                 totalLogs = data.total;
