@@ -3,10 +3,8 @@
  * Tracks all admin actions (CRUD operations) for audit trail
  */
 
-import { sql } from '@vercel/postgres';
-
-// Note: Using require for CommonJS modules in ES module context
-const { requireAuth } = await import('../lib/auth-middleware.js').catch(() => ({ requireAuth: null }));
+const { sql } = require('@vercel/postgres');
+const { requireAuth } = require('../lib/auth-middleware');
 
 /**
  * Log an admin activity
@@ -16,7 +14,7 @@ const { requireAuth } = await import('../lib/auth-middleware.js').catch(() => ({
  * @param {string} adminEmail - Email of admin who performed the action
  * @param {object} details - Additional details about the action
  */
-export async function logActivity(action, resource, resourceId, adminEmail, details = {}) {
+async function logActivity(action, resource, resourceId, adminEmail, details = {}) {
     try {
         await sql`
             INSERT INTO activity_log (action, resource, resource_id, admin_email, details, timestamp)
@@ -28,7 +26,10 @@ export async function logActivity(action, resource, resourceId, adminEmail, deta
     }
 }
 
-export default async function handler(req, res) {
+// Export logActivity for use in other APIs
+module.exports.logActivity = logActivity;
+
+module.exports = async function handler(req, res) {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -40,7 +41,7 @@ export default async function handler(req, res) {
     }
 
     // Require authentication for all activity log operations
-    if (requireAuth && !requireAuth(req, res)) {
+    if (!requireAuth(req, res)) {
         return; // requireAuth already sent error response
     }
 
