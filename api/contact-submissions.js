@@ -267,10 +267,12 @@ module.exports = async function handler(req, res) {
             const { action, id } = req.query;
             
             if (action === 'all') {
-                // Return all submissions (most recent first)
+                // Return all submissions with invoice status (most recent first)
                 const result = await sql`
-                    SELECT * FROM contact_submissions 
-                    ORDER BY timestamp DESC
+                    SELECT cs.*, i.status as invoice_status
+                    FROM contact_submissions cs
+                    LEFT JOIN invoices i ON cs.invoice_id = i.id
+                    ORDER BY cs.timestamp DESC
                 `;
                 
                 // Convert to frontend-compatible format
@@ -286,6 +288,7 @@ module.exports = async function handler(req, res) {
                     scheduled_date: row.scheduled_date,
                     quote_data: row.quote_data,
                     invoice_id: row.invoice_id,
+                    invoice_status: row.invoice_status, // Status from invoices table
                     ip: row.ip,
                     timestamp: row.timestamp,
                     completed_at: row.completed_at

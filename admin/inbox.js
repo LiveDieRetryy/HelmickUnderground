@@ -372,7 +372,10 @@ async function viewSubmission(id) {
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <strong style="color: #10b981;">Invoice Created</strong>
-                            <div style="color: var(--gray); font-size: 0.9rem; margin-top: 0.25rem;">Invoice ID: ${sub.invoice_id}</div>
+                            <div style="color: var(--gray); font-size: 0.9rem; margin-top: 0.25rem;">
+                                Invoice ID: ${sub.invoice_id}
+                                ${sub.invoice_status ? `<span style="margin-left: 0.5rem; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600; background: ${sub.invoice_status === 'draft' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(16, 185, 129, 0.2)'}; color: ${sub.invoice_status === 'draft' ? '#3b82f6' : '#10b981'}; text-transform: uppercase;">${sub.invoice_status}</span>` : ''}
+                            </div>
                         </div>
                         <button onclick="window.location.href='/admin/invoices.html'" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 0.5rem 1rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
                             View Invoice
