@@ -647,7 +647,9 @@ function createVisitsTable() {
         const visitsList = session.visits
             .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
             .map(visit => {
-                const visitTime = new Date(visit.timestamp).toLocaleTimeString('en-US', { 
+                const visitTime = new Date(visit.timestamp).toLocaleString('en-US', { 
+                    month: 'short',
+                    day: 'numeric',
                     hour: 'numeric',
                     minute: '2-digit',
                     second: '2-digit'
