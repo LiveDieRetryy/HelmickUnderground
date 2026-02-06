@@ -959,7 +959,7 @@ function loadInvoiceFromQuote() {
 init();
 
 // Preview invoice in modal
-function previewInvoice() {
+async function previewInvoice() {
     const items = Array.from(document.querySelectorAll('.line-item')).map(item => ({
         description: item.querySelector('.item-description').value,
         quantity: parseFloat(item.querySelector('.item-quantity').value),
@@ -978,6 +978,86 @@ function previewInvoice() {
     const tax = subtotal * taxRate;
     const total = subtotal + tax;
     
+    const invoiceNumber = document.getElementById('invoiceNumber').value;
+    const invoiceDate = document.getElementById('invoiceDate').value;
+    const dueDate = document.getElementById('dueDate').value;
+    const customerName = document.getElementById('customerName').value;
+    const customerEmail = document.getElementById('customerEmail').value;
+    const customerPhone = document.getElementById('customerPhone').value;
+    const customerAddress = document.getElementById('customerAddress').value;
+    const jobNumber = document.getElementById('jobNumber')?.value || '';
+    const jobAddress = document.getElementById('jobAddress')?.value || '';
+    const jobCity = document.getElementById('jobCity')?.value || '';
+    const jobState = document.getElementById('jobState')?.value || '';
+    
+    // Get submission ID from session storage if creating from quote
+    const fromQuoteData = sessionStorage.getItem('invoiceFromQuote');
+    const submissionId = fromQuoteData ? JSON.parse(fromQuoteData).submissionId : null;
+    
+    // Save invoice to database as draft
+    try {
+        const csrfToken = window.adminAuth?.getCsrfToken();
+        const response = await fetch('/api/invoices?action=create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(csrfToken && { 'x-csrf-token': csrfToken })
+            },
+            body: JSON.stringify({
+                invoiceNumber,
+                invoiceDate,
+                dueDate,
+                customer: {
+                    name: customerName,
+                    email: customerEmail,
+                    phone: customerPhone,
+                    address: customerAddress
+                },
+                jobInfo: {
+                    jobNumber,
+                    jobAddress,
+                    jobCity,
+                    jobState
+                },
+                items,
+                taxRate: taxRate * 100,
+                subtotal,
+                tax,
+                total,
+                status: 'draft',
+                submissionId
+            })
+        });
+        
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || 'Failed to save invoice');
+        }
+        
+        // Store invoice ID globally for later use
+        window.currentInvoiceId = result.invoiceId;
+        
+        // If from quote, update submission with invoice_id
+        if (submissionId && result.invoiceId) {
+            await fetch('/api/contact-submissions', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(csrfToken && { 'x-csrf-token': csrfToken })
+                },
+                body: JSON.stringify({
+                    id: submissionId,
+                    invoice_id: result.invoiceId
+                })
+            });
+        }
+        
+        showNotification('Invoice saved as draft', 'success');
+    } catch (error) {
+        console.error('Error saving invoice:', error);
+        showNotification('Failed to save invoice: ' + error.message, 'error');
+        return;
+    }
     const invoiceNumber = document.getElementById('invoiceNumber').value;
     const invoiceDate = new Date(document.getElementById('invoiceDate').value).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     const dueDate = new Date(document.getElementById('dueDate').value).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });

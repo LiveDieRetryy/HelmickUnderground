@@ -71,6 +71,7 @@ module.exports = async function handler(req, res) {
                 job_address VARCHAR(255),
                 job_city VARCHAR(100),
                 job_state VARCHAR(2),
+                submission_id BIGINT,
                 items JSONB NOT NULL,
                 tax_rate DECIMAL(5,2) DEFAULT 0,
                 subtotal DECIMAL(10,2) NOT NULL,
@@ -112,6 +113,11 @@ module.exports = async function handler(req, res) {
                 EXCEPTION
                     WHEN duplicate_column THEN NULL;
                 END;
+                BEGIN
+                    ALTER TABLE invoices ADD COLUMN IF NOT EXISTS submission_id BIGINT;
+                EXCEPTION
+                    WHEN duplicate_column THEN NULL;
+                END;
             END $$;
         `;
 
@@ -130,7 +136,8 @@ module.exports = async function handler(req, res) {
                     subtotal, 
                     tax, 
                     total,
-                    status 
+                    status,
+                    submissionId
                 } = req.body;
                 
                 // Insert new invoice
@@ -147,6 +154,7 @@ module.exports = async function handler(req, res) {
                         job_address,
                         job_city,
                         job_state,
+                        submission_id,
                         items,
                         tax_rate,
                         subtotal,
@@ -166,6 +174,7 @@ module.exports = async function handler(req, res) {
                         ${jobInfo?.jobAddress || null},
                         ${jobInfo?.jobCity || null},
                         ${jobInfo?.jobState || null},
+                        ${submissionId || null},
                         ${JSON.stringify(items)},
                         ${taxRate},
                         ${subtotal},
