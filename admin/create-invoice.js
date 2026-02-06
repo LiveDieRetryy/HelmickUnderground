@@ -1058,18 +1058,11 @@ async function previewInvoice() {
         showNotification('Failed to save invoice: ' + error.message, 'error');
         return;
     }
-    const invoiceNumber = document.getElementById('invoiceNumber').value;
-    const invoiceDate = new Date(document.getElementById('invoiceDate').value).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    const dueDate = new Date(document.getElementById('dueDate').value).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    const customerName = document.getElementById('customerName').value;
-    const customerEmail = document.getElementById('customerEmail').value;
-    const customerPhone = document.getElementById('customerPhone').value;
-    const customerAddress = document.getElementById('customerAddress').value;
+    
+    // Generate preview display
+    const invoiceDateFormatted = new Date(invoiceDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const dueDateFormatted = new Date(dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     const invoiceNotes = document.getElementById('invoiceNotes')?.value || '';
-    const jobNumber = document.getElementById('jobNumber')?.value || '';
-    const jobAddress = document.getElementById('jobAddress')?.value || '';
-    const jobCity = document.getElementById('jobCity')?.value || '';
-    const jobState = document.getElementById('jobState')?.value || '';
     
     // Parse customer name to separate business name and contact person
     let businessName = customerName;
@@ -1106,8 +1099,8 @@ async function previewInvoice() {
             </div>
             
             <div style="background: #f9f9f9; padding: 1rem; border-radius: 8px;">
-                <p style="margin: 0.4rem 0; color: #666; font-size: 0.9rem;"><strong>Invoice Date:</strong> ${invoiceDate}</p>
-                <p style="margin: 0.4rem 0; color: #666; font-size: 0.9rem;"><strong>Due Date:</strong> ${dueDate}</p>
+                <p style="margin: 0.4rem 0; color: #666; font-size: 0.9rem;"><strong>Invoice Date:</strong> ${invoiceDateFormatted}</p>
+                <p style="margin: 0.4rem 0; color: #666; font-size: 0.9rem;"><strong>Due Date:</strong> ${dueDateFormatted}</p>
             </div>
         </div>
         
@@ -1157,7 +1150,7 @@ async function previewInvoice() {
 
         <div style="text-align: center; padding: 1rem 0; border-top: 2px solid #eee; margin-top: 1rem;">
             <p style="color: #666; margin: 0; font-size: 0.8rem;">Thank you for your business!</p>
-            <p style="color: #666; margin: 0.3rem 0 0 0; font-size: 0.8rem;">Payment is due by ${dueDate}</p>
+            <p style="color: #666; margin: 0.3rem 0 0 0; font-size: 0.8rem;">Payment is due by ${dueDateFormatted}</p>
         </div>
     `;
     
@@ -1761,6 +1754,19 @@ async function emailInvoice() {
         
         if (!response.ok || !result.success) {
             throw new Error(result.error || 'Failed to send email');
+        }
+        
+        // Update invoice status to "sent" in database
+        if (window.currentInvoiceId) {
+            const csrfToken = window.adminAuth?.getCsrfToken();
+            await fetch(`/api/invoices?action=updateStatus&id=${window.currentInvoiceId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(csrfToken && { 'x-csrf-token': csrfToken })
+                },
+                body: JSON.stringify({ status: 'sent' })
+            }).catch(err => console.error('Failed to update invoice status:', err));
         }
         
         alert(`✅ Invoice successfully sent to ${customerEmail}!`);
