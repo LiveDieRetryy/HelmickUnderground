@@ -79,8 +79,15 @@ module.exports = async function handler(req, res) {
                 browser VARCHAR(50),
                 screen_resolution VARCHAR(50),
                 language VARCHAR(50),
+                session_id VARCHAR(100),
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+        `;
+        
+        // Add session_id column if it doesn't exist (migration)
+        await sql`
+            ALTER TABLE analytics 
+            ADD COLUMN IF NOT EXISTS session_id VARCHAR(100)
         `;
         
         // Create events table for tracking user interactions
@@ -219,17 +226,20 @@ module.exports = async function handler(req, res) {
                 // Parse user agent
                 const deviceInfo = parseUserAgent(userAgent);
                 
+                // Get session ID from request
+                const sessionId = req.body.sessionId || null;
+                
                 // Insert analytics entry
                 await sql`
                     INSERT INTO analytics (
                         page, referrer, ip, country, city, region, 
-                        device_type, browser, screen_resolution, language, timestamp
+                        device_type, browser, screen_resolution, language, session_id, timestamp
                     )
                     VALUES (
                         ${page}, ${referrer || null}, ${ip}, ${country}, ${city}, ${region},
                         ${deviceInfo.deviceType}, ${deviceInfo.browser}, 
                         ${screenWidth && screenHeight ? `${screenWidth}x${screenHeight}` : null}, 
-                        ${language || null}, ${timestamp || new Date().toISOString()}
+                        ${language || null}, ${sessionId}, ${timestamp || new Date().toISOString()}
                     )
                 `;
                 
@@ -351,13 +361,14 @@ module.exports = async function handler(req, res) {
             
             // Return basic stats by default
             if (action === 'stats') {
-                // Calculate statistics - count unique visitors (IP addresses)
+                // Calculate statistics - count unique sessions (each visit after 1hr counts as new)
                 const stats = await sql`
                     SELECT 
-                        COUNT(DISTINCT ip)::integer as total,
-                        COUNT(DISTINCT CASE WHEN DATE(timestamp) = CURRENT_DATE THEN ip END)::integer as today,
-                        COUNT(DISTINCT CASE WHEN timestamp >= CURRENT_DATE - INTERVAL '7 days' THEN ip END)::integer as week
+                        COUNT(DISTINCT session_id)::integer as total,
+                        COUNT(DISTINCT CASE WHEN DATE(timestamp) = CURRENT_DATE THEN session_id END)::integer as today,
+                        COUNT(DISTINCT CASE WHEN timestamp >= CURRENT_DATE - INTERVAL '7 days' THEN session_id END)::integer as week
                     FROM analytics
+                    WHERE session_id IS NOT NULL
                 `;
                 
                 return res.status(200).json({

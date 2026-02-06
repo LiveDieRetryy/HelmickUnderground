@@ -51,6 +51,24 @@
         return;
     }
 
+    // Get or create session ID (expires after 1 hour of inactivity)
+    function getSessionId() {
+        const sessionTimeout = 60 * 60 * 1000; // 1 hour in milliseconds
+        const lastActivity = localStorage.getItem('analyticsLastActivity');
+        let sessionId = localStorage.getItem('analyticsSessionId');
+        const now = Date.now();
+        
+        // Create new session if no session exists or if more than 1 hour has passed
+        if (!sessionId || !lastActivity || (now - parseInt(lastActivity)) > sessionTimeout) {
+            sessionId = 'sess_' + now + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('analyticsSessionId', sessionId);
+        }
+        
+        // Update last activity timestamp
+        localStorage.setItem('analyticsLastActivity', now.toString());
+        return sessionId;
+    }
+
     // Track page view
     function trackPageView() {
         // Check if this exact page was tracked in the last 5 seconds (prevent duplicates on same page)
@@ -74,6 +92,7 @@
             screenWidth: window.screen.width,
             screenHeight: window.screen.height,
             language: navigator.language || navigator.userLanguage,
+            sessionId: getSessionId(),
             timestamp: new Date().toISOString()
         };
 
