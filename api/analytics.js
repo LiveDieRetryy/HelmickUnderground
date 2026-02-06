@@ -262,6 +262,35 @@ module.exports = async function handler(req, res) {
             const { action } = req.query;
             
             if (action === 'all') {
+                // Auto-cleanup: Delete analytics data older than 30 days
+                try {
+                    const deleteResult = await sql`
+                        DELETE FROM analytics 
+                        WHERE timestamp < NOW() - INTERVAL '30 days'
+                    `;
+                    
+                    const eventsDeleteResult = await sql`
+                        DELETE FROM analytics_events 
+                        WHERE timestamp < NOW() - INTERVAL '30 days'
+                    `;
+                    
+                    const conversionsDeleteResult = await sql`
+                        DELETE FROM analytics_conversions 
+                        WHERE timestamp < NOW() - INTERVAL '30 days'
+                    `;
+                    
+                    if (deleteResult.rowCount > 0 || eventsDeleteResult.rowCount > 0 || conversionsDeleteResult.rowCount > 0) {
+                        console.log('🗑️ Auto-cleanup:', {
+                            analyticsDeleted: deleteResult.rowCount,
+                            eventsDeleted: eventsDeleteResult.rowCount,
+                            conversionsDeleted: conversionsDeleteResult.rowCount
+                        });
+                    }
+                } catch (cleanupError) {
+                    console.error('Cleanup error:', cleanupError);
+                    // Don't fail the request if cleanup fails
+                }
+                
                 // Return all analytics (most recent first, limit to last 1000)
                 const result = await sql`
                     SELECT * FROM analytics
