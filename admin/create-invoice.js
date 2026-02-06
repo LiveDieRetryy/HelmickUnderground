@@ -742,13 +742,15 @@ document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
     
     try {
         let response;
+        const csrfToken = window.adminAuth?.getCsrfToken();
         
         if (invoiceId) {
             // Update existing invoice
             response = await fetch(`/api/invoices?action=update&id=${invoiceId}`, {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    ...(csrfToken && { 'x-csrf-token': csrfToken })
                 },
                 body: JSON.stringify(invoiceData)
             });
@@ -757,7 +759,8 @@ document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
             response = await fetch('/api/invoices?action=create', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    ...(csrfToken && { 'x-csrf-token': csrfToken })
                 },
                 body: JSON.stringify(invoiceData)
             });
@@ -776,9 +779,13 @@ document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
             const submissionId = sessionStorage.getItem('invoiceSubmissionId');
             if (submissionId) {
                 try {
+                    const csrfToken = window.adminAuth?.getCsrfToken();
                     await fetch('/api/contact-submissions', {
                         method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...(csrfToken && { 'x-csrf-token': csrfToken })
+                        },
                         body: JSON.stringify({ 
                             id: parseInt(submissionId), 
                             invoice_id: result.invoiceId 
