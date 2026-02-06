@@ -190,9 +190,13 @@ async function updateInvoiceStatus(id, status) {
                 invoiceRow.classList.add('optimistic-updating');
             },
             operation: async () => {
+                const csrfToken = window.adminAuth?.getCsrfToken();
                 const response = await fetch(`/api/invoices?action=updateStatus&id=${id}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(csrfToken && { 'x-csrf-token': csrfToken })
+                    },
                     body: JSON.stringify({ status })
                 });
                 
@@ -209,7 +213,10 @@ async function updateInvoiceStatus(id, status) {
                             if (linkedSub) {
                                 await fetch('/api/contact-submissions', {
                                     method: 'PUT',
-                                    headers: { 'Content-Type': 'application/json' },
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        ...(csrfToken && { 'x-csrf-token': csrfToken })
+                                    },
                                     body: JSON.stringify({ id: linkedSub.id, status: 'completed' })
                                 });
                             }
