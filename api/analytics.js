@@ -148,8 +148,6 @@ module.exports = async function handler(req, res) {
                 return res.status(200).json({ success: true });
             }
             
-            const { page, referrer, userAgent, screenWidth, screenHeight, language, timestamp } = req.body || {};
-            
             if (action === 'clear') {
                 // Delete all analytics data
                 await sql`DELETE FROM analytics`;
@@ -178,6 +176,9 @@ module.exports = async function handler(req, res) {
                 const city = decodeURIComponent(req.headers['x-vercel-ip-city'] || 'Unknown');
                 const region = decodeURIComponent(req.headers['x-vercel-ip-country-region'] || 'Unknown');
                 
+                // Extract request data
+                const { page, referrer, userAgent, screenWidth, screenHeight, language, timestamp, sessionId } = req.body || {};
+                
                 // Enhanced bot and suspicious traffic filtering
                 const botPatterns = [
                     /googlebot/i, /bingbot/i, 
@@ -194,10 +195,11 @@ module.exports = async function handler(req, res) {
                 
                 // Log what we're seeing (for debugging)
                 console.log('Analytics request:', {
-                    page: req.body?.page,
+                    page,
                     city,
                     region,
                     country,
+                    referrer,
                     isBot,
                     userAgent: userAgent?.substring(0, 100)
                 });
@@ -211,8 +213,16 @@ module.exports = async function handler(req, res) {
                     pattern.test(referrer || '')
                 );
                 
-                // Only filter out actual bots and spam - track all legitimate traffic
-                const isLikelyLegitimate = !isBot && !hasSuspiciousReferrer;
+                // Filter Vercel/cloud infrastructure automated requests
+                // Only from specific cities AND only home page with no referrer (health checks/previews)
+                const infrastructureCities = ['Santa Clara', 'San Jose', 'Ashburn', 'Omaha'];
+                const isInfrastructureCity = infrastructureCities.includes(city);
+                const isHomePage = page === '/' || page === '/index.html';
+                const hasNoReferrer = !referrer || referrer === '' || referrer === 'direct';
+                const isSuspiciousInfrastructure = isInfrastructureCity && isHomePage && hasNoReferrer;
+                
+                // Only filter out actual bots, spam, and suspicious infrastructure traffic
+                const isLikelyLegitimate = !isBot && !hasSuspiciousReferrer && !isSuspiciousInfrastructure;
                 
                 // Skip logging if not legitimate
                 if (!isLikelyLegitimate) {
@@ -221,9 +231,6 @@ module.exports = async function handler(req, res) {
                 
                 // Parse user agent
                 const deviceInfo = parseUserAgent(userAgent);
-                
-                // Get session ID from request
-                const sessionId = req.body.sessionId || null;
                 
                 // Insert analytics entry
                 await sql`
