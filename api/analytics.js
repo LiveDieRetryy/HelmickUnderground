@@ -233,7 +233,7 @@ module.exports = async function handler(req, res) {
                 const deviceInfo = parseUserAgent(userAgent);
                 
                 // Insert analytics entry
-                await sql`
+                const insertResult = await sql`
                     INSERT INTO analytics (
                         page, referrer, ip, country, city, region, 
                         device_type, browser, screen_resolution, language, session_id, timestamp
@@ -244,9 +244,17 @@ module.exports = async function handler(req, res) {
                         ${screenWidth && screenHeight ? `${screenWidth}x${screenHeight}` : null}, 
                         ${language || null}, ${sessionId}, ${timestamp || new Date().toISOString()}
                     )
+                    RETURNING id
                 `;
                 
-                return res.status(200).json({ success: true });
+                console.log('✅ Analytics inserted:', {
+                    id: insertResult.rows[0]?.id,
+                    page,
+                    city,
+                    ip: ip.substring(0, 10) + '...'
+                });
+                
+                return res.status(200).json({ success: true, id: insertResult.rows[0]?.id });
             }
         }
 
