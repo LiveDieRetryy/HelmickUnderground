@@ -80,7 +80,7 @@
         
         // Only skip if same page was tracked within 5 seconds
         if (lastTracked && lastTrackedPage === currentPage && (now - parseInt(lastTracked)) < fiveSeconds) {
-            console.debug('Analytics: Skipping duplicate tracking (same page within 5sec)');
+            console.log('Analytics: Skipping duplicate tracking (same page within 5sec)');
             return;
         }
         
@@ -96,6 +96,8 @@
             timestamp: new Date().toISOString()
         };
 
+        console.log('Analytics: Tracking page view:', currentPage);
+
         // Send to analytics API
         fetch('/api/analytics', {
             method: 'POST',
@@ -105,13 +107,18 @@
             body: JSON.stringify(data)
         }).then(response => {
             if (response.ok) {
-                // Store timestamp and page of successful tracking
-                localStorage.setItem('lastAnalyticsTrack', now.toString());
-                localStorage.setItem('lastAnalyticsPage', currentPage);
+                return response.json().then(json => {
+                    console.log('Analytics: Successfully tracked', json);
+                    // Store timestamp and page of successful tracking
+                    localStorage.setItem('lastAnalyticsTrack', now.toString());
+                    localStorage.setItem('lastAnalyticsPage', currentPage);
+                });
+            } else {
+                console.warn('Analytics: Server rejected tracking', response.status);
             }
         }).catch(err => {
             // Silently fail - don't disrupt user experience
-            console.debug('Analytics tracking failed:', err);
+            console.warn('Analytics tracking failed:', err);
         });
     }
 

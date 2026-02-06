@@ -433,10 +433,28 @@
                 
                 // Load TikTok embed script if there are videos
                 if (data.items.some(item => item.type === 'video')) {
+                    // Suppress TikTok console spam
+                    const originalConsoleLog = console.log;
+                    console.log = function(...args) {
+                        // Filter out TikTok hiring messages
+                        const message = args.join(' ');
+                        if (message.includes('TikTok') || message.includes('hiring') || message.includes('careers.tiktok.com')) {
+                            return;
+                        }
+                        originalConsoleLog.apply(console, args);
+                    };
+                    
                     const script = document.createElement('script');
                     script.src = 'https://www.tiktok.com/embed.js';
                     script.async = true;
                     document.body.appendChild(script);
+                    
+                    // Restore console.log after script loads
+                    script.onload = () => {
+                        setTimeout(() => {
+                            console.log = originalConsoleLog;
+                        }, 2000); // Wait 2 seconds for TikTok messages to finish
+                    };
                 }
             } catch (error) {
                 console.error('Error loading gallery:', error);
@@ -523,6 +541,6 @@
     <script src="analytics.js"></script>
     <script src="pwa-install.js"></script>
     <script src="ios-install.js"></script>
-    <script src="mobile-enhancements.js\"></script>
+    <script src="mobile-enhancements.js"></script>
 </body>
 </html>
