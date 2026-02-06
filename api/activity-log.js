@@ -5,6 +5,9 @@
 
 import { sql } from '@vercel/postgres';
 
+// Note: Using require for CommonJS modules in ES module context
+const { requireAuth } = await import('../lib/auth-middleware.js').catch(() => ({ requireAuth: null }));
+
 /**
  * Log an admin activity
  * @param {string} action - Type of action (create, read, update, delete)
@@ -29,10 +32,16 @@ export default async function handler(req, res) {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
     
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
+    }
+
+    // Require authentication for all activity log operations
+    if (requireAuth && !requireAuth(req, res)) {
+        return; // requireAuth already sent error response
     }
 
     try {
