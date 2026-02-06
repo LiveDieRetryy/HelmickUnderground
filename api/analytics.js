@@ -180,24 +180,27 @@ module.exports = async function handler(req, res) {
                 
                 // Enhanced bot and suspicious traffic filtering
                 const botPatterns = [
-                    /bot/i, /crawler/i, /spider/i, /googlebot/i, /bingbot/i, 
+                    /googlebot/i, /bingbot/i, 
                     /slurp/i, /duckduckbot/i, /baiduspider/i, /yandexbot/i,
                     /facebookexternalhit/i, /twitterbot/i, /linkedinbot/i,
-                    /whatsapp/i, /lighthouse/i, /headless/i, /phantom/i,
-                    /curl/i, /wget/i, /python/i, /java/i, /ruby/i, /perl/i,
-                    /scrapy/i, /httpclient/i, /go-http/i, /axios/i, /node-fetch/i,
-                    /check_http/i, /pingdom/i, /uptime/i, /monitoring/i, /scanner/i,
-                    /semrush/i, /ahrefs/i, /majestic/i, /moz/i, /screaming/i
+                    /whatsapp/i, /lighthouse/i, /HeadlessChrome/i, /PhantomJS/i,
+                    /^curl\//i, /^wget\//i, /^python-/i, /^java\//i, /^ruby\//i,
+                    /scrapy/i, /go-http-client/i, /axios\//i, /node-fetch/i,
+                    /check_http/i, /pingdom/i, /uptime/i, /UptimeRobot/i,
+                    /semrushbot/i, /ahrefsbot/i, /mj12bot/i, /rogerbot/i, /dotbot/i
                 ];
                 
                 const isBot = botPatterns.some(pattern => pattern.test(userAgent || ''));
                 
-                // Filter out Vercel infrastructure and common hosting locations
-                const infrastructureCities = [
-                    'Santa Clara', 'San Jose', 'Omaha', 'Ashburn', 'Frankfurt',
-                    'Amsterdam', 'Brandenburg', 'Dublin', 'London', 'Paris',
-                    'Singapore', 'Tokyo', 'Mumbai', 'Sao Paulo', 'Sydney'
-                ];
+                // Log what we're seeing (for debugging)
+                console.log('Analytics request:', {
+                    page: req.body?.page,
+                    city,
+                    region,
+                    country,
+                    isBot,
+                    userAgent: userAgent?.substring(0, 100)
+                });
                 
                 // Filter suspicious referrers (common spam patterns)
                 const suspiciousReferrers = [
