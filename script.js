@@ -1,38 +1,7 @@
 /**
  * Main JavaScript for Helmick Underground LLC Website
- * Handles navigation, scroll behavior, and contact form submission
+ * Handles scroll behavior and contact form submission
  */
-
-// ============================================================================
-// MOBILE NAVIGATION
-// ============================================================================
-
-/**
- * Mobile Navigation Toggle
- * Handles hamburger menu click and nav link clicks
- */
-document.addEventListener('DOMContentLoaded', () => {
-    const hamburger = document.querySelector('.hamburger');
-    const navMenu = document.querySelector('.nav-menu');
-    const navLinks = document.querySelectorAll('.nav-link');
-
-    if (hamburger && navMenu) {
-        hamburger.addEventListener('click', () => {
-            navMenu.classList.toggle('active');
-            
-            // Animate hamburger
-            hamburger.classList.toggle('active');
-        });
-
-        // Close mobile menu when clicking on a link
-        navLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                navMenu.classList.remove('active');
-                hamburger.classList.remove('active');
-            });
-        });
-    }
-});
 
 // ============================================================================
 // SMOOTH SCROLLING
