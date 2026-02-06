@@ -198,7 +198,6 @@ module.exports = async function handler(req, res) {
                     'Amsterdam', 'Brandenburg', 'Dublin', 'London', 'Paris',
                     'Singapore', 'Tokyo', 'Mumbai', 'Sao Paulo', 'Sydney'
                 ];
-                const isInfrastructure = infrastructureCities.includes(city);
                 
                 // Filter suspicious referrers (common spam patterns)
                 const suspiciousReferrers = [
@@ -209,14 +208,8 @@ module.exports = async function handler(req, res) {
                     pattern.test(referrer || '')
                 );
                 
-                // Only log traffic that's likely legitimate
-                // Allow US traffic from non-infrastructure cities, and Midwest states
-                const isLikelyLegitimate = 
-                    !isBot && 
-                    !isInfrastructure && 
-                    !hasSuspiciousReferrer &&
-                    (country === 'US' || country === 'United States' || 
-                     ['Iowa', 'IA', 'Illinois', 'Nebraska', 'Minnesota', 'Missouri', 'Wisconsin'].includes(region));
+                // Only filter out actual bots and spam - track all legitimate traffic
+                const isLikelyLegitimate = !isBot && !hasSuspiciousReferrer;
                 
                 // Skip logging if not legitimate
                 if (!isLikelyLegitimate) {
