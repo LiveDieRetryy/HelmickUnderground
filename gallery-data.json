@@ -25,7 +25,8 @@
       "date": "",
       "type": "image",
       "image": "images/WhatsApp Image  PM.jpeg",
-      "fileSize": 314473
+      "fileSize": 314473,
+      "featured": true
     },
     {
       "id": 1772256044331,
