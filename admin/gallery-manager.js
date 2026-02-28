@@ -566,7 +566,7 @@ function formatFileSize(bytes) {
 // Load gallery items
 async function loadGalleryItems() {
     try {
-        const response = await fetch('/api/gallery');
+        const response = await apiFetch('/api/gallery');
         const data = await response.json();
         const container = document.getElementById('galleryItemsList');
         
@@ -701,11 +701,8 @@ async function moveItem(id, direction) {
 // Save the new order to the API
 async function saveOrder() {
     try {
-        const response = await fetch('/api/gallery', {
+        const response = await apiFetch('/api/gallery', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({
                 action: 'reorder',
                 items: galleryItems
@@ -734,11 +731,8 @@ async function saveOrder() {
 // Add gallery item
 async function addGalleryItem(item) {
     try {
-        const response = await fetch('/api/gallery', {
+        const response = await apiFetch('/api/gallery', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({
                 action: 'add',
                 item: item
@@ -800,11 +794,8 @@ async function confirmDeleteItem() {
     closeDeleteModal();
     
     try {
-        const response = await fetch('/api/gallery', {
+        const response = await apiFetch('/api/gallery', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({
                 action: 'delete',
                 item: { id: idToDelete }
@@ -911,11 +902,8 @@ document.getElementById('editItemForm').addEventListener('submit', async (e) => 
     const date = document.getElementById('editItemDate').value;
     
     try {
-        const response = await fetch('/api/gallery', {
+        const response = await apiFetch('/api/gallery', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({
                 action: 'edit',
                 item: {
