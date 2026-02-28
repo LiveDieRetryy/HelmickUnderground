@@ -396,6 +396,10 @@ function showUpdateNotification() {
  * Featured Gallery Slideshow on Home Page
  * Loads and displays featured images from the gallery
  */
+let featuredItems = []; // Store featured items globally for modal
+let currentModalIndex = 0;
+let slideshowInterval = null;
+
 async function loadFeaturedGallery() {
     const container = document.getElementById('featuredGallery');
     if (!container) return; // Only run on pages with the featured gallery
@@ -405,7 +409,7 @@ async function loadFeaturedGallery() {
         const data = await response.json();
         
         // Filter only featured images (not videos)
-        const featuredItems = data.items.filter(item => item.featured && item.type === 'image');
+        featuredItems = data.items.filter(item => item.featured && item.type === 'image');
         
         if (featuredItems.length === 0) {
             container.innerHTML = '<div class="featured-gallery-empty">No featured images yet</div>';
@@ -414,7 +418,7 @@ async function loadFeaturedGallery() {
         
         // Create slides
         container.innerHTML = featuredItems.map((item, index) => `
-            <div class="featured-slide ${index === 0 ? 'active' : ''}">
+            <div class="featured-slide ${index === 0 ? 'active' : ''}" data-index="${index}" style="cursor: pointer;">
                 <img src="/${item.image}" alt="${item.title}" loading="${index === 0 ? 'eager' : 'lazy'}">
                 <div class="featured-slide-caption">
                     <h3>${item.title}</h3>
@@ -423,16 +427,17 @@ async function loadFeaturedGallery() {
             </div>
         `).join('');
         
+        // Add click handlers to slides
+        container.querySelectorAll('.featured-slide').forEach(slide => {
+            slide.addEventListener('click', function() {
+                const index = parseInt(this.dataset.index);
+                openFeaturedModal(index);
+            });
+        });
+        
         // Auto-rotate slides if more than one
         if (featuredItems.length > 1) {
-            let currentSlide = 0;
-            const slides = container.querySelectorAll('.featured-slide');
-            
-            setInterval(() => {
-                slides[currentSlide].classList.remove('active');
-                currentSlide = (currentSlide + 1) % slides.length;
-                slides[currentSlide].classList.add('active');
-            }, 5000); // Change slide every 5 seconds
+            startSlideshow();
         }
     } catch (error) {
         console.error('Error loading featured gallery:', error);
@@ -440,7 +445,125 @@ async function loadFeaturedGallery() {
     }
 }
 
+function startSlideshow() {
+    const container = document.getElementById('featuredGallery');
+    if (!container) return;
+    
+    let currentSlide = 0;
+    const slides = container.querySelectorAll('.featured-slide');
+    
+    slideshowInterval = setInterval(() => {
+        slides[currentSlide].classList.remove('active');
+        currentSlide = (currentSlide + 1) % slides.length;
+        slides[currentSlide].classList.add('active');
+    }, 5000); // Change slide every 5 seconds
+}
+
+function stopSlideshow() {
+    if (slideshowInterval) {
+        clearInterval(slideshowInterval);
+        slideshowInterval = null;
+    }
+}
+
+function openFeaturedModal(index) {
+    if (featuredItems.length === 0) return;
+    
+    stopSlideshow(); // Stop slideshow when modal is open
+    currentModalIndex = index;
+    const modal = document.getElementById('featuredGalleryModal');
+    const modalImg = document.getElementById('featuredModalImage');
+    const modalTitle = document.getElementById('featuredModalTitle');
+    const modalDesc = document.getElementById('featuredModalDescription');
+    
+    const item = featuredItems[currentModalIndex];
+    
+    modalImg.src = '/' + item.image;
+    modalImg.alt = item.title;
+    modalTitle.textContent = item.title;
+    modalDesc.textContent = item.description;
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden'; // Prevent scrolling when modal is open
+}
+
+function closeFeaturedModal() {
+    const modal = document.getElementById('featuredGalleryModal');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    
+    // Restart slideshow when modal closes
+    if (featuredItems.length > 1) {
+        startSlideshow();
+    }
+}
+
+function navigateFeaturedModal(direction) {
+    if (featuredItems.length === 0) return;
+    
+    currentModalIndex += direction;
+    
+    // Wrap around
+    if (currentModalIndex < 0) {
+        currentModalIndex = featuredItems.length - 1;
+    } else if (currentModalIndex >= featuredItems.length) {
+        currentModalIndex = 0;
+    }
+    
+    const modalImg = document.getElementById('featuredModalImage');
+    const modalTitle = document.getElementById('featuredModalTitle');
+    const modalDesc = document.getElementById('featuredModalDescription');
+    const item = featuredItems[currentModalIndex];
+    
+    modalImg.src = '/' + item.image;
+    modalImg.alt = item.title;
+    modalTitle.textContent = item.title;
+    modalDesc.textContent = item.description;
+}
+
 // Load featured gallery on page load
 if (document.getElementById('featuredGallery')) {
     loadFeaturedGallery();
+    
+    // Set up modal controls
+    document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('featuredGalleryModal');
+        const closeBtn = document.querySelector('.featured-modal-close');
+        const prevBtn = document.querySelector('.featured-modal-prev');
+        const nextBtn = document.querySelector('.featured-modal-next');
+        
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeFeaturedModal);
+        }
+        
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => navigateFeaturedModal(-1));
+        }
+        
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => navigateFeaturedModal(1));
+        }
+        
+        // Close modal when clicking outside the image
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeFeaturedModal();
+                }
+            });
+        }
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (modal && modal.classList.contains('active')) {
+                if (e.key === 'Escape') {
+                    closeFeaturedModal();
+                } else if (e.key === 'ArrowLeft') {
+                    navigateFeaturedModal(-1);
+                } else if (e.key === 'ArrowRight') {
+                    navigateFeaturedModal(1);
+                }
+            }
+        });
+    });
 }
