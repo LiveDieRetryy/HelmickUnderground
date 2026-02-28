@@ -33,19 +33,14 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 /**
  * Navbar scroll behavior
  * Auto-hides navbar when scrolling down, shows when scrolling up
- * Always shows navbar after 2 seconds of no scrolling
  */
 
 // Navbar background change on scroll
 let lastScrollTop = 0;
 const navbar = document.querySelector('.navbar');
-let scrollTimeout;
 
 window.addEventListener('scroll', () => {
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    
-    // Clear the timeout if it exists
-    clearTimeout(scrollTimeout);
     
     // Only hide/show after scrolling past 100px
     if (scrollTop > 100) {
@@ -65,12 +60,6 @@ window.addEventListener('scroll', () => {
     }
     
     lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-    
-    // Show navbar after user stops scrolling for 2 seconds
-    scrollTimeout = setTimeout(() => {
-        navbar.classList.remove('navbar-hidden');
-        navbar.classList.add('navbar-visible');
-    }, 2000);
 });
 
 // ============================================================================
