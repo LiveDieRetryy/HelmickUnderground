@@ -566,8 +566,7 @@ function formatFileSize(bytes) {
 // Load gallery items
 async function loadGalleryItems() {
     try {
-        const response = await apiFetch('/api/gallery');
-        const data = await response.json();
+        const data = await apiFetch('/api/gallery');
         const container = document.getElementById('galleryItemsList');
         
         // Store items globally for edit modal
@@ -701,21 +700,13 @@ async function moveItem(id, direction) {
 // Save the new order to the API
 async function saveOrder() {
     try {
-        const response = await apiFetch('/api/gallery', {
+        const result = await apiFetch('/api/gallery', {
             method: 'POST',
             body: JSON.stringify({
                 action: 'reorder',
                 items: galleryItems
             })
         });
-        
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            const text = await response.text();
-            throw new Error(`Server error: ${text}`);
-        }
-        
-        const result = await response.json();
         
         if (result.success) {
             loadGalleryItems();
@@ -731,7 +722,7 @@ async function saveOrder() {
 // Add gallery item
 async function addGalleryItem(item) {
     try {
-        const response = await apiFetch('/api/gallery', {
+        const result = await apiFetch('/api/gallery', {
             method: 'POST',
             body: JSON.stringify({
                 action: 'add',
@@ -739,32 +730,6 @@ async function addGalleryItem(item) {
             })
         });
         
-        if (!response.ok) {
-            let errorMessage = 'Failed to add item';
-            
-            // Try to parse JSON error, fallback to text
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-                const error = await response.json();
-                errorMessage = error.error || errorMessage;
-            } else {
-                const errorText = await response.text();
-                if (errorText.includes('Request Entity Too Large') || response.status === 413) {
-                    errorMessage = 'File too large for upload. The compressed video is still over the 10MB limit. Please try:\n1. A shorter video clip\n2. Lower quality source video\n3. Use TikTok embed instead';
-                } else {
-                    errorMessage = errorText || `HTTP ${response.status}: ${response.statusText}`;
-                }
-            }
-            
-            if (errorMessage.includes('GitHub token not configured')) {
-                showNotification('⚠️ SETUP REQUIRED: The gallery admin needs a GitHub token. Read GITHUB_TOKEN_SETUP.txt for instructions.', 'error');
-                return;
-            }
-            
-            throw new Error(errorMessage);
-        }
-        
-        const result = await response.json();
         showSuccess('✅ Item added successfully! It\'s now live for everyone to see!');
     } catch (error) {
         console.error('Error adding item:', error);
@@ -794,17 +759,13 @@ async function confirmDeleteItem() {
     closeDeleteModal();
     
     try {
-        const response = await apiFetch('/api/gallery', {
+        await apiFetch('/api/gallery', {
             method: 'POST',
             body: JSON.stringify({
                 action: 'delete',
                 item: { id: idToDelete }
             })
         });
-        
-        if (!response.ok) {
-            throw new Error('Failed to delete item');
-        }
         
         showSuccess('✅ Item deleted successfully!');
         loadGalleryItems();
@@ -902,7 +863,7 @@ document.getElementById('editItemForm').addEventListener('submit', async (e) => 
     const date = document.getElementById('editItemDate').value;
     
     try {
-        const response = await apiFetch('/api/gallery', {
+        const result = await apiFetch('/api/gallery', {
             method: 'POST',
             body: JSON.stringify({
                 action: 'edit',
@@ -914,14 +875,6 @@ document.getElementById('editItemForm').addEventListener('submit', async (e) => 
                 }
             })
         });
-        
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            const text = await response.text();
-            throw new Error(`Server error: ${text}`);
-        }
-        
-        const result = await response.json();
         
         if (result.success) {
             showSuccess('Item updated successfully!');
