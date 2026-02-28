@@ -16,7 +16,8 @@
       "date": null,
       "type": "image",
       "image": "images/kM.jpeg",
-      "fileSize": 280375
+      "fileSize": 280375,
+      "featured": true
     },
     {
       "id": 1768601395926,
