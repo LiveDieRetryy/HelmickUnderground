@@ -29,6 +29,12 @@
                 if (data.user) {
                     localStorage.setItem('admin_user', JSON.stringify(data.user));
                 }
+                
+                // Ensure we have a CSRF token
+                if (!localStorage.getItem('csrf_token')) {
+                    await refreshCsrfToken();
+                }
+                
                 return true;
             } else {
                 // Token invalid or expired
