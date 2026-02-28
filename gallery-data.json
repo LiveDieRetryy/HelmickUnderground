@@ -55,7 +55,8 @@
       "date": "",
       "type": "image",
       "image": "images/2PM.jpeg",
-      "fileSize": 554794
+      "fileSize": 554794,
+      "featured": true
     },
     {
       "id": 1768592606565,
