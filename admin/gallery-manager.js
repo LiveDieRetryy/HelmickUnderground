@@ -584,10 +584,10 @@ async function loadGalleryItems() {
                     <div class="drag-icon">⋮⋮</div>
                     <button class="order-btn" onclick="moveItem(${item.id}, 1)" ${index === data.items.length - 1 ? 'disabled' : ''} title="Move down">▼</button>
                 </div>
-                <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 120px;">
-                    <label class="featured-checkbox" title="Feature on Home Page">
-                        <input type="checkbox" ${item.featured ? 'checked' : ''} onchange="toggleFeatured(${item.id})" ${item.type === 'video' ? 'disabled title="Only images can be featured"' : ''}>
-                        <span style="font-size: 0.85rem; color: var(--orange);">⭐ Featured</span>
+                <div class="featured-checkbox-container">
+                    <label class="featured-checkbox" title="${item.type === 'video' ? 'Only images can be featured' : 'Feature on Home Page'}">
+                        <input type="checkbox" ${item.featured ? 'checked' : ''} onchange="toggleFeatured(${item.id})" ${item.type === 'video' ? 'disabled' : ''}>
+                        <span>⭐ Featured</span>
                     </label>
                 </div>
                 ${item.type === 'image' 
