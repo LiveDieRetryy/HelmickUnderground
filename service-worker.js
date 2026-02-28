@@ -3,7 +3,7 @@
  * Provides offline support, caching, and performance optimization
  */
 
-const CACHE_VERSION = 'v1.2.0';
+const CACHE_VERSION = 'v1.3.0';
 const CACHE_NAME = `helmick-underground-${CACHE_VERSION}`;
 const API_CACHE_NAME = `helmick-api-${CACHE_VERSION}`;
 const IMAGE_CACHE_NAME = `helmick-images-${CACHE_VERSION}`;
