@@ -34,7 +34,8 @@
       "date": null,
       "type": "image",
       "image": "images/WhatsApp Image 2026-02-27 at 11.11.20 PM.jpeg",
-      "fileSize": 223311
+      "fileSize": 223311,
+      "featured": true
     },
     {
       "id": 1768595417037,
