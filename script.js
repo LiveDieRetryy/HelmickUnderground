@@ -387,3 +387,60 @@ function showUpdateNotification() {
     
     document.body.appendChild(notification);
 }
+
+// ============================================================================
+// FEATURED GALLERY SLIDESHOW
+// ============================================================================
+
+/**
+ * Featured Gallery Slideshow on Home Page
+ * Loads and displays featured images from the gallery
+ */
+async function loadFeaturedGallery() {
+    const container = document.getElementById('featuredGallery');
+    if (!container) return; // Only run on pages with the featured gallery
+    
+    try {
+        const response = await fetch('/api/gallery');
+        const data = await response.json();
+        
+        // Filter only featured images (not videos)
+        const featuredItems = data.items.filter(item => item.featured && item.type === 'image');
+        
+        if (featuredItems.length === 0) {
+            container.innerHTML = '<div class="featured-gallery-empty">No featured images yet</div>';
+            return;
+        }
+        
+        // Create slides
+        container.innerHTML = featuredItems.map((item, index) => `
+            <div class="featured-slide ${index === 0 ? 'active' : ''}">
+                <img src="/${item.image}" alt="${item.title}" loading="${index === 0 ? 'eager' : 'lazy'}">
+                <div class="featured-slide-caption">
+                    <h3>${item.title}</h3>
+                    <p>${item.description}</p>
+                </div>
+            </div>
+        `).join('');
+        
+        // Auto-rotate slides if more than one
+        if (featuredItems.length > 1) {
+            let currentSlide = 0;
+            const slides = container.querySelectorAll('.featured-slide');
+            
+            setInterval(() => {
+                slides[currentSlide].classList.remove('active');
+                currentSlide = (currentSlide + 1) % slides.length;
+                slides[currentSlide].classList.add('active');
+            }, 5000); // Change slide every 5 seconds
+        }
+    } catch (error) {
+        console.error('Error loading featured gallery:', error);
+        container.innerHTML = '<div class="featured-gallery-empty">Unable to load gallery</div>';
+    }
+}
+
+// Load featured gallery on page load
+if (document.getElementById('featuredGallery')) {
+    loadFeaturedGallery();
+}

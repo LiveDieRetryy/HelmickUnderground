@@ -125,6 +125,12 @@ export default async function handler(req, res) {
                 // Replace entire items array with new order
                 const { items } = req.body;
                 galleryData.items = items;
+            } else if (action === 'toggleFeatured') {
+                // Toggle featured status for home page slideshow
+                const index = galleryData.items.findIndex(i => i.id === item.id);
+                if (index !== -1) {
+                    galleryData.items[index].featured = !galleryData.items[index].featured;
+                }
             }
             
             // Update file on GitHub

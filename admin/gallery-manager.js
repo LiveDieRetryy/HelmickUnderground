@@ -584,6 +584,12 @@ async function loadGalleryItems() {
                     <div class="drag-icon">⋮⋮</div>
                     <button class="order-btn" onclick="moveItem(${item.id}, 1)" ${index === data.items.length - 1 ? 'disabled' : ''} title="Move down">▼</button>
                 </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 120px;">
+                    <label class="featured-checkbox" title="Feature on Home Page">
+                        <input type="checkbox" ${item.featured ? 'checked' : ''} onchange="toggleFeatured(${item.id})" ${item.type === 'video' ? 'disabled title="Only images can be featured"' : ''}>
+                        <span style="font-size: 0.85rem; color: var(--orange);">⭐ Featured</span>
+                    </label>
+                </div>
                 ${item.type === 'image' 
                     ? `<img src="/${item.image}" alt="${item.title}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Crect fill=\'%23333\' width=\'100\' height=\'100\'/%3E%3Ctext x=\'50\' y=\'50\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23666\' font-family=\'Arial\' font-size=\'12\'%3ENo Image%3C/text%3E%3C/svg%3E'">`
                     : `<div class="video-thumb">
@@ -903,9 +909,28 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+// Toggle featured status for home page slideshow
+async function toggleFeatured(id) {
+    try {
+        await apiFetch('/api/gallery', {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'toggleFeatured',
+                item: { id: id }
+            })
+        });
+        
+        loadGalleryItems(); // Reload to show updated state
+    } catch (error) {
+        console.error('Error toggling featured:', error);
+        showNotification('Error updating featured status', 'error');
+    }
+}
+
 // Make functions available globally
 window.deleteItem = deleteItem;
 window.openEditModal = openEditModal;
+window.toggleFeatured = toggleFeatured;
 window.closeEditModal = closeEditModal;
 window.moveItem = moveItem;
 
