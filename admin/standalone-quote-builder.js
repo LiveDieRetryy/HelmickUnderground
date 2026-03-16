@@ -592,6 +592,7 @@ async function downloadQuotePDF() {
         doc.rect(0, 0, pageWidth, pageHeight, 'F');
         
         let yPos = margin;
+        let logoHeight = 0;
         
         // Logo
         try {
@@ -600,7 +601,7 @@ async function downloadQuotePDF() {
                 // Calculate aspect ratio to prevent crushing
                 const logoWidth = 120; // Max width in points
                 const aspectRatio = logoData.width / logoData.height;
-                const logoHeight = logoWidth / aspectRatio;
+                logoHeight = logoWidth / aspectRatio;
                 doc.addImage(logoData.dataURL, 'PNG', margin, yPos, logoWidth, logoHeight);
             }
         } catch (e) {
@@ -609,6 +610,7 @@ async function downloadQuotePDF() {
             doc.setFontSize(12);
             doc.setFont('helvetica', 'bold');
             doc.text('Helmick Underground', margin, yPos + 20);
+            logoHeight = 30; // Fallback height
         }
         
         // QUOTE header
@@ -621,7 +623,7 @@ async function downloadQuotePDF() {
         doc.setFont('helvetica', 'bold');
         doc.text('QUOTE', pageWidth - margin - 60, yPos + 23, { align: 'center' });
         
-        yPos += 60;
+        yPos += Math.max(logoHeight + 20, 60); // Use logo height + padding, minimum 60
         
         // From/For Section
         doc.setFillColor(245, 245, 245);

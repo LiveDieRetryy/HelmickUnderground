@@ -1234,6 +1234,7 @@ async function downloadInvoicePDF() {
         doc.rect(0, 0, pageWidth, pageHeight, 'F');
         
         let yPos = margin;
+        let logoHeight = 0;
         
         // Logo
         try {
@@ -1242,7 +1243,7 @@ async function downloadInvoicePDF() {
                 // Calculate aspect ratio to prevent crushing
                 const logoWidth = 120; // Max width in points
                 const aspectRatio = logoData.width / logoData.height;
-                const logoHeight = logoWidth / aspectRatio;
+                logoHeight = logoWidth / aspectRatio;
                 doc.addImage(logoData.dataURL, 'PNG', margin, yPos, logoWidth, logoHeight);
             }
         } catch (e) {
@@ -1251,6 +1252,7 @@ async function downloadInvoicePDF() {
             doc.setFontSize(12);
             doc.setFont('helvetica', 'bold');
             doc.text('Helmick Underground', margin, yPos + 20);
+            logoHeight = 30; // Fallback height
         }
         
         // INVOICE header
@@ -1266,7 +1268,7 @@ async function downloadInvoicePDF() {
         doc.setTextColor(100, 100, 100);
         doc.text(`#${invoiceNumber}`, pageWidth - margin - 70, yPos + 40, { align: 'center' });
         
-        yPos += 65;
+        yPos += Math.max(logoHeight + 20, 65); // Use logo height + padding, minimum 65
         
         // Project Information (if provided)
         if (jobNumber || jobAddress) {
