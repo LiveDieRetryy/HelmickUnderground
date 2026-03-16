@@ -231,10 +231,17 @@ function openAddCustomerModal() {
  */
 async function editCustomer(customerId) {
     try {
-        const customer = customers.find(c => c.id === customerId);
+        // First try to find customer in local array (for current page)
+        let customer = customers.find(c => c.id === customerId);
+        
+        // If not found in local array (pagination), fetch from API
         if (!customer) {
-            showNotification('Customer not found', 'error');
-            return;
+            const response = await fetch(`/api/customers?action=get&id=${customerId}`);
+            if (!response.ok) {
+                showNotification('Customer not found', 'error');
+                return;
+            }
+            customer = await response.json();
         }
         
         currentEditingIndex = customerId;

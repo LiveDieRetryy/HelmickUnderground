@@ -557,7 +557,16 @@ function printQuote() {
 // Download quote as PDF
 async function downloadQuotePDF() {
     try {
-        const { jsPDF } = window.jspdf;
+        // Check if jsPDF is loaded (handle both possible exports)
+        const jsPDFLib = window.jspdf || window.jsPDF;
+        if (!jsPDFLib) {
+            showNotification('PDF library is still loading. Please try again in a moment.', 'error');
+            console.error('jsPDF library not found on window object');
+            return;
+        }
+        
+        // Get jsPDF constructor
+        const jsPDF = jsPDFLib.jsPDF || jsPDFLib;
         const doc = new jsPDF({
             orientation: 'portrait',
             unit: 'pt',

@@ -765,14 +765,22 @@ function showNotification(message, type = 'success') {
 // Download invoice as PDF
 async function downloadInvoicePDF(id) {
     try {
+        // Check if jsPDF is loaded (handle both possible exports)
+        const jsPDFLib = window.jspdf || window.jsPDF;
+        if (!jsPDFLib) {
+            showNotification('PDF library is still loading. Please try again in a moment.', 'error');
+            console.error('jsPDF library not found on window object');
+            return;
+        }
+        
         const response = await fetch(`/api/invoices?action=get&id=${id}`);
         if (!response.ok) throw new Error('Failed to load invoice');
         
         const invoice = await response.json();
         const items = typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items;
         
-        // Get jsPDF from window
-        const { jsPDF } = window.jspdf;
+        // Get jsPDF constructor
+        const jsPDF = jsPDFLib.jsPDF || jsPDFLib;
         const doc = new jsPDF({
             orientation: 'portrait',
             unit: 'pt',
