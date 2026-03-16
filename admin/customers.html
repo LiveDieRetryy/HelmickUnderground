@@ -461,6 +461,33 @@
             transform: scale(1.05);
         }
 
+        .drag-handle {
+            cursor: grab;
+            font-size: 1.2rem;
+            color: rgba(255, 107, 26, 0.6);
+            padding: 0.5rem;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .drag-handle:hover {
+            color: var(--primary-color);
+            transform: scale(1.2);
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .dragging {
+            opacity: 0.5;
+            background: rgba(255, 107, 26, 0.1);
+        }
+
+        .drag-over {
+            border-top: 3px solid var(--primary-color);
+        }
+
         .form-group-full {
             grid-column: 1 / -1;
         }
@@ -639,6 +666,7 @@
                             <table style="width: 100%; border-collapse: collapse;">
                                 <thead>
                                     <tr style="background: rgba(255, 107, 26, 0.1); border-bottom: 2px solid rgba(255, 107, 26, 0.3);">
+                                        <th style="padding: 0.75rem; text-align: center; color: var(--primary-color); font-weight: 700; width: 40px;"></th>
                                         <th style="color: var(--white); padding: 0.75rem; text-align: left; font-weight: 700; width: 25%;">Code</th>
                                         <th style="color: var(--white); padding: 0.75rem; text-align: left; font-weight: 700; width: 40%;">Description (Internal)</th>
                                         <th style="color: var(--white); padding: 0.75rem; text-align: left; font-weight: 700; width: 20%;">Rate ($)</th>
@@ -647,7 +675,7 @@
                                 </thead>
                                 <tbody id="customLineItemsTable">
                                     <tr>
-                                        <td colspan="4" style="padding: 2rem; text-align: center; color: var(--gray);">No custom line items added yet</td>
+                                        <td colspan="5" style="padding: 2rem; text-align: center; color: var(--gray);">No custom line items added yet</td>
                                     </tr>
                                 </tbody>
                             </table>

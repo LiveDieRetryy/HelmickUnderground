@@ -535,12 +535,16 @@ function addCustomLineItemRow(code = '', description = '', rate = '') {
     const tableBody = document.getElementById('customLineItemsTable');
     
     // Remove empty state message if present
-    if (tableBody.querySelector('td[colspan="4"]')) {
+    if (tableBody.querySelector('td[colspan="5"]')) {
         tableBody.innerHTML = '';
     }
     
     const row = document.createElement('tr');
+    row.draggable = true;
     row.innerHTML = `
+        <td style="padding: 0.75rem; text-align: center;">
+            <span class="drag-handle">⋮⋮</span>
+        </td>
         <td style="padding: 0.75rem;">
             <input type="text" class="line-item-input line-item-code" placeholder="e.g., EXC-001" value="${code}" required>
         </td>
@@ -557,7 +561,74 @@ function addCustomLineItemRow(code = '', description = '', rate = '') {
         </td>
     `;
     
+    // Add drag event listeners
+    row.addEventListener('dragstart', handleDragStart);
+    row.addEventListener('dragover', handleDragOver);
+    row.addEventListener('drop', handleDrop);
+    row.addEventListener('dragend', handleDragEnd);
+    row.addEventListener('dragenter', handleDragEnter);
+    row.addEventListener('dragleave', handleDragLeave);
+    
     tableBody.appendChild(row);
+}
+
+// Drag and drop handlers
+let draggedRow = null;
+
+function handleDragStart(e) {
+    draggedRow = this;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.innerHTML);
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDragEnter(e) {
+    if (this !== draggedRow) {
+        this.classList.add('drag-over');
+    }
+}
+
+function handleDragLeave(e) {
+    this.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+    
+    if (draggedRow !== this) {
+        const tableBody = document.getElementById('customLineItemsTable');
+        const allRows = Array.from(tableBody.querySelectorAll('tr'));
+        const draggedIndex = allRows.indexOf(draggedRow);
+        const targetIndex = allRows.indexOf(this);
+        
+        if (draggedIndex < targetIndex) {
+            this.parentNode.insertBefore(draggedRow, this.nextSibling);
+        } else {
+            this.parentNode.insertBefore(draggedRow, this);
+        }
+    }
+    
+    return false;
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    
+    // Remove drag-over class from all rows
+    const allRows = document.querySelectorAll('#customLineItemsTable tr');
+    allRows.forEach(row => {
+        row.classList.remove('drag-over');
+    });
 }
 
 // Remove a line item row from the table
