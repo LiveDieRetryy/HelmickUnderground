@@ -732,9 +732,13 @@ async function downloadQuotePDF() {
         
         // Logo
         try {
-            const logoBase64 = await getLogoBase64();
-            if (logoBase64) {
-                doc.addImage(logoBase64, 'PNG', margin, yPos, 100, 50);
+            const logoData = await getLogoBase64();
+            if (logoData && logoData.dataURL) {
+                // Calculate aspect ratio to prevent crushing
+                const logoWidth = 120; // Max width in points
+                const aspectRatio = logoData.width / logoData.height;
+                const logoHeight = logoWidth / aspectRatio;
+                doc.addImage(logoData.dataURL, 'PNG', margin, yPos, logoWidth, logoHeight);
             }
         } catch (e) {
             console.error('Logo failed to load:', e);
@@ -937,7 +941,11 @@ async function getLogoBase64() {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0);
                 const dataURL = canvas.toDataURL('image/png');
-                resolve(dataURL);
+                resolve({
+                    dataURL: dataURL,
+                    width: img.width,
+                    height: img.height
+                });
             } catch (e) {
                 console.error('Canvas conversion error:', e);
                 reject(e);
