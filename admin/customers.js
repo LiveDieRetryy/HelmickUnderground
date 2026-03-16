@@ -300,6 +300,7 @@ async function deleteCustomer(customerId) {
     
     if (confirm(`Are you sure you want to delete ${customer.name}?\n\nThis will permanently remove this customer from your database.`)) {
         const element = document.querySelector(`[data-customer-id="${customerId}"]`);
+        const csrfToken = window.adminAuth?.getCsrfToken();
         
         if (element && window.optimisticUI) {
             // Use optimistic UI for instant feedback
@@ -307,7 +308,10 @@ async function deleteCustomer(customerId) {
                 element,
                 apiCall: async () => {
                     const response = await fetch(`/api/customers?id=${customerId}`, {
-                        method: 'DELETE'
+                        method: 'DELETE',
+                        headers: {
+                            ...(csrfToken && { 'x-csrf-token': csrfToken })
+                        }
                     });
                     if (!response.ok) throw new Error('Failed to delete customer');
                     return response.json();
@@ -319,7 +323,10 @@ async function deleteCustomer(customerId) {
             // Fallback to traditional approach
             try {
                 const response = await fetch(`/api/customers?id=${customerId}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: {
+                        ...(csrfToken && { 'x-csrf-token': csrfToken })
+                    }
                 });
                 
                 if (!response.ok) throw new Error('Failed to delete customer');
@@ -400,12 +407,16 @@ document.getElementById('customerForm').addEventListener('submit', async functio
     
     try {
         let response;
+        const csrfToken = window.adminAuth?.getCsrfToken();
         
         if (currentEditingIndex !== null) {
             // Update existing customer
             response = await fetch(`/api/customers?id=${currentEditingIndex}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    ...(csrfToken && { 'x-csrf-token': csrfToken })
+                },
                 body: JSON.stringify(customerData)
             });
             
