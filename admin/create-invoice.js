@@ -1926,8 +1926,8 @@ async function getLogoBase64() {
         img.crossOrigin = 'anonymous';
         img.onload = function() {
             try {
-                // Resize logo to reasonable dimensions for PDF (max 300px width)
-                const maxWidth = 300;
+                // Resize logo to small dimensions for PDF (max 150px width)
+                const maxWidth = 150;
                 const aspectRatio = img.width / img.height;
                 const targetWidth = Math.min(img.width, maxWidth);
                 const targetHeight = targetWidth / aspectRatio;
@@ -1943,8 +1943,8 @@ async function getLogoBase64() {
                 
                 ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
                 
-                // Use JPEG with quality 0.7 for much smaller file size
-                const dataURL = canvas.toDataURL('image/jpeg', 0.7);
+                // Use JPEG with quality 0.5 for minimal file size
+                const dataURL = canvas.toDataURL('image/jpeg', 0.5);
                 resolve({
                     dataURL: dataURL,
                     width: targetWidth,
