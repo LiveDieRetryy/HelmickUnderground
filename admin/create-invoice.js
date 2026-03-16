@@ -1679,7 +1679,7 @@ async function generateInvoicePDFBase64() {
                 const logoWidth = 120;
                 const aspectRatio = logoData.width / logoData.height;
                 logoHeight = logoWidth / aspectRatio;
-                doc.addImage(logoData.dataURL, 'PNG', margin, yPos, logoWidth, logoHeight);
+                doc.addImage(logoData.dataURL, 'JPEG', margin, yPos, logoWidth, logoHeight);
             }
         } catch (e) {
             console.error('Logo failed to load:', e);
@@ -1926,16 +1926,24 @@ async function getLogoBase64() {
         img.crossOrigin = 'anonymous';
         img.onload = function() {
             try {
+                // Resize logo to reasonable dimensions for PDF (max 300px width)
+                const maxWidth = 300;
+                const aspectRatio = img.width / img.height;
+                const targetWidth = Math.min(img.width, maxWidth);
+                const targetHeight = targetWidth / aspectRatio;
+                
                 const canvas = document.createElement('canvas');
-                canvas.width = img.width;
-                canvas.height = img.height;
+                canvas.width = targetWidth;
+                canvas.height = targetHeight;
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
-                const dataURL = canvas.toDataURL('image/png');
+                ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+                
+                // Use JPEG with quality 0.7 for much smaller file size
+                const dataURL = canvas.toDataURL('image/jpeg', 0.7);
                 resolve({
                     dataURL: dataURL,
-                    width: img.width,
-                    height: img.height
+                    width: targetWidth,
+                    height: targetHeight
                 });
             } catch (e) {
                 console.error('Canvas conversion error:', e);
