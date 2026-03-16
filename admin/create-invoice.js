@@ -87,20 +87,24 @@ function populateCustomerInfo(customer) {
     if (customer.customLineItems && customer.customLineItems.length > 0) {
         // Store custom line items globally
         window.customerCustomLineItems = customer.customLineItems;
+        window.currentCustomerName = customer.name;
         
-        // Switch to custom category and render customer's custom items
-        showCategory('customerCustom');
+        // Show and update the Customer Rates tab
+        const customerTab = document.getElementById('customerRatesTab');
+        customerTab.style.display = 'block';
+        customerTab.textContent = `${customer.name.split(' ')[0]}'s Rates`;
         
-        // Update tab to show it's customer-specific
-        const tabs = document.querySelectorAll('.category-tab');
-        if (tabs.length > 3) {
-            tabs[3].textContent = `${customer.name.split(' ')[0]}'s Rates`;
-        }
+        // Switch to customer rates tab
+        showCategory('customerRates');
         
-        showNotification(`Loaded ${customer.name} with ${customer.customLineItems.length} custom line items`, 'success');
+        showNotification(`Loaded ${customer.name} with ${customer.customLineItems.length} custom rates available`, 'success');
     } else {
-        // No custom items, show default base rates
+        // Hide customer rates tab if no custom items
         window.customerCustomLineItems = null;
+        window.currentCustomerName = null;
+        const customerTab = document.getElementById('customerRatesTab');
+        customerTab.style.display = 'none';
+        
         showNotification(`Customer information loaded for ${customer.name}`, 'success');
     }
 }
@@ -300,21 +304,28 @@ function loadCompanyProfile() {
     
     document.getElementById('customerAddress').value = addressParts.join('\n');
     
-    // If customer has custom line items, add them
+    // If customer has custom line items, show them in Customer Rates tab
     if (profile.lineItems && profile.lineItems.length > 0) {
-        // Clear existing line items
-        document.getElementById('lineItemsContainer').innerHTML = '';
-        lineItemCounter = 0;
+        // Store custom line items globally
+        window.customerCustomLineItems = profile.lineItems;
+        window.currentCustomerName = profile.name;
         
-        profile.lineItems.forEach(item => {
-            // Use code for invoice (what appears on the invoice), description is internal only
-            const invoiceText = item.code || item.description || item.name || '';
-            const rate = item.rate || item.price || 0;
-            addLineItem(invoiceText, 1, rate);
-        });
+        // Show and update the Customer Rates tab
+        const customerTab = document.getElementById('customerRatesTab');
+        customerTab.style.display = 'block';
+        customerTab.textContent = `${profile.name.split(' ')[0]}'s Rates`;
         
-        showNotification(`Loaded ${profile.name} with ${profile.lineItems.length} custom line items`, 'success');
+        // Switch to customer rates tab
+        showCategory('customerRates');
+        
+        showNotification(`Loaded ${profile.name} with ${profile.lineItems.length} custom rates available`, 'success');
     } else {
+        // Hide customer rates tab if no custom items
+        window.customerCustomLineItems = null;
+        window.currentCustomerName = null;
+        const customerTab = document.getElementById('customerRatesTab');
+        customerTab.style.display = 'none';
+        
         showNotification(`Customer information loaded for ${profile.name}`, 'success');
     }
 }
@@ -347,10 +358,18 @@ function showCategory(category) {
     if (category === 'baseRates') tabs[0].classList.add('active');
     else if (category === 'customWork') tabs[1].classList.add('active');
     else if (category === 'additionalItems') tabs[2].classList.add('active');
-    else if (category === 'custom' || category === 'customerCustom') tabs[3].classList.add('active');
+    else if (category === 'customerRates') {
+        // Find the customer rates tab (it might be hidden)
+        document.getElementById('customerRatesTab')?.classList.add('active');
+    }
+    else if (category === 'custom') {
+        // Custom item is now the last tab
+        const customTab = Array.from(tabs).find(tab => tab.textContent === 'Custom item');
+        customTab?.classList.add('active');
+    }
     
-    // Check if showing customer custom items
-    if (category === 'customerCustom' && window.customerCustomLineItems) {
+    // Render appropriate content
+    if (category === 'customerRates' && window.customerCustomLineItems) {
         renderCustomerLineItems();
     } else if (category === 'custom') {
         renderCustomForm();
@@ -370,12 +389,21 @@ function renderCustomerLineItems() {
         return;
     }
 
-    document.getElementById('ratesContainer').innerHTML = customItems.map((item, index) => `
-        <button type="button" class="rate-button" onclick="addRateAsLineItem('${item.description.replace(/'/g, "\\'")}', ${item.rate})">
-            <span class="rate-name">${item.description}</span>
-            <span class="rate-price">$${item.rate.toFixed(2)}</span>
-        </button>
-    `).join('');
+    document.getElementById('ratesContainer').innerHTML = customItems.map((item, index) => {
+        // Use code for display (what appears on invoice), show description as subtitle if available
+        const displayCode = item.code || item.description || item.name || 'No code';
+        const displayDescription = item.description && item.code ? item.description : '';
+        
+        return `
+            <button type="button" class="rate-button" onclick="addRateAsLineItem('${displayCode.replace(/'/g, "\\'")}', ${item.rate})">
+                <span class="rate-name">
+                    ${displayCode}
+                    ${displayDescription ? `<div style="font-size: 0.8rem; color: var(--gray); margin-top: 0.25rem;">${displayDescription}</div>` : ''}
+                </span>
+                <span class="rate-price">$${item.rate.toFixed(2)}</span>
+            </button>
+        `;
+    }).join('');
 }
 
 // Render rates for current category
