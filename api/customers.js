@@ -62,7 +62,7 @@ module.exports = async function handler(req, res) {
                 name VARCHAR(255) NOT NULL,
                 type VARCHAR(50) NOT NULL,
                 contact_person VARCHAR(255),
-                phone VARCHAR(50) NOT NULL,
+                phone VARCHAR(50),
                 email VARCHAR(255),
                 preferred_contact VARCHAR(50),
                 address TEXT,
@@ -75,6 +75,11 @@ module.exports = async function handler(req, res) {
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `;
+        
+        // Alter existing table to allow NULL for phone (migration for existing databases)
+        await sql`ALTER TABLE customers ALTER COLUMN phone DROP NOT NULL`.catch(() => {
+            // Ignore error if already nullable or table doesn't exist yet
+        });
         
         // Create indexes for frequently queried columns
         await sql`CREATE INDEX IF NOT EXISTS idx_customers_name ON customers(name)`;
