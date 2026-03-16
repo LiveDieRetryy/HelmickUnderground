@@ -13,7 +13,9 @@ let allInvoices = [];
  */
 async function loadInvoices() {
     try {
-        const response = await fetch('/api/invoices?action=all');
+        const response = await fetch('/api/invoices?action=all', {
+            credentials: 'include'
+        });
         if (!response.ok) throw new Error('Failed to load invoices');
         
         const data = await response.json();
@@ -135,7 +137,9 @@ function getStatusClass(status) {
 // Load statistics
 async function loadStats() {
     try {
-        const response = await fetch('/api/invoices?action=stats');
+        const response = await fetch('/api/invoices?action=stats', {
+            credentials: 'include'
+        });
         if (!response.ok) throw new Error('Failed to load stats');
         
         const stats = await response.json();
@@ -193,6 +197,7 @@ async function updateInvoiceStatus(id, status) {
                 const csrfToken = window.adminAuth?.getCsrfToken();
                 const response = await fetch(`/api/invoices?action=updateStatus&id=${id}`, {
                     method: 'PUT',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
                         ...(csrfToken && { 'x-csrf-token': csrfToken })
@@ -205,7 +210,9 @@ async function updateInvoiceStatus(id, status) {
                 // If status changed to paid, update linked submission to complete
                 if (status === 'paid') {
                     try {
-                        const subResponse = await fetch('/api/contact-submissions?action=all');
+                        const subResponse = await fetch('/api/contact-submissions?action=all', {
+                            credentials: 'include'
+                        });
                         if (subResponse.ok) {
                             const submissions = await subResponse.json();
                             const linkedSub = submissions.find(s => s.invoice_id == id);
@@ -213,6 +220,7 @@ async function updateInvoiceStatus(id, status) {
                             if (linkedSub) {
                                 await fetch('/api/contact-submissions', {
                                     method: 'PUT',
+                                    credentials: 'include',
                                     headers: {
                                         'Content-Type': 'application/json',
                                         ...(csrfToken && { 'x-csrf-token': csrfToken })
@@ -245,6 +253,7 @@ async function updateInvoiceStatus(id, status) {
         try {
             const response = await fetch(`/api/invoices?action=updateStatus&id=${id}`, {
                 method: 'PUT',
+                credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status })
             });
@@ -253,7 +262,9 @@ async function updateInvoiceStatus(id, status) {
             
             if (status === 'paid') {
                 try {
-                    const subResponse = await fetch('/api/contact-submissions?action=all');
+                    const subResponse = await fetch('/api/contact-submissions?action=all', {
+                        credentials: 'include'
+                    });
                     if (subResponse.ok) {
                         const submissions = await subResponse.json();
                         const linkedSub = submissions.find(s => s.invoice_id == id);
@@ -261,6 +272,7 @@ async function updateInvoiceStatus(id, status) {
                         if (linkedSub) {
                             await fetch('/api/contact-submissions', {
                                 method: 'PUT',
+                                credentials: 'include',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ id: linkedSub.id, status: 'completed' })
                             });
@@ -283,7 +295,9 @@ async function updateInvoiceStatus(id, status) {
 // View invoice
 async function viewInvoice(id) {
     try {
-        const response = await fetch(`/api/invoices?action=get&id=${id}`);
+        const response = await fetch(`/api/invoices?action=get&id=${id}`, {
+            credentials: 'include'
+        });
         if (!response.ok) throw new Error('Failed to load invoice');
         
         const invoice = await response.json();
@@ -459,7 +473,8 @@ async function confirmDeleteInvoice() {
     
     try {
         const response = await fetch(`/api/invoices?action=delete&id=${idToDelete}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            credentials: 'include'
         });
         
         if (!response.ok) {
@@ -479,7 +494,9 @@ async function confirmDeleteInvoice() {
 // Open send invoice modal with email preview
 async function openSendInvoiceModal(id) {
     try {
-        const response = await fetch(`/api/invoices?action=get&id=${id}`);
+        const response = await fetch(`/api/invoices?action=get&id=${id}`, {
+            credentials: 'include'
+        });
         if (!response.ok) throw new Error('Failed to load invoice');
         
         const invoice = await response.json();
@@ -674,6 +691,7 @@ async function sendInvoiceEmail(id) {
         // Send email via consolidated email API
         const response = await fetch('/api/send-email', {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -773,7 +791,9 @@ async function downloadInvoicePDF(id) {
             return;
         }
         
-        const response = await fetch(`/api/invoices?action=get&id=${id}`);
+        const response = await fetch(`/api/invoices?action=get&id=${id}`, {
+            credentials: 'include'
+        });
         if (!response.ok) throw new Error('Failed to load invoice');
         
         const invoice = await response.json();
@@ -1046,7 +1066,9 @@ async function getLogoBase64() {
 // Print invoice
 async function printInvoice(id) {
     try {
-        const response = await fetch(`/api/invoices?action=get&id=${id}`);
+        const response = await fetch(`/api/invoices?action=get&id=${id}`, {
+            credentials: 'include'
+        });
         if (!response.ok) throw new Error('Failed to load invoice');
         
         const invoice = await response.json();
