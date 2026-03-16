@@ -538,7 +538,9 @@ function setDefaultDates() {
 async function generateInvoiceNumber() {
     try {
         // Try to get existing invoices to determine next number
-        const response = await fetch('/api/invoices?action=all');
+        const response = await fetch('/api/invoices?action=all', {
+            credentials: 'include'
+        });
         let invoiceCount = 0;
         
         if (response.ok) {
@@ -748,6 +750,7 @@ document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
             // Update existing invoice
             response = await fetch(`/api/invoices?action=update&id=${invoiceId}`, {
                 method: 'PUT',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                     ...(csrfToken && { 'x-csrf-token': csrfToken })
@@ -758,6 +761,7 @@ document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
             // Create new invoice
             response = await fetch('/api/invoices?action=create', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                     ...(csrfToken && { 'x-csrf-token': csrfToken })
@@ -782,6 +786,7 @@ document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
                     const csrfToken = window.adminAuth?.getCsrfToken();
                     await fetch('/api/contact-submissions', {
                         method: 'PUT',
+                        credentials: 'include',
                         headers: {
                             'Content-Type': 'application/json',
                             ...(csrfToken && { 'x-csrf-token': csrfToken })
@@ -849,7 +854,9 @@ async function init() {
 // Load invoice data for editing
 async function loadInvoiceForEdit(id) {
     try {
-        const response = await fetch(`/api/invoices?action=get&id=${id}`);
+        const response = await fetch(`/api/invoices?action=get&id=${id}`, {
+            credentials: 'include' // Include auth cookies
+        });
         if (!response.ok) throw new Error('Failed to load invoice');
         
         const invoice = await response.json();
@@ -1006,6 +1013,7 @@ async function previewInvoice() {
         const csrfToken = window.adminAuth?.getCsrfToken();
         const response = await fetch('/api/invoices?action=create', {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
                 ...(csrfToken && { 'x-csrf-token': csrfToken })
@@ -1048,6 +1056,7 @@ async function previewInvoice() {
         if (submissionId && result.invoiceId) {
             await fetch('/api/contact-submissions', {
                 method: 'PUT',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                     ...(csrfToken && { 'x-csrf-token': csrfToken })
@@ -1761,6 +1770,7 @@ async function emailInvoice() {
         // Send email via consolidated email API
         const response = await fetch('/api/send-email', {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -1787,6 +1797,7 @@ async function emailInvoice() {
             const csrfToken = window.adminAuth?.getCsrfToken();
             await fetch(`/api/invoices?action=updateStatus&id=${window.currentInvoiceId}`, {
                 method: 'PUT',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                     ...(csrfToken && { 'x-csrf-token': csrfToken })
