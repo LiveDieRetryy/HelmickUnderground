@@ -427,7 +427,13 @@ document.getElementById('customerForm').addEventListener('submit', async functio
                 body: JSON.stringify(customerData)
             });
             
-            if (!response.ok) throw new Error('Failed to update customer');
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                console.error('Update failed:', response.status, errorData);
+                throw new Error(errorData.message || 'Failed to update customer');
+            }
+            
+            await response.json(); // Consume response body
             showNotification('Customer updated successfully', 'success');
         } else {
             // Add new customer
@@ -438,7 +444,13 @@ document.getElementById('customerForm').addEventListener('submit', async functio
                 body: JSON.stringify(customerData)
             });
             
-            if (!response.ok) throw new Error('Failed to add customer');
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                console.error('Create failed:', response.status, errorData);
+                throw new Error(errorData.message || 'Failed to add customer');
+            }
+            
+            await response.json(); // Consume response body
             showNotification('Customer added successfully', 'success');
         }
         
