@@ -31,7 +31,9 @@ async function loadCustomers(page = currentPage) {
     }
     
     try {
-        const response = await fetch(`/api/customers?action=all&page=${page}&limit=${itemsPerPage}`);
+        const response = await fetch(`/api/customers?action=all&page=${page}&limit=${itemsPerPage}`, {
+            credentials: 'include'
+        });
         if (!response.ok) throw new Error('Failed to load customers');
         
         const data = await response.json();
@@ -236,7 +238,9 @@ async function editCustomer(customerId) {
         
         // If not found in local array (pagination), fetch from API
         if (!customer) {
-            const response = await fetch(`/api/customers?action=get&id=${customerId}`);
+            const response = await fetch(`/api/customers?action=get&id=${customerId}`, {
+                credentials: 'include'
+            });
             if (!response.ok) {
                 showNotification('Customer not found', 'error');
                 return;
@@ -309,6 +313,7 @@ async function deleteCustomer(customerId) {
                 apiCall: async () => {
                     const response = await fetch(`/api/customers?id=${customerId}`, {
                         method: 'DELETE',
+                        credentials: 'include',
                         headers: {
                             ...(csrfToken && { 'x-csrf-token': csrfToken })
                         }
@@ -324,6 +329,7 @@ async function deleteCustomer(customerId) {
             try {
                 const response = await fetch(`/api/customers?id=${customerId}`, {
                     method: 'DELETE',
+                    credentials: 'include',
                     headers: {
                         ...(csrfToken && { 'x-csrf-token': csrfToken })
                     }
@@ -413,6 +419,7 @@ document.getElementById('customerForm').addEventListener('submit', async functio
             // Update existing customer
             response = await fetch(`/api/customers?id=${currentEditingIndex}`, {
                 method: 'PUT',
+                credentials: 'include',
                 headers: { 
                     'Content-Type': 'application/json',
                     ...(csrfToken && { 'x-csrf-token': csrfToken })
@@ -426,6 +433,7 @@ document.getElementById('customerForm').addEventListener('submit', async functio
             // Add new customer
             response = await fetch('/api/customers', {
                 method: 'POST',
+                credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(customerData)
             });
