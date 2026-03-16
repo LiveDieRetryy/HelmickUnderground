@@ -1936,6 +1936,11 @@ async function getLogoBase64() {
                 canvas.width = targetWidth;
                 canvas.height = targetHeight;
                 const ctx = canvas.getContext('2d');
+                
+                // Fill with white background (JPEG doesn't support transparency)
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, targetWidth, targetHeight);
+                
                 ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
                 
                 // Use JPEG with quality 0.7 for much smaller file size
