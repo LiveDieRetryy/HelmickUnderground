@@ -855,19 +855,22 @@ async function downloadInvoicePDF(id) {
         
         doc.setTextColor(0, 0, 0);
         doc.setFont('helvetica', 'bold');
-        doc.text(invoice.customer_name, midPoint, yPos + 35);
+        doc.text(String(invoice.customer_name || ''), midPoint, yPos + 35);
         
         doc.setTextColor(80, 80, 80);
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
         let billToY = yPos + 48;
         if (invoice.customer_address) {
-            doc.text(invoice.customer_address, midPoint, billToY);
+            doc.text(String(invoice.customer_address), midPoint, billToY);
             billToY += 13;
         }
-        doc.text(invoice.customer_email, midPoint, billToY);
+        if (invoice.customer_email) {
+            doc.text(String(invoice.customer_email), midPoint, billToY);
+        }
         if (invoice.customer_phone) {
-            doc.text(invoice.customer_phone, midPoint, billToY + 13);
+            billToY += (invoice.customer_email ? 13 : 0);
+            doc.text(String(invoice.customer_phone), midPoint, billToY);
         }
         
         yPos += 95;
@@ -889,7 +892,7 @@ async function downloadInvoicePDF(id) {
         doc.text('Invoice Number:', margin + 15, yPos + 15);
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(10);
-        doc.text(invoice.invoice_number, margin + 15, yPos + 30);
+        doc.text(String(invoice.invoice_number || ''), margin + 15, yPos + 30);
         
         // Invoice Date
         doc.setTextColor(100, 100, 100);
@@ -942,10 +945,10 @@ async function downloadInvoicePDF(id) {
             
             doc.setTextColor(40, 40, 40);
             doc.setFontSize(9);
-            doc.text(item.description, margin + 10, yPos + 16);
+            doc.text(String(item.description || ''), margin + 10, yPos + 16);
             
             doc.setTextColor(80, 80, 80);
-            doc.text(item.quantity.toString(), pageWidth - margin - 220, yPos + 16, { align: 'center' });
+            doc.text(String(item.quantity || 0), pageWidth - margin - 220, yPos + 16, { align: 'center' });
             doc.text(`$${item.rate.toFixed(2)}`, pageWidth - margin - 140, yPos + 16, { align: 'right' });
             
             doc.setTextColor(0, 0, 0);
@@ -994,7 +997,7 @@ async function downloadInvoicePDF(id) {
         doc.text(`$${parseFloat(invoice.total).toFixed(2)}`, pageWidth - margin - 10, yPos + 13, { align: 'right' });
         
         // Save the PDF
-        doc.save(`Invoice-${invoice.invoice_number}.pdf`);
+        doc.save(`Invoice-${invoice.invoice_number || 'Unknown'}.pdf`);
         
     } catch (error) {
         console.error('Error downloading PDF:', error);

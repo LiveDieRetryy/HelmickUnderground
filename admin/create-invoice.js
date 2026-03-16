@@ -1286,7 +1286,7 @@ async function downloadInvoicePDF() {
                 doc.setFont('helvetica', 'bold');
                 doc.text('Job Number:', margin + 15, jobY);
                 doc.setFont('helvetica', 'normal');
-                doc.text(jobNumber, margin + 85, jobY);
+                doc.text(String(jobNumber), margin + 85, jobY);
             }
             
             if (jobAddress) {
@@ -1294,7 +1294,7 @@ async function downloadInvoicePDF() {
                 doc.setFont('helvetica', 'bold');
                 doc.text('Job Location:', pageWidth / 2 + 10, jobY);
                 doc.setFont('helvetica', 'normal');
-                doc.text(locationText, pageWidth / 2 + 75, jobY);
+                doc.text(String(locationText), pageWidth / 2 + 75, jobY);
             }
             
             yPos += jobBoxHeight + 15;
@@ -1340,7 +1340,7 @@ async function downloadInvoicePDF() {
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
-            doc.text(businessName, billToX + 15, billToY);
+            doc.text(String(businessName), billToX + 15, billToY);
             billToY += 13;
         }
         
@@ -1348,7 +1348,7 @@ async function downloadInvoicePDF() {
             doc.setTextColor(80, 80, 80);
             doc.setFontSize(9);
             doc.setFont('helvetica', 'normal');
-            doc.text(contactPerson, billToX + 15, billToY);
+            doc.text(String(contactPerson), billToX + 15, billToY);
             billToY += 13;
         }
         
@@ -1363,12 +1363,12 @@ async function downloadInvoicePDF() {
         }
         
         if (customerEmail && billToY < yPos + 95) {
-            doc.text(customerEmail, billToX + 15, billToY);
+            doc.text(String(customerEmail), billToX + 15, billToY);
             billToY += 13;
         }
         
         if (customerPhone && billToY < yPos + 95) {
-            doc.text(customerPhone, billToX + 15, billToY);
+            doc.text(String(customerPhone), billToX + 15, billToY);
         }
         
         yPos += 115;
@@ -1385,7 +1385,7 @@ async function downloadInvoicePDF() {
         doc.text('Invoice Date:', margin + 15, yPos + 15);
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(10);
-        doc.text(invoiceDate, margin + 15, yPos + 28);
+        doc.text(String(invoiceDate), margin + 15, yPos + 28);
         
         doc.setTextColor(100, 100, 100);
         doc.setFontSize(8);
@@ -1393,7 +1393,7 @@ async function downloadInvoicePDF() {
         doc.setTextColor(255, 107, 26);
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
-        doc.text(dueDate, pageWidth - margin - 150, yPos + 28);
+        doc.text(String(dueDate), pageWidth - margin - 150, yPos + 28);
         
         yPos += 55;
         
@@ -1428,10 +1428,10 @@ async function downloadInvoicePDF() {
             doc.setTextColor(40, 40, 40);
             doc.setFontSize(9);
             const maxDescWidth = pageWidth - margin - 250;
-            doc.text(item.description, margin + 10, yPos + 14, { maxWidth: maxDescWidth });
+            doc.text(String(item.description || ''), margin + 10, yPos + 14, { maxWidth: maxDescWidth });
             doc.setTextColor(80, 80, 80);
-            doc.text(item.quantity.toString(), pageWidth - margin - 220, yPos + 14, { align: 'center' });
-            doc.text(`$${item.rate.toFixed(2)}`, pageWidth - margin - 140, yPos + 14, { align: 'right' });
+            doc.text(String(item.quantity || 0), pageWidth - margin - 220, yPos + 14, { align: 'center' });
+            doc.text(`$${(item.rate || 0).toFixed(2)}`, pageWidth - margin - 140, yPos + 14, { align: 'right' });
             doc.setTextColor(0, 0, 0);
             doc.setFont('helvetica', 'bold');
             doc.text(`$${item.amount.toFixed(2)}`, pageWidth - margin - 10, yPos + 14, { align: 'right' });
