@@ -472,9 +472,13 @@ async function confirmDeleteInvoice() {
     closeDeleteModal();
     
     try {
+        const csrfToken = window.adminAuth?.getCsrfToken();
         const response = await fetch(`/api/invoices?action=delete&id=${idToDelete}`, {
             method: 'DELETE',
-            credentials: 'include'
+            credentials: 'include',
+            headers: {
+                ...(csrfToken && { 'x-csrf-token': csrfToken })
+            }
         });
         
         if (!response.ok) {
