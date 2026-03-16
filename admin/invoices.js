@@ -692,9 +692,22 @@ async function sendInvoiceEmail(id) {
         // Get invoice data for metadata
         const invoice = invoices.find(inv => inv.id === id);
         
-        // Generate PDF as base64 for attachment
-        showNotification('Generating PDF attachment...', 'success');
-        const pdfBase64 = await generateInvoicePDFBase64(id);
+        // Generate PDF as base64 for attachment (skip if fails or too large)
+        let pdfBase64 = null;
+        try {
+            showNotification('Generating PDF attachment...', 'success');
+            pdfBase64 = await generateInvoicePDFBase64(id);
+            // Check if PDF is too large (over 3MB base64)
+            if (pdfBase64 && pdfBase64.length > 3 * 1024 * 1024) {
+                console.warn('PDF too large for email attachment, sending without attachment');
+                showNotification('PDF too large, sending email without attachment...', 'success');
+                pdfBase64 = null;
+            }
+        } catch (err) {
+            console.error('Failed to generate PDF for attachment:', err);
+            showNotification('Sending email without PDF attachment...', 'success');
+            // Continue without attachment
+        }
         
         // Send email via consolidated email API with PDF attachment
         const response = await fetch('/api/send-email', {
@@ -722,7 +735,17 @@ async function sendInvoiceEmail(id) {
             })
         });
 
-        const result = await response.json();
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get('content-type');
+        let result;
+        
+        if (contentType && contentType.includes('application/json')) {
+            result = await response.json();
+        } else {
+            // Response is not JSON, likely an error
+            const errorText = await response.text();
+            throw new Error(errorText || 'Server returned an invalid response');
+        }
         
         if (!response.ok || !result.success) {
             throw new Error(result.error || 'Failed to send email');

@@ -2023,8 +2023,19 @@ async function emailInvoice() {
             ? `Job #${jobNumber} - Invoice ${invoiceNumber} from Helmick Underground`
             : `Invoice ${invoiceNumber} from Helmick Underground`;
         
-        // Generate PDF as base64 for attachment
-        const pdfBase64 = await generateInvoicePDFBase64();
+        // Generate PDF as base64 for attachment (skip if fails or too large)
+        let pdfBase64 = null;
+        try {
+            pdfBase64 = await generateInvoicePDFBase64();
+            // Check if PDF is too large (over 3MB base64)
+            if (pdfBase64 && pdfBase64.length > 3 * 1024 * 1024) {
+                console.warn('PDF too large for email attachment, sending without attachment');
+                pdfBase64 = null;
+            }
+        } catch (err) {
+            console.error('Failed to generate PDF for attachment:', err);
+            // Continue without attachment
+        }
         
         // Create styled HTML email (same template as invoices.js)
         const emailHTML = `
@@ -2170,7 +2181,17 @@ async function emailInvoice() {
             })
         });
 
-        const result = await response.json();
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get('content-type');
+        let result;
+        
+        if (contentType && contentType.includes('application/json')) {
+            result = await response.json();
+        } else {
+            // Response is not JSON, likely an error
+            const errorText = await response.text();
+            throw new Error(errorText || 'Server returned an invalid response');
+        }
         
         if (!response.ok || !result.success) {
             throw new Error(result.error || 'Failed to send email');
