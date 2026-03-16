@@ -278,7 +278,7 @@ module.exports = async function handler(req, res) {
 
         // DELETE customer
         if (req.method === 'DELETE') {
-            const { id } = req.query;
+            const { id, action } = req.query;
 
             const { rows } = await sql`
                 DELETE FROM customers 
@@ -293,7 +293,7 @@ module.exports = async function handler(req, res) {
             // Log activity
             await logActivity('delete', 'customer', parseInt(id), req.user.email, { name: rows[0].name });
 
-            return res.status(200).json({ message: 'Customer deleted successfully' });
+            return res.status(200).json({ success: true, message: 'Customer deleted successfully' });
         }
 
         return sendErrorResponse(res, 'VALIDATION_ERROR', 'Invalid request');

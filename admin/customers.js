@@ -300,7 +300,10 @@ function closeCustomerModal() {
  */
 async function deleteCustomer(customerId) {
     const customer = customers.find(c => c.id === customerId);
-    if (!customer) return;
+    if (!customer) {
+        showNotification('Customer not found', 'error');
+        return;
+    }
     
     if (confirm(`Are you sure you want to delete ${customer.name}?\n\nThis will permanently remove this customer from your database.`)) {
         const element = document.querySelector(`[data-customer-id="${customerId}"]`);
@@ -308,26 +311,36 @@ async function deleteCustomer(customerId) {
         
         if (element && window.optimisticUI) {
             // Use optimistic UI for instant feedback
-            await window.optimisticUI.deleteItem({
-                element,
-                apiCall: async () => {
-                    const response = await fetch(`/api/customers?id=${customerId}`, {
-                        method: 'DELETE',
-                        credentials: 'include',
-                        headers: {
-                            ...(csrfToken && { 'x-csrf-token': csrfToken })
+            try {
+                await window.optimisticUI.deleteItem({
+                    element,
+                    apiCall: async () => {
+                        const response = await fetch(`/api/customers?action=delete&id=${customerId}`, {
+                            method: 'DELETE',
+                            credentials: 'include',
+                            headers: {
+                                ...(csrfToken && { 'x-csrf-token': csrfToken })
+                            }
+                        });
+                        if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({}));
+                            throw new Error(errorData.error || errorData.message || 'Failed to delete customer');
                         }
-                    });
-                    if (!response.ok) throw new Error('Failed to delete customer');
-                    return response.json();
-                },
-                animation: 'slide'
-            });
-            showNotification('Customer deleted successfully', 'success');
+                        return response.json();
+                    },
+                    animation: 'slide'
+                });
+                showNotification('Customer deleted successfully', 'success');
+                await loadCustomers(); // Refresh the list
+            } catch (error) {
+                console.error('Error deleting customer:', error);
+                showNotification('Error: ' + error.message, 'error');
+                await loadCustomers(); // Refresh in case of partial failure
+            }
         } else {
             // Fallback to traditional approach
             try {
-                const response = await fetch(`/api/customers?id=${customerId}`, {
+                const response = await fetch(`/api/customers?action=delete&id=${customerId}`, {
                     method: 'DELETE',
                     credentials: 'include',
                     headers: {
@@ -335,7 +348,10 @@ async function deleteCustomer(customerId) {
                     }
                 });
                 
-                if (!response.ok) throw new Error('Failed to delete customer');
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || errorData.message || 'Failed to delete customer');
+                }
                 
                 showNotification('Customer deleted successfully', 'success');
                 await loadCustomers();
