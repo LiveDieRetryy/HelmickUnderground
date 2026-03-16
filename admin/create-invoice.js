@@ -933,7 +933,12 @@ async function loadInvoiceForEdit(id) {
         document.getElementById('customerEmail').value = invoice.customer_email || '';
         document.getElementById('customerPhone').value = invoice.customer_phone || '';
         document.getElementById('customerAddress').value = invoice.customer_address || '';
-        document.getElementById('taxRate').value = invoice.tax_rate || 0;
+        
+        // Set Iowa work checkbox if tax was applied
+        const iowaCheckbox = document.getElementById('iowaWorkCheckbox');
+        if (iowaCheckbox && invoice.tax_rate > 0) {
+            iowaCheckbox.checked = true;
+        }
         
         // Load job information if available
         if (invoice.job_number) document.getElementById('jobNumber').value = invoice.job_number;
@@ -968,6 +973,9 @@ async function loadInvoiceForEdit(id) {
         if (titleEl) {
             titleEl.textContent = '✏️ Edit Invoice';
         }
+        
+        // Store invoice ID for later use (e.g., when emailing)
+        window.currentInvoiceId = id;
         
     } catch (error) {
         console.error('Error loading invoice:', error);
