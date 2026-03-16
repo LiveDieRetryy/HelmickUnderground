@@ -299,14 +299,18 @@ function closeCustomerModal() {
  * @throws {Error} If deletion fails
  */
 async function deleteCustomer(customerId) {
-    const customer = customers.find(c => c.id === customerId);
+    // Convert to number to ensure proper comparison
+    const customerIdNum = parseInt(customerId);
+    const customer = customers.find(c => parseInt(c.id) === customerIdNum);
+    
     if (!customer) {
+        console.error('Customer not found in local array. ID:', customerId, 'Customers:', customers.map(c => c.id));
         showNotification('Customer not found', 'error');
         return;
     }
     
     if (confirm(`Are you sure you want to delete ${customer.name}?\n\nThis will permanently remove this customer from your database.`)) {
-        const element = document.querySelector(`[data-customer-id="${customerId}"]`);
+        const element = document.querySelector(`[data-customer-id="${customerIdNum}"]`);
         const csrfToken = window.adminAuth?.getCsrfToken();
         
         if (element && window.optimisticUI) {
@@ -315,7 +319,7 @@ async function deleteCustomer(customerId) {
                 await window.optimisticUI.deleteItem({
                     element,
                     apiCall: async () => {
-                        const response = await fetch(`/api/customers?action=delete&id=${customerId}`, {
+                        const response = await fetch(`/api/customers?action=delete&id=${customerIdNum}`, {
                             method: 'DELETE',
                             credentials: 'include',
                             headers: {
@@ -340,7 +344,7 @@ async function deleteCustomer(customerId) {
         } else {
             // Fallback to traditional approach
             try {
-                const response = await fetch(`/api/customers?action=delete&id=${customerId}`, {
+                const response = await fetch(`/api/customers?action=delete&id=${customerIdNum}`, {
                     method: 'DELETE',
                     credentials: 'include',
                     headers: {
