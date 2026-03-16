@@ -1078,8 +1078,15 @@ async function previewInvoice() {
     // Save invoice to database as draft
     try {
         const csrfToken = window.adminAuth?.getCsrfToken();
-        const response = await fetch('/api/invoices?action=create', {
-            method: 'POST',
+        
+        // Determine if this is an update or create
+        const isUpdate = window.currentInvoiceId;
+        const action = isUpdate ? 'update' : 'create';
+        const url = isUpdate ? `/api/invoices?action=update&id=${window.currentInvoiceId}` : '/api/invoices?action=create';
+        const method = isUpdate ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method,
             credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
@@ -1116,8 +1123,10 @@ async function previewInvoice() {
             throw new Error(result.error || 'Failed to save invoice');
         }
         
-        // Store invoice ID globally for later use
-        window.currentInvoiceId = result.invoiceId;
+        // Store invoice ID globally for later use (only needed for new invoices)
+        if (!isUpdate) {
+            window.currentInvoiceId = result.invoiceId;
+        }
         
         // If from quote, update submission with invoice_id
         if (submissionId && result.invoiceId) {
