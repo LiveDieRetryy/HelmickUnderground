@@ -26,10 +26,8 @@ async function logActivity(action, resource, resourceId, adminEmail, details = {
     }
 }
 
-// Export logActivity for use in other APIs
-module.exports.logActivity = logActivity;
-
-module.exports = async function handler(req, res) {
+// Main handler function
+async function handler(req, res) {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -154,3 +152,7 @@ module.exports = async function handler(req, res) {
         return res.status(500).json({ error: 'Internal server error', details: error.message });
     }
 }
+
+// Export both the handler (default) and logActivity function
+module.exports = handler;
+module.exports.logActivity = logActivity;
