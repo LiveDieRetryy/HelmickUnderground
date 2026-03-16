@@ -106,24 +106,44 @@ function populateCustomerInfo(customer) {
 }
 
 // Load customers from localStorage as company profiles
-function loadProfiles() {
-    const saved = localStorage.getItem('customers');
-    const customers = saved ? JSON.parse(saved) : [];
-    
-    // Convert all customers to profile format
-    companyProfiles = customers.map(customer => ({
-        name: customer.name,
-        email: customer.email,
-        phone: customer.phone,
-        address: customer.address,
-        city: customer.city,
-        state: customer.state,
-        zip: customer.zip,
-        contactPerson: customer.contactPerson,
-        lineItems: customer.customLineItems || []
-    }));
-    
-    updateProfileDropdown();
+async function loadProfiles() {
+    try {
+        // Fetch customers from database API
+        const response = await fetch('/api/customers?action=all', {
+            credentials: 'include'
+        });
+        
+        if (!response.ok) {
+            console.error('Failed to load customers:', response.status);
+            companyProfiles = [];
+            updateProfileDropdown();
+            return;
+        }
+        
+        const data = await response.json();
+        
+        // Handle both old (array) and new (object with pagination) response formats
+        const customers = Array.isArray(data) ? data : (data.customers || []);
+        
+        // Convert all customers to profile format
+        companyProfiles = customers.map(customer => ({
+            name: customer.name,
+            email: customer.email,
+            phone: customer.phone,
+            address: customer.address,
+            city: customer.city,
+            state: customer.state,
+            zip: customer.zip,
+            contactPerson: customer.contact_person,
+            lineItems: customer.custom_line_items || []
+        }));
+        
+        updateProfileDropdown();
+    } catch (error) {
+        console.error('Error loading customer profiles:', error);
+        companyProfiles = [];
+        updateProfileDropdown();
+    }
 }
 
 // Update profile dropdown
@@ -242,12 +262,11 @@ function saveNewProfile() {
 
 // Delete profile
 function deleteProfile(index) {
-    if (!confirm(`Delete profile "${companyProfiles[index].name}"?`)) return;
+    alert('To delete or edit customers, please use the Customer Management page.');
+    return;
     
-    companyProfiles.splice(index, 1);
-    localStorage.setItem('companyProfiles', JSON.stringify(companyProfiles));
-    displayProfiles();
-    updateProfileDropdown();
+    // Note: Customer deletion is now handled through the Customer Management page
+    // This function is kept for backwards compatibility but redirects users
 }
 
 // Load company profile into form
@@ -819,7 +838,7 @@ async function init() {
     setDefaultDates();
     await generateInvoiceNumber();
     await loadRates();
-    loadProfiles();
+    await loadProfiles();
     
     // Check if coming from customer database
     const customerData = sessionStorage.getItem('invoiceCustomer');
