@@ -633,20 +633,21 @@
                         <label style="color: var(--primary-color); font-size: 1.1rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 700;">
                             <span>💰</span> Custom Line Items (Optional)
                         </label>
-                        <p style="color: var(--gray); font-size: 0.9rem; margin: 0 0 1.5rem 0;">Add custom pricing codes for this customer. These will automatically appear when creating invoices.</p>
+                        <p style="color: var(--gray); font-size: 0.9rem; margin: 0 0 1.5rem 0;">Add custom pricing codes for this customer. The code will appear on invoices, description is for your internal reference.</p>
                         
                         <div style="background: rgba(255, 107, 26, 0.05); border: 2px solid rgba(255, 107, 26, 0.2); border-radius: 12px; padding: 1.5rem; overflow-x: auto;">
                             <table style="width: 100%; border-collapse: collapse;">
                                 <thead>
                                     <tr style="background: rgba(255, 107, 26, 0.1); border-bottom: 2px solid rgba(255, 107, 26, 0.3);">
-                                        <th style="color: var(--white); padding: 0.75rem; text-align: left; font-weight: 700; width: 60%;">Description</th>
-                                        <th style="color: var(--white); padding: 0.75rem; text-align: left; font-weight: 700; width: 25%;">Rate ($)</th>
+                                        <th style="color: var(--white); padding: 0.75rem; text-align: left; font-weight: 700; width: 25%;">Code</th>
+                                        <th style="color: var(--white); padding: 0.75rem; text-align: left; font-weight: 700; width: 40%;">Description (Internal)</th>
+                                        <th style="color: var(--white); padding: 0.75rem; text-align: left; font-weight: 700; width: 20%;">Rate ($)</th>
                                         <th style="color: var(--white); padding: 0.75rem; text-align: center; font-weight: 700; width: 15%;">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="customLineItemsTable">
                                     <tr>
-                                        <td colspan="3" style="padding: 2rem; text-align: center; color: var(--gray);">No custom line items added yet</td>
+                                        <td colspan="4" style="padding: 2rem; text-align: center; color: var(--gray);">No custom line items added yet</td>
                                     </tr>
                                 </tbody>
                             </table>

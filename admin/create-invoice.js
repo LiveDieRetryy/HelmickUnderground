@@ -197,8 +197,13 @@ function displayProfiles() {
             <div style="background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 1rem; max-height: 200px; overflow-y: auto;">
                 ${profile.lineItems.map(item => `
                     <div style="color: var(--gray); padding: 0.5rem 0; border-bottom: 1px solid rgba(255, 107, 26, 0.1);">
-                        <span style="color: var(--white);">${item.description}</span> - 
-                        <span style="color: var(--primary-color); font-weight: 600;">$${item.rate.toFixed(2)}</span>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <span style="color: var(--white); font-weight: 600;">${item.code || item.description || 'No code'}</span>
+                                ${item.description ? `<div style="font-size: 0.85rem; color: var(--gray); margin-top: 0.25rem;">${item.description}</div>` : ''}
+                            </div>
+                            <span style="color: var(--primary-color); font-weight: 600;">$${item.rate.toFixed(2)}</span>
+                        </div>
                     </div>
                 `).join('')}
             </div>
@@ -302,9 +307,10 @@ function loadCompanyProfile() {
         lineItemCounter = 0;
         
         profile.lineItems.forEach(item => {
-            const description = item.description || item.name || '';
+            // Use code for invoice (what appears on the invoice), description is internal only
+            const invoiceText = item.code || item.description || item.name || '';
             const rate = item.rate || item.price || 0;
-            addLineItem(description, 1, rate);
+            addLineItem(invoiceText, 1, rate);
         });
         
         showNotification(`Loaded ${profile.name} with ${profile.lineItems.length} custom line items`, 'success');

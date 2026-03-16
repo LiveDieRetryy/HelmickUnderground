@@ -269,10 +269,10 @@ async function editCustomer(customerId) {
         
         if (customer.custom_line_items && customer.custom_line_items.length > 0) {
             customer.custom_line_items.forEach(item => {
-                addCustomLineItemRow(item.description, item.rate);
+                addCustomLineItemRow(item.code || '', item.description || '', item.rate);
             });
         } else {
-            tableBody.innerHTML = '<tr><td colspan="3" style="padding: 2rem; text-align: center; color: var(--gray);">No custom line items added yet</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="4" style="padding: 2rem; text-align: center; color: var(--gray);">No custom line items added yet</td></tr>';
         }
         
         document.getElementById('customerModal').style.display = 'block';
@@ -383,15 +383,17 @@ document.getElementById('customerForm').addEventListener('submit', async functio
     const rows = document.querySelectorAll('#customLineItemsTable tr');
     
     rows.forEach(row => {
-        const descInput = row.querySelector('.line-item-input:not(.line-item-rate)');
+        const codeInput = row.querySelector('.line-item-code');
+        const descInput = row.querySelector('.line-item-description');
         const rateInput = row.querySelector('.line-item-rate');
         
-        if (descInput && rateInput) {
-            const description = descInput.value.trim();
+        if (codeInput && rateInput) {
+            const code = codeInput.value.trim();
+            const description = descInput ? descInput.value.trim() : '';
             const rate = parseFloat(rateInput.value);
             
-            if (description && !isNaN(rate) && rate > 0) {
-                customLineItems.push({ description, rate });
+            if (code && !isNaN(rate) && rate > 0) {
+                customLineItems.push({ code, description, rate });
             }
         }
     });
@@ -529,18 +531,21 @@ window.addEventListener('click', function(e) {
 });
 
 // Add a new line item row to the table
-function addCustomLineItemRow(description = '', rate = '') {
+function addCustomLineItemRow(code = '', description = '', rate = '') {
     const tableBody = document.getElementById('customLineItemsTable');
     
     // Remove empty state message if present
-    if (tableBody.querySelector('td[colspan="3"]')) {
+    if (tableBody.querySelector('td[colspan="4"]')) {
         tableBody.innerHTML = '';
     }
     
     const row = document.createElement('tr');
     row.innerHTML = `
         <td style="padding: 0.75rem;">
-            <input type="text" class="line-item-input" placeholder="Enter description..." value="${description}" required>
+            <input type="text" class="line-item-input line-item-code" placeholder="e.g., EXC-001" value="${code}" required>
+        </td>
+        <td style="padding: 0.75rem;">
+            <input type="text" class="line-item-input line-item-description" placeholder="Internal description..." value="${description}">
         </td>
         <td style="padding: 0.75rem;">
             <input type="number" class="line-item-input line-item-rate" placeholder="0.00" step="0.01" min="0" value="${rate}" required>
@@ -564,7 +569,7 @@ function removeCustomLineItemRow(btn) {
     
     // If no rows left, show empty state
     if (tableBody.querySelectorAll('tr').length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="3" style="padding: 2rem; text-align: center; color: var(--gray);">No custom line items added yet</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="4" style="padding: 2rem; text-align: center; color: var(--gray);">No custom line items added yet</td></tr>';
     }
 }
 
