@@ -281,15 +281,22 @@ async function buildRates({ recipientEmail, ratesData }) {
     };
 }
 
-function buildCustom({ to, subject, html, name, metadata }) {
+function buildCustom({ to, subject, html, name, metadata, attachments }) {
     if (!to || !subject || !html) {
         throw new Error('Missing required fields: to, subject, html');
     }
 
-    return {
+    const emailConfig = {
         from: 'Helmick Underground <noreply@helmickunderground.com>',
         to: [to],
         subject,
         html
     };
+
+    // Add attachments if provided
+    if (attachments && attachments.length > 0) {
+        emailConfig.attachments = attachments;
+    }
+
+    return emailConfig;
 }

@@ -692,7 +692,11 @@ async function sendInvoiceEmail(id) {
         // Get invoice data for metadata
         const invoice = invoices.find(inv => inv.id === id);
         
-        // Send email via consolidated email API
+        // Generate PDF as base64 for attachment
+        showNotification('Generating PDF attachment...', 'success');
+        const pdfBase64 = await generateInvoicePDFBase64(id);
+        
+        // Send email via consolidated email API with PDF attachment
         const response = await fetch('/api/send-email', {
             method: 'POST',
             credentials: 'include',
@@ -708,7 +712,13 @@ async function sendInvoiceEmail(id) {
                 metadata: {
                     invoiceId: id,
                     invoiceNumber: invoice?.invoice_number
-                }
+                },
+                attachments: pdfBase64 ? [
+                    {
+                        filename: `Invoice-${invoice?.invoice_number || id}.pdf`,
+                        content: pdfBase64
+                    }
+                ] : []
             })
         });
 
@@ -1032,6 +1042,237 @@ async function downloadInvoicePDF(id) {
     } catch (error) {
         console.error('Error downloading PDF:', error);
         showNotification('Failed to generate PDF', 'error');
+    }
+}
+
+// Generate invoice PDF as base64 for email attachment
+async function generateInvoicePDFBase64(id) {
+    try {
+        // Check if jsPDF is loaded
+        const jsPDFLib = window.jspdf || window.jsPDF;
+        if (!jsPDFLib) {
+            console.error('jsPDF library not found');
+            return null;
+        }
+        
+        const response = await fetch(`/api/invoices?action=get&id=${id}`, {
+            credentials: 'include'
+        });
+        if (!response.ok) throw new Error('Failed to load invoice');
+        
+        const invoice = await response.json();
+        const items = typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items;
+        
+        // Get jsPDF constructor
+        const jsPDF = jsPDFLib.jsPDF || jsPDFLib;
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'pt',
+            format: 'letter'
+        });
+        
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 50;
+        
+        // White background
+        doc.setFillColor(255, 255, 255);
+        doc.rect(0, 0, pageWidth, pageHeight, 'F');
+        
+        let yPos = margin;
+        let logoHeight = 0;
+        
+        // Add logo
+        try {
+            const logoData = await getLogoBase64();
+            if (logoData && logoData.dataURL) {
+                const logoWidth = 120;
+                const aspectRatio = logoData.width / logoData.height;
+                logoHeight = logoWidth / aspectRatio;
+                doc.addImage(logoData.dataURL, 'PNG', margin, yPos, logoWidth, logoHeight);
+            }
+        } catch (e) {
+            console.error('Logo failed to load:', e);
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Helmick Underground', margin, yPos + 20);
+            logoHeight = 30;
+        }
+        
+        // INVOICE header
+        doc.setFillColor(255, 107, 26);
+        doc.roundedRect(pageWidth - margin - 120, yPos, 120, 35, 3, 3, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('INVOICE', pageWidth - margin - 60, yPos + 23, { align: 'center' });
+        
+        yPos += Math.max(logoHeight + 20, 60);
+        
+        // From/Bill To Section
+        doc.setFillColor(245, 245, 245);
+        doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 80, 3, 3, 'F');
+        doc.setFillColor(255, 107, 26);
+        doc.rect(margin, yPos + 78, pageWidth - 2 * margin, 2, 'F');
+        
+        // From section
+        doc.setTextColor(255, 107, 26);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('From:', margin + 15, yPos + 20);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Helmick Underground', margin + 15, yPos + 35);
+        doc.setTextColor(80, 80, 80);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.text('498 Elbow Creek Rd, Mount Vernon, IA 52314', margin + 15, yPos + 48);
+        doc.text('HelmickUnderground@gmail.com', margin + 15, yPos + 61);
+        
+        // Bill To section
+        const midPoint = pageWidth / 2 + 20;
+        doc.setTextColor(255, 107, 26);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Bill To:', midPoint, yPos + 20);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont('helvetica', 'bold');
+        doc.text(String(invoice.customer_name || ''), midPoint, yPos + 35);
+        doc.setTextColor(80, 80, 80);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        let billToY = yPos + 48;
+        if (invoice.customer_address) {
+            doc.text(String(invoice.customer_address), midPoint, billToY);
+            billToY += 13;
+        }
+        if (invoice.customer_email) {
+            doc.text(String(invoice.customer_email), midPoint, billToY);
+        }
+        if (invoice.customer_phone) {
+            billToY += (invoice.customer_email ? 13 : 0);
+            doc.text(String(invoice.customer_phone), midPoint, billToY);
+        }
+        
+        yPos += 95;
+        
+        // Invoice Details Box
+        doc.setFillColor(245, 245, 245);
+        doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 45, 3, 3, 'F');
+        doc.setFillColor(255, 107, 26);
+        doc.rect(margin, yPos, 3, 45, 'F');
+        
+        const detailWidth = (pageWidth - 2 * margin) / 3;
+        
+        // Invoice Number
+        doc.setTextColor(100, 100, 100);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Invoice Number:', margin + 15, yPos + 15);
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.text(String(invoice.invoice_number || ''), margin + 15, yPos + 30);
+        
+        // Invoice Date
+        doc.setTextColor(100, 100, 100);
+        doc.setFontSize(8);
+        doc.text('Invoice Date:', margin + detailWidth + 15, yPos + 15);
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.text(new Date(invoice.invoice_date).toLocaleDateString(), margin + detailWidth + 15, yPos + 30);
+        
+        // Due Date
+        doc.setTextColor(100, 100, 100);
+        doc.setFontSize(8);
+        doc.text('Due Date:', margin + detailWidth * 2 + 15, yPos + 15);
+        doc.setTextColor(255, 107, 26);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text(new Date(invoice.due_date).toLocaleDateString(), margin + detailWidth * 2 + 15, yPos + 30);
+        
+        yPos += 60;
+        
+        // Line Items Table
+        doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(1);
+        
+        // Table Header
+        doc.setFillColor(240, 240, 240);
+        doc.rect(margin, yPos, pageWidth - 2 * margin, 30, 'FD');
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Description', margin + 10, yPos + 18);
+        doc.text('Qty', pageWidth - margin - 220, yPos + 18, { align: 'center' });
+        doc.text('Rate', pageWidth - margin - 140, yPos + 18, { align: 'right' });
+        doc.text('Amount', pageWidth - margin - 10, yPos + 18, { align: 'right' });
+        
+        yPos += 30;
+        
+        // Table Rows
+        doc.setFont('helvetica', 'normal');
+        items.forEach((item, index) => {
+            if (index % 2 === 0) {
+                doc.setFillColor(250, 250, 250);
+                doc.rect(margin, yPos, pageWidth - 2 * margin, 25, 'F');
+            }
+            doc.setDrawColor(230, 230, 230);
+            doc.line(margin, yPos + 25, pageWidth - margin, yPos + 25);
+            doc.setTextColor(40, 40, 40);
+            doc.setFontSize(9);
+            doc.text(String(item.description || ''), margin + 10, yPos + 16);
+            doc.setTextColor(80, 80, 80);
+            doc.text(String(item.quantity || 0), pageWidth - margin - 220, yPos + 16, { align: 'center' });
+            doc.text(`$${item.rate.toFixed(2)}`, pageWidth - margin - 140, yPos + 16, { align: 'right' });
+            doc.setTextColor(0, 0, 0);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`$${(item.quantity * item.rate).toFixed(2)}`, pageWidth - margin - 10, yPos + 16, { align: 'right' });
+            doc.setFont('helvetica', 'normal');
+            yPos += 25;
+        });
+        
+        // Orange separator line
+        doc.setDrawColor(255, 107, 26);
+        doc.setLineWidth(2);
+        doc.line(margin, yPos, pageWidth - margin, yPos);
+        yPos += 15;
+        
+        // Subtotal
+        doc.setTextColor(80, 80, 80);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Subtotal:', pageWidth - margin - 150, yPos, { align: 'right' });
+        doc.setTextColor(0, 0, 0);
+        doc.text(`$${parseFloat(invoice.subtotal || 0).toFixed(2)}`, pageWidth - margin - 10, yPos, { align: 'right' });
+        yPos += 20;
+        
+        // Tax
+        if (invoice.tax_rate > 0) {
+            doc.setTextColor(80, 80, 80);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Tax (${invoice.tax_rate}%):`, pageWidth - margin - 150, yPos, { align: 'right' });
+            doc.setTextColor(0, 0, 0);
+            doc.text(`$${parseFloat(invoice.tax || 0).toFixed(2)}`, pageWidth - margin - 10, yPos, { align: 'right' });
+            yPos += 20;
+        }
+        
+        // Total Due
+        doc.setFillColor(255, 107, 26);
+        doc.roundedRect(margin, yPos - 5, pageWidth - 2 * margin, 30, 3, 3, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Total Due:', pageWidth - margin - 150, yPos + 13, { align: 'right' });
+        doc.text(`$${parseFloat(invoice.total).toFixed(2)}`, pageWidth - margin - 10, yPos + 13, { align: 'right' });
+        
+        // Return PDF as base64 string (without data:application/pdf;base64, prefix)
+        const pdfBase64 = doc.output('datauristring').split(',')[1];
+        return pdfBase64;
+        
+    } catch (error) {
+        console.error('Error generating PDF for attachment:', error);
+        return null;
     }
 }
 

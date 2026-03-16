@@ -394,8 +394,14 @@ function renderCustomerLineItems() {
         const displayCode = item.code || item.description || item.name || 'No code';
         const displayDescription = item.description && item.code ? item.description : '';
         
+        // Create combined text for invoice line item (code + description)
+        let invoiceLineText = displayCode;
+        if (displayDescription) {
+            invoiceLineText = `${displayCode} - ${displayDescription}`;
+        }
+        
         return `
-            <button type="button" class="rate-button" onclick="addRateAsLineItem('${displayCode.replace(/'/g, "\\'")}', ${item.rate})">
+            <button type="button" class="rate-button" onclick="addRateAsLineItem('${invoiceLineText.replace(/'/g, "\\'")}', ${item.rate})">
                 <span class="rate-name">
                     ${displayCode}
                     ${displayDescription ? `<div style="font-size: 0.8rem; color: var(--gray); margin-top: 0.25rem;">${displayDescription}</div>` : ''}
@@ -1588,6 +1594,314 @@ async function downloadInvoicePDF() {
     }
 }
 
+// Generate invoice PDF as base64 for email attachment (same as downloadInvoicePDF but returns base64)
+async function generateInvoicePDFBase64() {
+    try {
+        const jsPDFLib = window.jspdf || window.jsPDF;
+        if (!jsPDFLib) {
+            console.error('jsPDF library not found');
+            return null;
+        }
+        
+        const jsPDF = jsPDFLib.jsPDF || jsPDFLib;
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'pt',
+            format: 'letter'
+        });
+        
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 50;
+        
+        // Get invoice data from form
+        const items = Array.from(document.querySelectorAll('.line-item')).map(item => ({
+            description: item.querySelector('.item-description').value,
+            quantity: parseFloat(item.querySelector('.item-quantity').value),
+            rate: parseFloat(item.querySelector('.item-rate').value),
+            amount: parseFloat(item.querySelector('.item-quantity').value) * parseFloat(item.querySelector('.item-rate').value)
+        })).filter(item => item.quantity > 0 && item.description);
+        
+        const iowaWork = document.getElementById('iowaWorkCheckbox')?.checked || false;
+        const subtotal = items.reduce((sum, item) => sum + item.amount, 0);
+        const taxRate = iowaWork ? 0.07 : 0;
+        const tax = subtotal * taxRate;
+        const total = subtotal + tax;
+        
+        const invoiceNumber = document.getElementById('invoiceNumber').value;
+        const invoiceDate = new Date(document.getElementById('invoiceDate').value).toLocaleDateString();
+        const dueDate = new Date(document.getElementById('dueDate').value).toLocaleDateString();
+        const customerName = document.getElementById('customerName').value;
+        const customerEmail = document.getElementById('customerEmail').value;
+        const customerPhone = document.getElementById('customerPhone').value;
+        const customerAddress = document.getElementById('customerAddress').value;
+        const jobNumber = document.getElementById('jobNumber')?.value || '';
+        const jobAddress = document.getElementById('jobAddress')?.value || '';
+        const jobCity = document.getElementById('jobCity')?.value || '';
+        const jobState = document.getElementById('jobState')?.value || '';
+        
+        let businessName = customerName;
+        let contactPerson = '';
+        if (customerName.includes(' - Attn: ')) {
+            const parts = customerName.split(' - Attn: ');
+            businessName = parts[0];
+            contactPerson = parts[1];
+        }
+        
+        // White background
+        doc.setFillColor(255, 255, 255);
+        doc.rect(0, 0, pageWidth, pageHeight, 'F');
+        
+        let yPos = margin;
+        let logoHeight = 0;
+        
+        // Logo
+        try {
+            const logoData = await getLogoBase64();
+            if (logoData && logoData.dataURL) {
+                const logoWidth = 120;
+                const aspectRatio = logoData.width / logoData.height;
+                logoHeight = logoWidth / aspectRatio;
+                doc.addImage(logoData.dataURL, 'PNG', margin, yPos, logoWidth, logoHeight);
+            }
+        } catch (e) {
+            console.error('Logo failed to load:', e);
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Helmick Underground', margin, yPos + 20);
+            logoHeight = 30;
+        }
+        
+        // INVOICE header
+        doc.setFillColor(255, 255, 255);
+        doc.setDrawColor(255, 107, 26);
+        doc.setLineWidth(2);
+        doc.roundedRect(pageWidth - margin - 140, yPos, 140, 50, 3, 3, 'FD');
+        doc.setTextColor(255, 107, 26);
+        doc.setFontSize(20);
+        doc.setFont('helvetica', 'bold');
+        doc.text('INVOICE', pageWidth - margin - 70, yPos + 25, { align: 'center' });
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`#${invoiceNumber}`, pageWidth - margin - 70, yPos + 40, { align: 'center' });
+        
+        yPos += Math.max(logoHeight + 20, 65);
+        
+        // Project Information (if provided)
+        if (jobNumber || jobAddress) {
+            doc.setFillColor(255, 243, 230);
+            const jobBoxHeight = 45;
+            doc.roundedRect(margin, yPos, pageWidth - 2 * margin, jobBoxHeight, 3, 3, 'F');
+            doc.setFillColor(255, 107, 26);
+            doc.rect(margin, yPos, 3, jobBoxHeight, 'F');
+            
+            doc.setTextColor(255, 107, 26);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Project Information', margin + 15, yPos + 15);
+            
+            let jobY = yPos + 28;
+            doc.setTextColor(80, 80, 80);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+            
+            if (jobNumber) {
+                doc.setFont('helvetica', 'bold');
+                doc.text('Job Number:', margin + 15, jobY);
+                doc.setFont('helvetica', 'normal');
+                doc.text(String(jobNumber), margin + 85, jobY);
+            }
+            
+            if (jobAddress) {
+                const locationText = `${jobAddress}${jobCity ? `, ${jobCity}` : ''}${jobState ? `, ${jobState}` : ''}`;
+                doc.setFont('helvetica', 'bold');
+                doc.text('Job Location:', pageWidth / 2 + 10, jobY);
+                doc.setFont('helvetica', 'normal');
+                doc.text(String(locationText), pageWidth / 2 + 75, jobY);
+            }
+            
+            yPos += jobBoxHeight + 15;
+        }
+        
+        // From/Bill To Section
+        doc.setFillColor(245, 245, 245);
+        doc.roundedRect(margin, yPos, (pageWidth - 2 * margin - 20) / 2, 100, 3, 3, 'F');
+        doc.setFillColor(255, 107, 26);
+        doc.rect(margin, yPos, 3, 100, 'F');
+        
+        // From
+        doc.setTextColor(255, 107, 26);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('From:', margin + 15, yPos + 18);
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.text('Helmick Underground', margin + 15, yPos + 33);
+        doc.setTextColor(80, 80, 80);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.text('498 Elbow Creek Rd', margin + 15, yPos + 48);
+        doc.text('Mount Vernon, IA 52314', margin + 15, yPos + 61);
+        doc.text('HelmickUnderground@gmail.com', margin + 15, yPos + 74);
+        doc.text('(319) 229-4046', margin + 15, yPos + 87);
+        
+        // Bill To
+        const billToX = pageWidth / 2 + 10;
+        doc.setFillColor(245, 245, 245);
+        doc.roundedRect(billToX, yPos, (pageWidth - 2 * margin - 20) / 2, 100, 3, 3, 'F');
+        doc.setFillColor(255, 107, 26);
+        doc.rect(billToX, yPos, 3, 100, 'F');
+        
+        doc.setTextColor(255, 107, 26);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Bill To:', billToX + 15, yPos + 18);
+        
+        let billToY = yPos + 33;
+        if (businessName) {
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text(String(businessName), billToX + 15, billToY);
+            billToY += 13;
+        }
+        if (contactPerson) {
+            doc.setTextColor(80, 80, 80);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.text(String(contactPerson), billToX + 15, billToY);
+            billToY += 13;
+        }
+        if (customerAddress) {
+            const addressLines = customerAddress.split('\n');
+            addressLines.forEach(line => {
+                if (billToY < yPos + 95) {
+                    doc.text(line.trim(), billToX + 15, billToY);
+                    billToY += 13;
+                }
+            });
+        }
+        if (customerEmail && billToY < yPos + 95) {
+            doc.text(String(customerEmail), billToX + 15, billToY);
+            billToY += 13;
+        }
+        if (customerPhone && billToY < yPos + 95) {
+            doc.text(String(customerPhone), billToX + 15, billToY);
+        }
+        
+        yPos += 115;
+        
+        // Invoice Details
+        doc.setFillColor(245, 245, 245);
+        doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 45, 3, 3, 'F');
+        doc.setFillColor(255, 107, 26);
+        doc.rect(margin, yPos, 3, 45, 'F');
+        
+        const detailWidth = (pageWidth - 2 * margin) / 3;
+        doc.setTextColor(100, 100, 100);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Invoice Number:', margin + 15, yPos + 15);
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.text(String(invoiceNumber), margin + 15, yPos + 30);
+        doc.setTextColor(100, 100, 100);
+        doc.setFontSize(8);
+        doc.text('Invoice Date:', margin + detailWidth + 15, yPos + 15);
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.text(invoiceDate, margin + detailWidth + 15, yPos + 30);
+        doc.setTextColor(100, 100, 100);
+        doc.setFontSize(8);
+        doc.text('Due Date:', margin + detailWidth * 2 + 15, yPos + 15);
+        doc.setTextColor(255, 107, 26);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text(dueDate, margin + detailWidth * 2 + 15, yPos + 30);
+        
+        yPos += 60;
+        
+        // Line Items Table
+        doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(1);
+        doc.setFillColor(240, 240, 240);
+        doc.rect(margin, yPos, pageWidth - 2 * margin, 30, 'FD');
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Description', margin + 10, yPos + 18);
+        doc.text('Qty', pageWidth - margin - 220, yPos + 18, { align: 'center' });
+        doc.text('Rate', pageWidth - margin - 140, yPos + 18, { align: 'right' });
+        doc.text('Amount', pageWidth - margin - 10, yPos + 18, { align: 'right' });
+        yPos += 30;
+        
+        // Table Rows
+        doc.setFont('helvetica', 'normal');
+        items.forEach((item, index) => {
+            if (index % 2 === 0) {
+                doc.setFillColor(250, 250, 250);
+                doc.rect(margin, yPos, pageWidth - 2 * margin, 25, 'F');
+            }
+            doc.setDrawColor(230, 230, 230);
+            doc.line(margin, yPos + 25, pageWidth - margin, yPos + 25);
+            doc.setTextColor(40, 40, 40);
+            doc.setFontSize(9);
+            doc.text(String(item.description || ''), margin + 10, yPos + 16);
+            doc.setTextColor(80, 80, 80);
+            doc.text(String(item.quantity || 0), pageWidth - margin - 220, yPos + 16, { align: 'center' });
+            doc.text(`$${item.rate.toFixed(2)}`, pageWidth - margin - 140, yPos + 16, { align: 'right' });
+            doc.setTextColor(0, 0, 0);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`$${item.amount.toFixed(2)}`, pageWidth - margin - 10, yPos + 16, { align: 'right' });
+            doc.setFont('helvetica', 'normal');
+            yPos += 25;
+        });
+        
+        // Orange separator
+        doc.setDrawColor(255, 107, 26);
+        doc.setLineWidth(2);
+        doc.line(margin, yPos, pageWidth - margin, yPos);
+        yPos += 15;
+        
+        // Subtotal
+        doc.setTextColor(80, 80, 80);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Subtotal:', pageWidth - margin - 150, yPos, { align: 'right' });
+        doc.setTextColor(0, 0, 0);
+        doc.text(`$${subtotal.toFixed(2)}`, pageWidth - margin - 10, yPos, { align: 'right' });
+        yPos += 20;
+        
+        // Tax
+        if (taxRate > 0) {
+            doc.setTextColor(80, 80, 80);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Tax (${(taxRate * 100).toFixed(0)}%):`, pageWidth - margin - 150, yPos, { align: 'right' });
+            doc.setTextColor(0, 0, 0);
+            doc.text(`$${tax.toFixed(2)}`, pageWidth - margin - 10, yPos, { align: 'right' });
+            yPos += 20;
+        }
+        
+        // Total Due
+        doc.setFillColor(255, 107, 26);
+        doc.roundedRect(margin, yPos - 5, pageWidth - 2 * margin, 30, 3, 3, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Total Due:', pageWidth - margin - 150, yPos + 13, { align: 'right' });
+        doc.text(`$${total.toFixed(2)}`, pageWidth - margin - 10, yPos + 13, { align: 'right' });
+        
+        // Return PDF as base64 string (without data:application/pdf;base64, prefix)
+        const pdfBase64 = doc.output('datauristring').split(',')[1];
+        return pdfBase64;
+        
+    } catch (error) {
+        console.error('Error generating PDF for attachment:', error);
+        return null;
+    }
+}
+
 // Helper function to load logo as base64
 async function getLogoBase64() {
     return new Promise((resolve, reject) => {
@@ -1700,6 +2014,9 @@ async function emailInvoice() {
         const emailSubject = jobNumber 
             ? `Job #${jobNumber} - Invoice ${invoiceNumber} from Helmick Underground`
             : `Invoice ${invoiceNumber} from Helmick Underground`;
+        
+        // Generate PDF as base64 for attachment
+        const pdfBase64 = await generateInvoicePDFBase64();
         
         // Create styled HTML email (same template as invoices.js)
         const emailHTML = `
@@ -1835,7 +2152,13 @@ async function emailInvoice() {
                 name: customerName,
                 metadata: {
                     invoiceNumber: invoiceNumber
-                }
+                },
+                attachments: pdfBase64 ? [
+                    {
+                        filename: `Invoice-${invoiceNumber}.pdf`,
+                        content: pdfBase64
+                    }
+                ] : []
             })
         });
 
