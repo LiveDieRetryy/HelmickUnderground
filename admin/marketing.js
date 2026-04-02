@@ -255,25 +255,100 @@ window.insertVariable = function(fieldId, variable) {
     field.selectionStart = field.selectionEnd = start + variable.length;
 };
 
+// Generate HTML email template (matching buildMarketing() from api/emails.js)
+function generateEmailHTML(bodyText) {
+    // Split by double newlines to identify paragraphs
+    const paragraphs = bodyText.split('\n\n').filter(p => p.trim());
+    
+    // Build HTML paragraphs with proper styling
+    let htmlContent = '';
+    paragraphs.forEach(para => {
+        const trimmed = para.trim();
+        
+        // Check if it's a bulleted list
+        if (trimmed.includes('\n-') || trimmed.includes('\n•')) {
+            const items = trimmed.split('\n').filter(line => line.trim().startsWith('-') || line.trim().startsWith('•'));
+            const listItems = items.map(item => {
+                const text = item.replace(/^[-•]\s*/, '').trim();
+                return `<li style="margin-bottom: 0.5rem; color: #444;">${text}</li>`;
+            }).join('');
+            
+            htmlContent += `
+                <ul style="margin: 1.5rem 0; padding-left: 1.5rem; line-height: 1.8;">
+                    ${listItems}
+                </ul>
+            `;
+        } else if (trimmed.length < 100 && !trimmed.endsWith('.') && !trimmed.endsWith('?') && !trimmed.endsWith('!')) {
+            // Likely a heading or subheading
+            htmlContent += `
+                <h3 style="color: #ff6b1a; margin: 1.5rem 0 1rem; font-size: 1.1rem; font-weight: 600;">
+                    ${trimmed}
+                </h3>
+            `;
+        } else {
+            // Regular paragraph
+            const formatted = trimmed.replace(/\n/g, '<br>');
+            htmlContent += `
+                <p style="margin-bottom: 1.2rem; line-height: 1.8; color: #333; font-size: 1rem;">
+                    ${formatted}
+                </p>
+            `;
+        }
+    });
+    
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Arial', 'Helvetica', sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 650px; margin: 0 auto; background: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <!-- Header with Logo -->
+        <div style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); padding: 2rem; text-align: center; border-bottom: 4px solid #ff6b1a;">
+            <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground" style="max-width: 220px; height: auto; margin-bottom: 0.5rem;">
+        </div>
+        
+        <!-- Main Content -->
+        <div style="padding: 2.5rem 2rem;">
+            ${htmlContent}
+        </div>
+        
+        <!-- Call to Action -->
+        <div style="background: linear-gradient(135deg, rgba(255, 107, 26, 0.1) 0%, rgba(255, 107, 26, 0.05) 100%); padding: 1.5rem; margin: 0 2rem 2rem; border-radius: 8px; border-left: 4px solid #ff6b1a;">
+            <p style="margin: 0; color: #333; font-size: 0.95rem; line-height: 1.6;">
+                <strong style="color: #ff6b1a;">Ready to discuss your project?</strong><br>
+                Contact us today for a consultation.
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background: linear-gradient(180deg, #0f0f0f 0%, #1a1a1a 100%); padding: 2rem; text-align: center; border-top: 2px solid #ff6b1a;">
+            <p style="margin: 0 0 1rem 0; font-size: 1.1rem; font-weight: 600; color: #ff6b1a;">
+                Helmick Underground LLC
+            </p>
+            <p style="margin: 0.5rem 0; color: #bbb; font-size: 0.95rem;">
+                📞 <strong style="color: #ff6b1a;">(712) 330-6073</strong> | <strong style="color: #ff6b1a;">(712) 330-2060</strong>
+            </p>
+            <p style="margin: 0.5rem 0; color: #bbb; font-size: 0.9rem;">
+                📧 HelmickUnderground@gmail.com
+            </p>
+            <p style="margin: 1.5rem 0 0 0; color: #777; font-size: 0.8rem; line-height: 1.5;">
+                Expert underground utility services for fiber optic installation,<br>
+                directional drilling, and broadband infrastructure in Iowa
+            </p>
+            <p style="margin: 1rem 0 0 0; color: #666; font-size: 0.75rem;">
+                © ${new Date().getFullYear()} Helmick Underground LLC. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>`;
+}
+
 // Preview email
 window.previewEmail = function() {
-    // Get form values
-    const companyName = document.getElementById('companyName').value.trim();
-    const contactName = document.getElementById('contactName').value.trim();
-    const emailAddress = document.getElementById('emailAddress').value.trim();
-    
-    const subject = document.getElementById('emailSubject').value;
-    const body = document.getElementById('emailBody').value;
-    
-    // Validate
-    if (!companyName || !contactName || !emailAddress) {
-        showToast('Please fill in all recipient information', 'error');
-        return;
-    }
-    
-    if (!subject || !body) {
-        showToast('Please fill in subject and message', 'error');
-        return;
     // Get form values
     const companyName = document.getElementById('companyName').value.trim();
     const contactName = document.getElementById('contactName').value.trim();
@@ -310,6 +385,9 @@ window.previewEmail = function() {
         .replace(/\{name\}/gi, contactName)
         .replace(/\{company\}/gi, companyName);
     
+    // Generate HTML email template (matching buildMarketing() from api/emails.js)
+    const emailHTML = generateEmailHTML(processedBody);
+    
     // Show preview in modal with send button
     const modalId = 'emailPreviewModal_' + Date.now();
     const modal = document.createElement('div');
@@ -326,6 +404,7 @@ window.previewEmail = function() {
         justify-content: center;
         z-index: 10000;
         padding: 2rem;
+        overflow-y: auto;
     `;
     
     const recipientInfo = `
@@ -338,7 +417,7 @@ window.previewEmail = function() {
     `;
     
     modal.innerHTML = `
-        <div style="background: var(--card-dark); border-radius: 12px; max-width: 800px; width: 100%; max-height: 85vh; overflow-y: auto; border: 2px solid var(--primary-color); box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+        <div style="background: var(--card-dark); border-radius: 12px; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; border: 2px solid var(--primary-color); box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
             <div style="background: linear-gradient(135deg, var(--primary-color) 0%, #ff8c42 100%); padding: 1.5rem; color: var(--white); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1;">
                 <div>
                     <h3 style="margin: 0 0 0.3rem 0; font-size: 1.4rem;">📧 Email Preview</h3>
@@ -355,8 +434,10 @@ window.previewEmail = function() {
                 </div>
                 
                 <div style="margin-bottom: 2rem;">
-                    <div style="color: var(--gray); font-size: 0.85rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Message Preview:</div>
-                    <div style="color: var(--white); line-height: 1.8; white-space: pre-wrap; padding: 1.5rem; background: rgba(255, 107, 26, 0.05); border-radius: 8px; border: 1px solid rgba(255, 107, 26, 0.2); max-height: 400px; overflow-y: auto;">${processedBody}</div>
+                    <div style="color: var(--gray); font-size: 0.85rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">Email Template Preview:</div>
+                    <div style="background: #f5f5f5; padding: 1rem; border-radius: 8px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);">
+                        <iframe id="emailPreviewFrame_${modalId}" style="width: 100%; border: none; border-radius: 4px; display: block; background: white;"></iframe>
+                    </div>
                 </div>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -372,6 +453,22 @@ window.previewEmail = function() {
     `;
     
     document.body.appendChild(modal);
+    
+    // Load HTML email into iframe
+    const iframe = document.getElementById(`emailPreviewFrame_${modalId}`);
+    iframe.srcdoc = emailHTML;
+    
+    // Auto-resize iframe based on content
+    iframe.onload = function() {
+        try {
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            const height = iframeDoc.body.scrollHeight;
+            iframe.style.height = height + 'px';
+        } catch(e) {
+            // Fallback height if cross-origin issues
+            iframe.style.height = '600px';
+        }
+    };
     
     // Close on background click
     modal.addEventListener('click', function(e) {
@@ -398,9 +495,6 @@ window.confirmAndSendEmail = async function(modalId) {
     const subject = document.getElementById('emailSubject').value;
     const body = document.getElementById('emailBody').value;
     
-    const subject = document.getElementById('emailSubject').value;
-    const body = document.getElementById('emailBody').value;
-    
     // Validate all fields
     if (!companyName || !contactName || !emailAddress) {
         showToast('Please fill in all recipient information', 'error');
@@ -418,8 +512,6 @@ window.confirmAndSendEmail = async function(modalId) {
         showToast('Please enter a valid email address', 'error');
         return;
     }
-    
-    // Disable send button
     
     try {
         const response = await apiFetch('/api/emails', {
