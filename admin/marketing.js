@@ -611,7 +611,7 @@ function renderOutbox() {
         return new Date(b.sent_at) - new Date(a.sent_at);
     });
     
-    const emailList = sortedEmails.map(email => {
+    const emailList = sortedEmails.map((email, index) => {
         const sentDate = new Date(email.sent_at);
         const formattedDate = sentDate.toLocaleDateString('en-US', {
             month: 'short',
@@ -624,10 +624,10 @@ function renderOutbox() {
         // Get preview text (first 150 chars)
         const metadata = typeof email.metadata === 'string' ? JSON.parse(email.metadata) : email.metadata;
         const bodyText = metadata?.body || email.subject || '';
-        const preview = bodyText.substring(0, 150) + (bodyText.length > 150 ? '...' : '');
+        const preview = bodyText.substring(0, 150).replace(/</g, '&lt;').replace(/>/g, '&gt;') + (bodyText.length > 150 ? '...' : '');
         
         return `
-            <div class="email-item" onclick='viewEmailDetail(${JSON.stringify(email).replace(/'/g, "&apos;")})'>
+            <div class="email-item" onclick="viewEmailDetail(${index})">
                 <div class="email-item-header">
                     <div class="email-item-info">
                         <div class="email-recipient">${email.recipient_name || 'Unknown'}</div>
@@ -642,10 +642,19 @@ function renderOutbox() {
     }).join('');
     
     outboxBody.innerHTML = `<div class="email-list">${emailList}</div>`;
+    
+    // Store sorted emails for detail view
+    window.sortedEmailHistory = sortedEmails;
 }
 
 // View email detail in modal
-function viewEmailDetail(email) {
+function viewEmailDetail(index) {
+    const email = window.sortedEmailHistory[index];
+    if (!email) {
+        console.error('Email not found at index:', index);
+        return;
+    }
+    
     const modal = document.getElementById('emailModal');
     const modalBody = document.getElementById('emailModalBody');
     
@@ -664,19 +673,19 @@ function viewEmailDetail(email) {
     modalBody.innerHTML = `
         <div class="email-meta">
             <div class="email-meta-label">To:</div>
-            <div class="email-meta-value">${email.recipient_name || 'Unknown'} &lt;${email.to_email}&gt;</div>
+            <div class="email-meta-value">${email.recipient_name || 'Unknown'} &lt;${email.to_email || 'No email'}&gt;</div>
             
             <div class="email-meta-label">Company:</div>
             <div class="email-meta-value">${metadata?.company || 'N/A'}</div>
             
             <div class="email-meta-label">Subject:</div>
-            <div class="email-meta-value">${email.subject}</div>
+            <div class="email-meta-value">${email.subject || 'No subject'}</div>
             
             <div class="email-meta-label">Sent:</div>
             <div class="email-meta-value">${formattedDate}</div>
         </div>
         
-        <div class="email-content">${bodyContent}</div>
+        <div class="email-content">${bodyContent.replace(/\n/g, '<br>')}</div>
     `;
     
     modal.classList.add('active');
