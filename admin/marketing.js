@@ -355,7 +355,7 @@ function generateEmailHTML(bodyText) {
         <div style="background: linear-gradient(135deg, rgba(255, 107, 26, 0.1) 0%, rgba(255, 107, 26, 0.05) 100%); padding: 1.5rem; margin: 0 2rem 2rem; border-radius: 8px; border-left: 4px solid #ff6b1a;">
             <p style="margin: 0; color: #333; font-size: 0.95rem; line-height: 1.6;">
                 <strong style="color: #ff6b1a;">Learn more about our services:</strong><br>
-                <a href="https://helmickunderground.com" style="color: #ff6b1a; text-decoration: none; font-weight: 600;">HelmickUnderground.com</a>
+                <a href="https://helmickunderground.com" style="color: #0066cc; text-decoration: underline; font-weight: 600;">HelmickUnderground.com</a>
             </p>
         </div>
         
