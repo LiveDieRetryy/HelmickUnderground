@@ -117,7 +117,7 @@ Your Partner in Underground Infrastructure
         subject: 'Local Crew for 2026–2027 Fiber Builds',
         body: `Hi {name},
 
-I'm reaching out regarding your 2026–2027 fiber build plans.
+I'm reaching out regarding your 2026–2027 fiber build plans for {company}.
 
 My name is Tommy Helmick. I'm a partner at Helmick Underground, formerly Triple J Construction, out of Mount Vernon. We're a local owner-operator crew focused on plowing and directional drilling.
 
@@ -351,9 +351,8 @@ function generateEmailHTML(bodyText) {
         
         <!-- Call to Action -->
         <div style="background: linear-gradient(135deg, rgba(255, 107, 26, 0.1) 0%, rgba(255, 107, 26, 0.05) 100%); padding: 1.5rem; margin: 0 2rem 2rem; border-radius: 8px; border-left: 4px solid #ff6b1a;">
-            <p style="margin: 0; color: #333; font-size: 0.95rem; line-height: 1.6;">
-                <strong style="color: #ff6b1a;">I look forward to hearing from you,</strong><br>
-                Tommy Helmick
+            <p style="margin: 0; color: #ff6b1a; font-size: 0.95rem; line-height: 1.6; font-weight: 600;">
+                I look forward to hearing from you,
             </p>
         </div>
         
