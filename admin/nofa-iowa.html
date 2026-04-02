@@ -18,28 +18,90 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
     
     <style>
-        .nofa-container {
+        body {
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+            min-height: 100vh;
             padding: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+        }
+
+        .nofa-container {
             max-width: 1600px;
             margin: 0 auto;
         }
 
-        .page-header {
+        .header {
+            background: var(--card-dark);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            box-shadow: 0 8px 32px rgba(255, 107, 26, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .header:hover {
+            box-shadow: 0 12px 48px rgba(255, 107, 26, 0.15);
+            border-color: rgba(255, 107, 26, 0.5);
+        }
+
+        .header-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
             flex-wrap: wrap;
             gap: 1rem;
+            margin-bottom: 1.5rem;
         }
 
-        .page-header h1 {
+        @media (max-width: 768px) {
+            .header {
+                padding: 1.5rem;
+            }
+            .header-top {
+                flex-direction: column;
+            }
+        }
+
+        .header h1 {
             color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
             font-size: 2rem;
             margin: 0;
         }
 
-        .page-header .actions {
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        .back-btn {
+            background: rgba(255, 107, 26, 0.1);
+            color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            background: var(--primary-color);
+            color: var(--bg-dark);
+            transform: translateX(-4px);
+            box-shadow: 0 4px 20px rgba(255, 107, 26, 0.3);
+        }
+
+        .header .actions {
             display: flex;
             gap: 1rem;
             flex-wrap: wrap;
@@ -489,8 +551,11 @@
     <div class="main-content">
         <div class="nofa-container">
             <!-- Page Header -->
-            <div class="page-header">
-                <h1>🗺️ Iowa NOFA Recipients</h1>
+            <div class="header">
+                <div class="header-top">
+                    <h1>🗺️ Iowa NOFA Recipients</h1>
+                    <a href="dashboard.html" class="back-btn">← Back to Dashboard</a>
+                </div>
                 <div class="actions">
                     <button class="btn" onclick="openImportModal()" style="background: #4169e1;">📥 Import CSV</button>
                     <button class="btn" onclick="syncFromMap()" style="background: #ff8c00;" id="syncMapBtn" title="Clear all and re-import from official map">🔄 Clear & Re-Sync</button>

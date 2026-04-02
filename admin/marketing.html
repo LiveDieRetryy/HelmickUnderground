@@ -15,25 +15,81 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
     
     <style>
-        .marketing-container {
+        body {
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+            min-height: 100vh;
             padding: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+        }
+
+        .marketing-container {
             max-width: 1600px;
             margin: 0 auto;
         }
 
-        .page-header {
+        .header {
+            background: var(--card-dark);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 107, 26, 0.3);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(255, 107, 26, 0.1);
+            transition: all 0.3s ease;
             flex-wrap: wrap;
             gap: 1rem;
         }
 
-        .page-header h1 {
+        .header:hover {
+            box-shadow: 0 12px 48px rgba(255, 107, 26, 0.15);
+            border-color: rgba(255, 107, 26, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                padding: 1.5rem;
+            }
+        }
+
+        .header h1 {
             color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
             font-size: 2rem;
             margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        .back-btn {
+            background: rgba(255, 107, 26, 0.1);
+            color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            background: var(--primary-color);
+            color: var(--bg-dark);
+            transform: translateX(-4px);
+            box-shadow: 0 4px 20px rgba(255, 107, 26, 0.3);
         }
 
         /* Single column compose layout */
@@ -437,8 +493,9 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="marketing-container">
-        <div class="page-header">
+        <div class="header">
             <h1>📧 Marketing Outreach</h1>
+            <a href="dashboard.html" class="back-btn">← Back to Dashboard</a>
         </div>
 
         <!-- Stats -->
