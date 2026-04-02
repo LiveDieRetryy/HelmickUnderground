@@ -544,14 +544,21 @@ async function handleScraper(req, res) {
 
     try {
         let results = {
-            source: source || 'all',
+            source: source || 'arcgis',
             imported: 0,
             errors: 0,
             details: []
         };
 
         // Scrape from requested source(s)
-        if (source === 'usaspending' || source === 'all') {
+        if (source === 'arcgis' || source === 'all') {
+            const arcgisResults = await scrapeArcGIS();
+            results.imported += arcgisResults.imported;
+            results.errors += arcgisResults.errors;
+            results.details.push(...arcgisResults.details);
+        }
+        
+        if (source === 'usaspending') {
             const usaSpendingResults = await scrapeUSASpending();
             results.imported += usaSpendingResults.imported;
             results.errors += usaSpendingResults.errors;
@@ -568,6 +575,180 @@ async function handleScraper(req, res) {
         console.error('Scraper error:', error);
         return sendErrorResponse(res, 'SERVER_ERROR', 'Scraper failed: ' + error.message, 500);
     }
+}
+
+/**
+ * Scrape ArcGIS dashboard for NOFA recipients
+ * Dashboard: https://www.arcgis.com/apps/dashboards/7a9f409f086c4036a71d9d1196f164ec
+ */
+async function scrapeArcGIS() {
+    const https = require('https');
+    
+    const results = {
+        imported: 0,
+        errors: 0,
+        details: [],
+        source: 'ArcGIS Feature Service'
+    };
+
+    try {
+        // ArcGIS Feature Service URL for NOFA009 Projects Layer
+        // Layer 2 contains the project-level data with company names and totals
+        const serviceUrl = 'services.arcgis.com';
+        const servicePath = '/vPD5PVLI6sfkZ5E4/arcgis/rest/services/NOFA009_Awarded_Locations_view/FeatureServer/2/query';
+        
+        // Query all features with effective_date = '010926' (current awards)
+        const query = new URLSearchParams({
+            where: "effective_date = '010926'",
+            outFields: '*',
+            f: 'json',
+            returnGeometry: 'true'
+        });
+
+        const fullPath = `${servicePath}?${query.toString()}`;
+        
+        console.log('Fetching from ArcGIS:', fullPath);
+
+        // Make HTTPS request to ArcGIS REST API
+        const data = await new Promise((resolve, reject) => {
+            const options = {
+                hostname: serviceUrl,
+                path: fullPath,
+                method: 'GET',
+                headers: {
+                    'User-Agent': 'Mozilla/5.0',
+                    'Accept': 'application/json'
+                }
+            };
+
+            https.get(options, (res) => {
+                let body = '';
+                res.on('data', chunk => body += chunk);
+                res.on('end', () => {
+                    try {
+                        resolve(JSON.parse(body));
+                    } catch (e) {
+                        reject(new Error('Failed to parse JSON: ' + e.message));
+                    }
+                });
+            }).on('error', reject);
+        });
+
+        if (!data.features || data.features.length === 0) {
+            results.details.push({
+                source: 'ArcGIS',
+                status: 'No data found',
+                message: 'The query returned no features'
+            });
+            return results;
+        }
+
+        console.log(`Found ${data.features.length} projects from ArcGIS`);
+
+        // Process each feature
+        for (const feature of data.features) {
+            const attrs = feature.attributes;
+            
+            try {
+                // Map technology code to readable name
+                const techMap = {
+                    '50': 'Fiber',
+                    '61': 'Satellite',
+                    '70': 'Unlicensed Fixed Wireless',
+                    '71': 'Licensed Fixed Wireless'
+                };
+                
+                // Prepare recipient data
+                const recipient = {
+                    company_name: attrs.uei_name || 'Unknown',
+                    grant_program: 'NOFA 009 - Iowa Broadband',
+                    award_date: '2025-09-04', // Posted 9/4/2025 according to metadata
+                    city: attrs.project_name ? attrs.project_name.split(' - ')[0] : '',
+                    state: 'IA',
+                    project_description: attrs.project_description || '',
+                    service_area: attrs.project_name || '',
+                    status: 'not_contacted',
+                    is_prospect: false,
+                    notes: `Control ID: ${attrs.controlid}, Technology: ${techMap[attrs.technology] || attrs.technology}, Total Locations: ${attrs.total_locations || 0}, CAI: ${attrs.total_cai || 0}`
+                };
+
+                // Get geometry (centroid for location)
+                if (feature.geometry && feature.geometry.rings) {
+                    // Calculate centroid of polygon
+                    const ring = feature.geometry.rings[0];
+                    if (ring && ring.length > 0) {
+                        let sumX = 0, sumY = 0;
+                        ring.forEach(point => {
+                            sumX += point[0];
+                            sumY += point[1];
+                        });
+                        // Convert Web Mercator to WGS84 (approximate)
+                        const x = sumX / ring.length;
+                        const y = sumY / ring.length;
+                        recipient.longitude = x / 111320; // Rough conversion
+                        recipient.latitude = Math.atan(Math.exp(y / 6378137)) * 360 / Math.PI - 90;
+                    }
+                }
+
+                // Check if already exists
+                const existing = await pool.query(
+                    'SELECT id FROM nofa_recipients WHERE company_name = $1 AND grant_program = $2',
+                    [recipient.company_name, recipient.grant_program]
+                );
+
+                if (existing.rows.length === 0) {
+                    // Insert new recipient
+                    await pool.query(`
+                        INSERT INTO nofa_recipients 
+                        (company_name, grant_program, award_date, city, state, 
+                         project_description, service_area, status, is_prospect, notes,
+                         latitude, longitude)
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+                    `, [
+                        recipient.company_name, recipient.grant_program, recipient.award_date,
+                        recipient.city, recipient.state, recipient.project_description,
+                        recipient.service_area, recipient.status, recipient.is_prospect,
+                        recipient.notes, recipient.latitude, recipient.longitude
+                    ]);
+
+                    results.imported++;
+                    results.details.push({
+                        company: recipient.company_name,
+                        status: 'Imported',
+                        project: attrs.project_name
+                    });
+                } else {
+                    results.details.push({
+                        company: recipient.company_name,
+                        status: 'Already exists',
+                        project: attrs.project_name
+                    });
+                }
+
+            } catch (error) {
+                console.error('Error processing feature:', error);
+                results.errors++;
+                results.details.push({
+                    company: attrs.uei_name || 'Unknown',
+                    status: 'Error',
+                    error: error.message
+                });
+            }
+        }
+
+        console.log(`ArcGIS import complete: ${results.imported} imported, ${results.errors} errors`);
+        
+    } catch (error) {
+        console.error('ArcGIS scrape error:', error);
+        results.errors++;
+        results.details.push({
+            source: 'ArcGIS API',
+            status: 'Fatal error',
+            error: error.message
+        });
+    }
+
+    return results;
 }
 
 /**

@@ -1006,3 +1006,129 @@ async function fetchFromInternet() {
         showNotification('Failed to fetch data from government sources', 'error');
     }
 }
+
+/**
+ * Sync NOFA data from the embedded ArcGIS map
+ */
+async function syncFromMap() {
+    const confirmation = confirm(
+        '🔄 Sync from Official Map\n\n' +
+        'This will extract recipient data from the official Iowa government ArcGIS dashboard.\n\n' +
+        'Source: NOFA 009 Broadband Initial Project Awards\n' +
+        'Published: 9/4/2025\n\n' +
+        'This may take 10-30 seconds. Continue?'
+    );
+    
+    if (!confirmation) return;
+    
+    // Disable button and show loading state
+    const syncBtn = document.getElementById('syncMapBtn');
+    const originalText = syncBtn.innerHTML;
+    syncBtn.disabled = true;
+    syncBtn.innerHTML = '⏳ Syncing...';
+    
+    // Show loading notification
+    const loadingNotif = document.createElement('div');
+    loadingNotif.id = 'syncingNotification';
+    loadingNotif.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #32cd32 0%, #228b22 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        z-index: 10000;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    `;
+    loadingNotif.innerHTML = `
+        <div class="spinner" style="border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid white; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite;"></div>
+        <div>
+            <div>🔄 Syncing from ArcGIS map...</div>
+            <div style="font-size: 0.85rem; opacity: 0.9; margin-top: 0.25rem;">Extracting official data</div>
+        </div>
+    `;
+    document.body.appendChild(loadingNotif);
+    
+    // Add spinner animation if not already present
+    if (!document.getElementById('spinnerStyle')) {
+        const style = document.createElement('style');
+        style.id = 'spinnerStyle';
+        style.textContent = `
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    try {
+        const response = await apiFetch('/api/nofa?type=scraper', {
+            method: 'POST',
+            body: JSON.stringify({
+                source: 'arcgis'
+            })
+        });
+        
+        // Remove loading notification
+        if (loadingNotif.parentNode) {
+            loadingNotif.remove();
+        }
+        
+        // Re-enable button
+        syncBtn.disabled = false;
+        syncBtn.innerHTML = originalText;
+        
+        if (response.success) {
+            const data = response.data;
+            
+            // Show detailed results
+            let message = '✅ Sync Complete!\n\n';
+            message += `📥 Imported: ${data.imported} new recipients\n`;
+            if (data.errors > 0) {
+                message += `⚠️ Errors: ${data.errors}\n`;
+            }
+            if (data.details && data.details.length > 0) {
+                message += '\nProjects:\n';
+                data.details.slice(0, 10).forEach(detail => {
+                    if (detail.company) {
+                        message += `  • ${detail.company} (${detail.status})\n`;
+                    }
+                });
+                if (data.details.length > 10) {
+                    message += `  ... and ${data.details.length - 10} more\n`;
+                }
+            }
+            
+            alert(message);
+            
+            if (data.imported > 0) {
+                showNotification(`Successfully synced ${data.imported} recipients from map!`, 'success');
+                // Reload the table
+                await loadRecipients();
+            } else {
+                showNotification('All recipients already imported', 'info');
+            }
+        } else {
+            showNotification('Failed to sync: ' + (response.message || 'Unknown error'), 'error');
+        }
+    } catch (error) {
+        // Remove loading notification
+        if (loadingNotif.parentNode) {
+            loadingNotif.remove();
+        }
+        
+        // Re-enable button
+        syncBtn.disabled = false;
+        syncBtn.innerHTML = originalText;
+        
+        console.error('Sync error:', error);
+        showNotification('Failed to sync data from map', 'error');
+    }
+}
+
