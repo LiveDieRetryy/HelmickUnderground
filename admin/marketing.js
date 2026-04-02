@@ -631,7 +631,7 @@ function renderOutbox() {
                 <div class="email-item-header">
                     <div class="email-item-info">
                         <div class="email-recipient">${email.recipient_name || 'Unknown'}</div>
-                        <div class="email-company">${metadata?.company || email.to_email || ''}</div>
+                        <div class="email-company">${metadata?.company || email.recipient_email || ''}</div>
                     </div>
                     <div class="email-date">${formattedDate}</div>
                 </div>
@@ -673,7 +673,7 @@ function viewEmailDetail(index) {
     modalBody.innerHTML = `
         <div class="email-meta">
             <div class="email-meta-label">To:</div>
-            <div class="email-meta-value">${email.recipient_name || 'Unknown'} &lt;${email.to_email || 'No email'}&gt;</div>
+            <div class="email-meta-value">${email.recipient_name || 'Unknown'} &lt;${email.recipient_email || 'No email'}&gt;</div>
             
             <div class="email-meta-label">Company:</div>
             <div class="email-meta-value">${metadata?.company || 'N/A'}</div>

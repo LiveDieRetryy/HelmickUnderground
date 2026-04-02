@@ -132,16 +132,35 @@ async function handleSendEmail(req, res) {
 
         // Log to email history
         try {
+            // Prepare recipient email (handle both string and array)
+            const recipientEmail = Array.isArray(emailConfig.to) ? emailConfig.to[0] : emailConfig.to;
+            
+            // Get recipient name based on email type
+            let recipientName;
+            if (emailType === 'marketing') {
+                recipientName = emailData.recipientName || emailData.name || recipientEmail;
+            } else {
+                recipientName = emailData.name || emailData.customerName || recipientEmail;
+            }
+            
+            // Build metadata with all relevant info
+            const logMetadata = {
+                ...emailData.metadata,
+                body: emailData.body || emailData.message || '',
+                company: emailData.companyName || emailData.company || '',
+                contact: emailData.recipientName || emailData.name || ''
+            };
+            
             await fetch(`${req.headers.origin || 'https://helmickunderground.com'}/api/emails`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     action: 'log',
                     emailType: emailType,
-                    recipientEmail: emailConfig.to[0],
-                    recipientName: emailData.name || emailData.customerName || emailConfig.to[0],
+                    recipientEmail: recipientEmail,
+                    recipientName: recipientName,
                     subject: emailConfig.subject,
-                    metadata: emailData.metadata || {}
+                    metadata: logMetadata
                 })
             });
         } catch (logError) {
