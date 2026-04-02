@@ -906,11 +906,11 @@ function downloadCSVTemplate() {
  */
 async function fetchFromInternet() {
     const confirmation = confirm(
-        ' Auto-Fetch Iowa NOFA Recipients\n\n' +
+        '🌐 Auto-Fetch Iowa NOFA Recipients\n\n' +
         'This will automatically fetch broadband funding recipient data from:\n' +
-        ' USAspending.gov (Federal grants)\n' +
-        ' FCC RDOF data\n' +
-        ' USDA ReConnect program\n\n' +
+        '• USAspending.gov (Federal grants)\n' +
+        '• FCC RDOF data\n' +
+        '• USDA ReConnect program\n\n' +
         'This may take 30-60 seconds. Continue?'
     );
     
@@ -919,7 +919,7 @@ async function fetchFromInternet() {
     // Show loading notification
     const loadingNotif = document.createElement('div');
     loadingNotif.id = 'fetchingNotification';
-    loadingNotif.style.cssText = 
+    loadingNotif.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
@@ -933,14 +933,14 @@ async function fetchFromInternet() {
         display: flex;
         align-items: center;
         gap: 1rem;
-    ;
-    loadingNotif.innerHTML = 
+    `;
+    loadingNotif.innerHTML = `
         <div class="spinner" style="border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid white; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite;"></div>
         <div>
-            <div> Fetching data from government sources...</div>
+            <div>🌐 Fetching data from government sources...</div>
             <div style="font-size: 0.85rem; opacity: 0.9; margin-top: 0.25rem;">This may take a minute</div>
         </div>
-    ;
+    `;
     document.body.appendChild(loadingNotif);
     
     // Add spinner animation
@@ -973,17 +973,17 @@ async function fetchFromInternet() {
             const data = response.data;
             
             // Show detailed results
-            let message = ` Auto-Fetch Complete!\n\n`;
-            message += ` Imported: ${data.imported} new recipients\n`;
+            let message = '✅ Auto-Fetch Complete!\n\n';
+            message += `📥 Imported: ${data.imported} new recipients\n`;
             if (data.errors > 0) {
-                message += ` Errors: ${data.errors}\n`;
+                message += `⚠️ Errors: ${data.errors}\n`;
             }
-            message += `\nSources checked:\n`;
+            message += '\nSources checked:\n';
             data.details.forEach(detail => {
                 if (detail.company) {
-                    message += `   ${detail.company} (${detail.status})\n`;
+                    message += `  • ${detail.company} (${detail.status})\n`;
                 } else if (detail.source) {
-                    message += `   ${detail.source}: ${detail.status || detail.error}\n`;
+                    message += `  • ${detail.source}: ${detail.status || detail.error}\n`;
                 }
             });
             
