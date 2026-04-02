@@ -652,10 +652,10 @@ async function scrapeArcGIS() {
             try {
                 // Map technology code to readable name
                 const techMap = {
-                    '50': 'Fiber',
-                    '61': 'Satellite',
-                    '70': 'Unlicensed Fixed Wireless',
-                    '71': 'Licensed Fixed Wireless'
+                    50: 'Fiber',
+                    61: 'Satellite',
+                    70: 'Unlicensed Fixed Wireless',
+                    71: 'Licensed Fixed Wireless'
                 };
                 
                 // Prepare recipient data
@@ -663,7 +663,7 @@ async function scrapeArcGIS() {
                     company_name: attrs.uei_name || 'Unknown',
                     grant_program: 'NOFA 009 - Iowa Broadband',
                     award_date: '2025-09-04', // Posted 9/4/2025 according to metadata
-                    city: attrs.project_name ? attrs.project_name.split(' - ')[0] : '',
+                    city: attrs.project_name ? String(attrs.project_name).split(' - ')[0] : '',
                     state: 'IA',
                     project_description: attrs.project_description || '',
                     service_area: attrs.project_name || '',
@@ -672,9 +672,11 @@ async function scrapeArcGIS() {
                     notes: `Control ID: ${attrs.controlid}, Technology: ${techMap[attrs.technology] || attrs.technology}, Total Locations: ${attrs.total_locations || 0}, CAI: ${attrs.total_cai || 0}`
                 };
 
-                // Get geometry (centroid for location)
-                if (feature.geometry && feature.geometry.rings) {
-                    // Calculate centroid of polygon
+                // Get geometry - calculate centroid of polygon and convert from Web Mercator to WGS84
+                let latitude = null;
+                let longitude = null;
+                
+                if (feature.geometry && feature.geometry.rings && feature.geometry.rings.length > 0) {
                     const ring = feature.geometry.rings[0];
                     if (ring && ring.length > 0) {
                         let sumX = 0, sumY = 0;
@@ -682,11 +684,12 @@ async function scrapeArcGIS() {
                             sumX += point[0];
                             sumY += point[1];
                         });
-                        // Convert Web Mercator to WGS84 (approximate)
-                        const x = sumX / ring.length;
-                        const y = sumY / ring.length;
-                        recipient.longitude = x / 111320; // Rough conversion
-                        recipient.latitude = Math.atan(Math.exp(y / 6378137)) * 360 / Math.PI - 90;
+                        const centerX = sumX / ring.length;
+                        const centerY = sumY / ring.length;
+                        
+                        // Convert Web Mercator (EPSG:3857) to WGS84 (EPSG:4326)
+                        longitude = (centerX / 20037508.34) * 180;
+                        latitude = (Math.atan(Math.exp((centerY / 20037508.34) * Math.PI)) * 360 / Math.PI) - 90;
                     }
                 }
 
@@ -708,7 +711,7 @@ async function scrapeArcGIS() {
                         recipient.company_name, recipient.grant_program, recipient.award_date,
                         recipient.city, recipient.state, recipient.project_description,
                         recipient.service_area, recipient.status, recipient.is_prospect,
-                        recipient.notes, recipient.latitude, recipient.longitude
+                        recipient.notes, latitude, longitude
                     ]);
 
                     results.imported++;
@@ -726,7 +729,8 @@ async function scrapeArcGIS() {
                 }
 
             } catch (error) {
-                console.error('Error processing feature:', error);
+                console.error('Error processing feature:', attrs.uei_name, error);
+                console.error('Feature data:', JSON.stringify(attrs).substring(0, 200));
                 results.errors++;
                 results.details.push({
                     company: attrs.uei_name || 'Unknown',
