@@ -523,6 +523,13 @@ function buildMarketing({ to, subject, body, recipientName, companyName, metadat
         processedBody = processedBody.replace(/\{company\}/gi, companyName);
     }
     
+    // Handle county from metadata
+    const county = metadata?.county || '';
+    if (county) {
+        processedSubject = processedSubject.replace(/\{county\}/gi, county);
+        processedBody = processedBody.replace(/\{county\}/gi, county);
+    }
+    
     // Convert plain text body to professional HTML with sections
     // Split by double newlines to identify paragraphs
     const paragraphs = processedBody.split('\n\n').filter(p => p.trim());

@@ -111,6 +111,43 @@ Helmick Underground LLC
 Your Partner in Underground Infrastructure
 (712) 330-6073 | (712) 330-2060`
     },
+    fiber2026: {
+        name: '2026-2027 Fiber Build',
+        description: 'Local crew for fiber builds',
+        subject: 'Local Crew for 2026–2027 Fiber Builds',
+        body: `Hi {name},
+
+I'm reaching out regarding your 2026–2027 fiber build plans.
+
+I saw your project includes {county}.
+
+My name is Tommy Helmick — I'm a partner at Helmick Underground formerly Triple J out of Mount Vernon. We're a local owner-operator crew focused on plowing and directional drilling.
+
+We've been in business since 1988, with a background working on long-term projects with Qwest/CenturyLink, building out rural networks with Springville Cooperative, and assisting in Panora Fiber's build.
+
+What sets us apart is how we operate as a crew.
+
+No rotating subs or shifting crews — just a consistent team that maintains steady production from start to finish.
+
+Being local, we take pride in the work we leave behind.
+
+We handle everything from prep through completion, which keeps the project moving without relying on multiple crews.
+
+We run a full setup with the versatility to handle changing conditions — a Ditch Witch 1250 quad track for direct bury (with backups in place), multiple drills (Vermeer 20x22 and two Astec DD-2024s) for crossings and long pipe sections, and a Larson trailer that allows for fast figure-eighting and smooth transitions between pipe and plow. More importantly, it's an experienced crew that shows up every day and keeps that equipment producing efficiently.
+
+We're local, CDL-A, fully insured, and currently active, with a focus on helping build out infrastructure closer to home.
+
+I'd be glad to stop by, introduce myself, and talk through how we can help you hit your 2026 and 2027 goals.
+
+Would you have 15 minutes sometime this week or next?
+
+I look forward to hearing from you,
+Tommy Helmick
+Partner, Helmick Underground
+319-721-9925
+HelmickUnderground@gmail.com
+HelmickUnderground.com`
+    },
     custom: {
         name: 'Custom Message',
         description: 'Write your own',
@@ -167,6 +204,10 @@ function initializeComposer() {
                 <strong>Partnership</strong>
                 <span>Propose collaboration</span>
             </button>
+            <button class="template-btn" data-template="fiber2026" onclick="selectTemplate('fiber2026')">
+                <strong>2026 Fiber Build</strong>
+                <span>Local crew outreach</span>
+            </button>
             <button class="template-btn" data-template="custom" onclick="selectTemplate('custom')">
                 <strong>Custom</strong>
                 <span>Write your own</span>
@@ -178,19 +219,22 @@ function initializeComposer() {
             <div class="form-group">
                 <label>Subject:</label>
                 <input type="text" id="emailSubject" required placeholder="Email subject...">
-                <div class="form-hint">Use {name} or {company} to personalize</div>
+                <div class="form-hint">Use {name}, {company}, or {county} to personalize</div>
                 <div class="variable-tags">
                     <span class="variable-tag" onclick="insertVariable('emailSubject', '{name}')">Insert {name}</span>
                     <span class="variable-tag" onclick="insertVariable('emailSubject', '{company}')">Insert {company}</span>
+                    <span class="variable-tag" onclick="insertVariable('emailSubject', '{county}')">Insert {county}</span>
                 </div>
             </div>
 
             <div class="form-group">
                 <label>Message:</label>
                 <textarea id="emailBody" required placeholder="Your message..."></textarea>
-                <div class="form-hint">Use {name} or {company} to personalize</div>
+                <div class="form-hint">Use {name}, {company}, or {county} to personalize</div>
                 <div class="variable-tags">
                     <span class="variable-tag" onclick="insertVariable('emailBody', '{name}')">Insert {name}</span>
+                    <span class="variable-tag" onclick="insertVariable('emailBody', '{company}')">Insert {company}</span>
+                    <span class="variable-tag" onclick="insertVariable('emailBody', '{county}')">Insert {county}</span>
                     <span class="variable-tag" onclick="insertVariable('emailBody', '{company}')">Insert {company}</span>
                 </div>
             </div>
@@ -379,11 +423,13 @@ window.previewEmail = function() {
     // Replace variables with actual values
     const processedSubject = subject
         .replace(/\{name\}/gi, contactName)
-        .replace(/\{company\}/gi, companyName);
+        .replace(/\{company\}/gi, companyName)
+        .replace(/\{county\}/gi, county || '[County]');
         
     const processedBody = body
         .replace(/\{name\}/gi, contactName)
-        .replace(/\{company\}/gi, companyName);
+        .replace(/\{company\}/gi, companyName)
+        .replace(/\{county\}/gi, county || '[County]');
     
     // Generate HTML email template (matching buildMarketing() from api/emails.js)
     const emailHTML = generateEmailHTML(processedBody);
