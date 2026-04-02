@@ -116,25 +116,38 @@ async function handleRecipients(req, res) {
             const statusFilter = req.query.status;
             const isProspectFilter = req.query.is_prospect;
 
-            let query = `SELECT * FROM nofa_recipients WHERE state = $1`;
-            let params = [stateFilter];
-            let paramCount = 1;
-
-            if (statusFilter) {
-                paramCount++;
-                query += ` AND status = $${paramCount}`;
-                params.push(statusFilter);
+            let result;
+            
+            // Build query based on filters
+            if (statusFilter && isProspectFilter !== undefined) {
+                result = await sql`
+                    SELECT * FROM nofa_recipients 
+                    WHERE state = ${stateFilter} 
+                    AND status = ${statusFilter} 
+                    AND is_prospect = ${isProspectFilter === 'true'}
+                    ORDER BY award_date DESC NULLS LAST, company_name ASC
+                `;
+            } else if (statusFilter) {
+                result = await sql`
+                    SELECT * FROM nofa_recipients 
+                    WHERE state = ${stateFilter} 
+                    AND status = ${statusFilter}
+                    ORDER BY award_date DESC NULLS LAST, company_name ASC
+                `;
+            } else if (isProspectFilter !== undefined) {
+                result = await sql`
+                    SELECT * FROM nofa_recipients 
+                    WHERE state = ${stateFilter} 
+                    AND is_prospect = ${isProspectFilter === 'true'}
+                    ORDER BY award_date DESC NULLS LAST, company_name ASC
+                `;
+            } else {
+                result = await sql`
+                    SELECT * FROM nofa_recipients 
+                    WHERE state = ${stateFilter}
+                    ORDER BY award_date DESC NULLS LAST, company_name ASC
+                `;
             }
-
-            if (isProspectFilter !== undefined) {
-                paramCount++;
-                query += ` AND is_prospect = $${paramCount}`;
-                params.push(isProspectFilter === 'true');
-            }
-
-            query += ` ORDER BY award_date DESC NULLS LAST, company_name ASC`;
-
-            const result = await sql.query(query, params);
 
             await logActivity('nofa_recipients_viewed', 'NOFA Recipients', null, {
                 count: result.rows.length,
@@ -341,22 +354,30 @@ async function handleProspects(req, res) {
         if (req.method === 'GET' && action === 'all') {
             const statusFilter = req.query.status;
 
-            let query = `SELECT * FROM prospects`;
-            let params = [];
-
+            let result;
+            
             if (statusFilter) {
-                query += ` WHERE status = $1`;
-                params.push(statusFilter);
+                result = await sql`
+                    SELECT * FROM prospects
+                    WHERE status = ${statusFilter}
+                    ORDER BY 
+                        CASE 
+                            WHEN next_followup IS NOT NULL THEN next_followup
+                            ELSE created_at
+                        END DESC,
+                        company_name ASC
+                `;
+            } else {
+                result = await sql`
+                    SELECT * FROM prospects
+                    ORDER BY 
+                        CASE 
+                            WHEN next_followup IS NOT NULL THEN next_followup
+                            ELSE created_at
+                        END DESC,
+                        company_name ASC
+                `;
             }
-
-            query += ` ORDER BY 
-                CASE 
-                    WHEN next_followup IS NOT NULL THEN next_followup
-                    ELSE created_at
-                END DESC,
-                company_name ASC`;
-
-            const result = await sql.query(query, params);
 
             await logActivity('prospects_viewed', 'Prospects', null, {
                 count: result.rows.length,
