@@ -56,8 +56,10 @@ module.exports = async function handler(req, res) {
         return handleRecipients(req, res);
     } else if (type === 'prospects') {
         return handleProspects(req, res);
+    } else if (type === 'scraper') {
+        return handleScraper(req, res);
     } else {
-        return sendErrorResponse(res, 'INVALID_REQUEST', 'Missing or invalid type parameter (recipients or prospects)', 400);
+        return sendErrorResponse(res, 'INVALID_REQUEST', 'Missing or invalid type parameter (recipients, prospects, or scraper)', 400);
     }
 };
 
@@ -527,4 +529,187 @@ async function handleProspects(req, res) {
         console.error('Prospects API Error:', error);
         return sendErrorResponse(res, 'SERVER_ERROR', 'Failed to process request', 500);
     }
+}
+
+/**
+ * Handle Auto-Scraper operations
+ * Fetches NOFA recipient data from government sources
+ */
+async function handleScraper(req, res) {
+    if (req.method !== 'POST') {
+        return sendErrorResponse(res, 'METHOD_NOT_ALLOWED', 'Only POST method allowed for scraper', 405);
+    }
+
+    const { source } = req.body;
+
+    try {
+        let results = {
+            source: source || 'all',
+            imported: 0,
+            errors: 0,
+            details: []
+        };
+
+        // Scrape from requested source(s)
+        if (source === 'usaspending' || source === 'all') {
+            const usaSpendingResults = await scrapeUSASpending();
+            results.imported += usaSpendingResults.imported;
+            results.errors += usaSpendingResults.errors;
+            results.details.push(...usaSpendingResults.details);
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: results,
+            message: `Imported ${results.imported} recipients from ${results.source}`
+        });
+
+    } catch (error) {
+        console.error('Scraper error:', error);
+        return sendErrorResponse(res, 'SERVER_ERROR', 'Scraper failed: ' + error.message, 500);
+    }
+}
+
+/**
+ * Scrape USAspending.gov API for broadband awards in Iowa
+ */
+async function scrapeUSASpending() {
+    const https = require('https');
+    
+    const results = {
+        imported: 0,
+        errors: 0,
+        details: []
+    };
+
+    try {
+        // USAspending.gov public API
+        const apiUrl = 'api.usaspending.gov';
+        const path = '/api/v2/search/spending_by_award/';
+        
+        const payload = JSON.stringify({
+            filters: {
+                keywords: ['broadband', 'fiber', 'BEAD', 'ReConnect', 'rural', 'telecommunications'],
+                place_of_performance_locations: [
+                    { country: 'USA', state: 'IA' }
+                ],
+                time_period: [
+                    { start_date: '2020-01-01', end_date: '2026-12-31' }
+                ],
+                award_type_codes: ['02', '03', '04', '05']
+            },
+            fields: ['Award ID', 'Recipient Name', 'Award Amount', 'Start Date', 'Description', 'Awarding Agency'],
+            limit: 100,
+            page: 1
+        });
+
+        const options = {
+            hostname: apiUrl,
+            port: 443,
+            path: path,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(payload)
+            }
+        };
+
+        const data = await new Promise((resolve, reject) => {
+            const req = https.request(options, (res) => {
+                let body = '';
+                res.on('data', (chunk) => { body += chunk; });
+                res.on('end', () => {
+                    try {
+                        resolve(JSON.parse(body));
+                    } catch (e) {
+                        reject(new Error('Failed to parse API response'));
+                    }
+                });
+            });
+            req.on('error', reject);
+            req.write(payload);
+            req.end();
+        });
+        
+        if (data && data.results) {
+            for (const award of data.results) {
+                try {
+                    const recipientName = award.recipient_name || award.Recipient_Name || award.recipient?.recipient_name;
+                    if (!recipientName) continue;
+
+                    const recipient = {
+                        company_name: recipientName,
+                        funding_amount: award.Award_Amount || award.total_obligation || award.federal_action_obligation,
+                        grant_program: award.awarding_agency_name || award.awarding_agency?.toptier_agency?.name || 'Federal Grant',
+                        award_date: award.period_of_performance_start_date || award.Start_Date,
+                        project_description: award.description || award.Award_Description || 'Broadband deployment project',
+                        address: award.recipient_location?.address_line1 || null,
+                        city: award.recipient_location?.city_name || null,
+                        state: 'IA',
+                        zip: award.recipient_location?.zip5 || null,
+                        county: award.recipient_location?.county_name || null,
+                        status: 'not_contacted',
+                        notes: `Imported from USAspending.gov API - Award ID: ${award.award_id || award.generated_internal_id || 'N/A'}`
+                    };
+
+                    // Check if already exists
+                    const existing = await sql`
+                        SELECT id FROM nofa_recipients 
+                        WHERE LOWER(company_name) = LOWER(${recipient.company_name})
+                        AND (funding_amount = ${recipient.funding_amount} OR funding_amount IS NULL)
+                        LIMIT 1
+                    `;
+
+                    if (existing.rows.length === 0) {
+                        await sql`
+                            INSERT INTO nofa_recipients (
+                                company_name, funding_amount, grant_program, award_date,
+                                project_description, address, city, state, zip, county,
+                                status, notes
+                            )
+                            VALUES (
+                                ${recipient.company_name}, ${recipient.funding_amount}, 
+                                ${recipient.grant_program}, ${recipient.award_date},
+                                ${recipient.project_description}, ${recipient.address},
+                                ${recipient.city}, ${recipient.state}, ${recipient.zip},
+                                ${recipient.county}, ${recipient.status}, ${recipient.notes}
+                            )
+                        `;
+                        results.imported++;
+                        results.details.push({
+                            source: 'USAspending.gov',
+                            company: recipient.company_name,
+                            amount: recipient.funding_amount,
+                            status: 'imported'
+                        });
+                    } else {
+                        results.details.push({
+                            source: 'USAspending.gov',
+                            company: recipient.company_name,
+                            status: 'skipped (duplicate)'
+                        });
+                    }
+                } catch (error) {
+                    results.errors++;
+                    console.error('Error processing award:', error);
+                }
+            }
+        } else {
+            results.details.push({
+                source: 'USAspending.gov',
+                status: 'No data returned from API',
+                info: 'Try using CSV import for comprehensive data'
+            });
+        }
+    } catch (error) {
+        console.error('USAspending scrape error:', error);
+        results.errors++;
+        results.details.push({
+            source: 'USAspending.gov',
+            error: error.message,
+            suggestion: 'API may be temporarily unavailable. Use CSV import instead.'
+        });
+    }
+
+    return results;
 }

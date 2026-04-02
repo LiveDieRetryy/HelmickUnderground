@@ -900,3 +900,109 @@ function downloadCSVTemplate() {
     
     showNotification('Template downloaded!', 'success');
 }
+
+/**
+ * Fetch NOFA data automatically from government sources
+ */
+async function fetchFromInternet() {
+    const confirmation = confirm(
+        ' Auto-Fetch Iowa NOFA Recipients\n\n' +
+        'This will automatically fetch broadband funding recipient data from:\n' +
+        ' USAspending.gov (Federal grants)\n' +
+        ' FCC RDOF data\n' +
+        ' USDA ReConnect program\n\n' +
+        'This may take 30-60 seconds. Continue?'
+    );
+    
+    if (!confirmation) return;
+    
+    // Show loading notification
+    const loadingNotif = document.createElement('div');
+    loadingNotif.id = 'fetchingNotification';
+    loadingNotif.style.cssText = 
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #32cd32 0%, #228b22 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        z-index: 10000;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    ;
+    loadingNotif.innerHTML = 
+        <div class="spinner" style="border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid white; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite;"></div>
+        <div>
+            <div> Fetching data from government sources...</div>
+            <div style="font-size: 0.85rem; opacity: 0.9; margin-top: 0.25rem;">This may take a minute</div>
+        </div>
+    ;
+    document.body.appendChild(loadingNotif);
+    
+    // Add spinner animation
+    if (!document.getElementById('spinnerStyle')) {
+        const style = document.createElement('style');
+        style.id = 'spinnerStyle';
+        style.textContent = `
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    try {
+        const response = await apiFetch('/api/nofa?type=scraper', {
+            method: 'POST',
+            body: JSON.stringify({
+                source: 'all'
+            })
+        });
+        
+        // Remove loading notification
+        if (loadingNotif.parentNode) {
+            loadingNotif.remove();
+        }
+        
+        if (response.success) {
+            const data = response.data;
+            
+            // Show detailed results
+            let message = ` Auto-Fetch Complete!\n\n`;
+            message += ` Imported: ${data.imported} new recipients\n`;
+            if (data.errors > 0) {
+                message += ` Errors: ${data.errors}\n`;
+            }
+            message += `\nSources checked:\n`;
+            data.details.forEach(detail => {
+                if (detail.company) {
+                    message += `   ${detail.company} (${detail.status})\n`;
+                } else if (detail.source) {
+                    message += `   ${detail.source}: ${detail.status || detail.error}\n`;
+                }
+            });
+            
+            alert(message);
+            
+            showNotification(`Loaded ${data.imported} recipients from government databases!`, 'success');
+            
+            // Reload the map and table
+            await loadRecipients();
+        } else {
+            showNotification('Failed to fetch data: ' + (response.message || 'Unknown error'), 'error');
+        }
+    } catch (error) {
+        // Remove loading notification
+        if (loadingNotif.parentNode) {
+            loadingNotif.remove();
+        }
+        
+        console.error('Fetch error:', error);
+        showNotification('Failed to fetch data from government sources', 'error');
+    }
+}
