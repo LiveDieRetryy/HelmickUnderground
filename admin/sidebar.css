@@ -39,9 +39,11 @@ select {
     left: 0;
     top: 0;
     height: 100vh;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
     backdrop-filter: blur(10px);
     box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
 }
 
 .sidebar-logo {
@@ -49,6 +51,7 @@ select {
     text-align: center;
     border-bottom: 2px solid rgba(255, 107, 26, 0.2);
     margin-bottom: 0.5rem;
+    flex-shrink: 0;
 }
 
 .sidebar-logo h2 {
@@ -65,6 +68,27 @@ select {
 
 .sidebar-nav {
     padding: 0;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Custom scrollbar for sidebar navigation */
+.sidebar-nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(255, 107, 26, 0.3);
+    border-radius: 3px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 107, 26, 0.5);
 }
 
 .sidebar-nav-item {
@@ -175,10 +199,10 @@ select {
 }
 
 .sidebar-footer {
-    position: absolute;
-    bottom: 0.5rem;
-    left: 1.5rem;
-    right: 1.5rem;
+    padding: 1rem 1.5rem;
+    border-top: 2px solid rgba(255, 107, 26, 0.2);
+    background: linear-gradient(180deg, transparent 0%, rgba(10, 10, 10, 0.5) 100%);
+    flex-shrink: 0;
 }
 
 .main-content {
@@ -264,6 +288,11 @@ select {
     box-shadow: 0 4px 15px rgba(220, 20, 60, 0.3);
     text-transform: uppercase;
     letter-spacing: 1px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 @media (hover: hover) {
