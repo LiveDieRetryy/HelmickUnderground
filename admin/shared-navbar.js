@@ -71,9 +71,9 @@ function loadAdminNavbar() {
                     <span class="sidebar-nav-item-icon">🗺️</span>
                     <span class="sidebar-nav-item-text">Iowa Recipients</span>
                 </a>
-                <a href="/admin/nofa-prospects.html" class="sidebar-nav-item">
-                    <span class="sidebar-nav-item-icon">🎯</span>
-                    <span class="sidebar-nav-item-text">Prospects</span>
+                <a href="/admin/marketing.html" class="sidebar-nav-item">
+                    <span class="sidebar-nav-item-icon">📧</span>
+                    <span class="sidebar-nav-item-text">Marketing</span>
                 </a>
                 
                 <div class="sidebar-section-header">Financial</div>

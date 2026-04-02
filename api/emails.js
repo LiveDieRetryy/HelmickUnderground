@@ -1,10 +1,27 @@
 const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 const { sql } = require('@vercel/postgres');
 const { requireAuth } = require('../lib/auth-middleware');
 const { requireCsrfToken } = require('../lib/csrf-middleware');
 const { enforceRateLimit } = require('../lib/rate-limiter');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Create Gmail transporter for marketing emails
+function createGmailTransporter() {
+    if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+        console.warn('Gmail credentials not configured. Marketing emails will not work.');
+        return null;
+    }
+    
+    return nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.GMAIL_USER,
+            pass: process.env.GMAIL_APP_PASSWORD
+        }
+    });
+}
 
 module.exports = async function handler(req, res) {
     // Set CORS headers
@@ -49,6 +66,7 @@ async function handleSendEmail(req, res) {
         }
 
         let emailConfig;
+        let useGmail = false; // Flag to determine which service to use
 
         // Route to appropriate email handler
         switch (emailType) {
@@ -64,6 +82,10 @@ async function handleSendEmail(req, res) {
             case 'custom':
                 emailConfig = buildCustom(emailData);
                 break;
+            case 'marketing':
+                emailConfig = buildMarketing(emailData);
+                useGmail = true; // Marketing emails use Gmail
+                break;
             default:
                 return res.status(400).json({ error: 'Invalid emailType' });
         }
@@ -72,12 +94,40 @@ async function handleSendEmail(req, res) {
             return res.status(400).json({ error: 'Failed to build email' });
         }
 
-        // Send email via Resend
-        const { data, error } = await resend.emails.send(emailConfig);
+        let messageId;
 
-        if (error) {
-            console.error('Resend error:', error);
-            return res.status(400).json({ error: error.message });
+        // Send email via appropriate service
+        if (useGmail) {
+            // Use Gmail for marketing emails
+            const gmailTransporter = createGmailTransporter();
+            
+            if (!gmailTransporter) {
+                return res.status(500).json({ 
+                    error: 'Gmail not configured',
+                    message: 'Please add GMAIL_USER and GMAIL_APP_PASSWORD environment variables'
+                });
+            }
+
+            try {
+                const info = await gmailTransporter.sendMail(emailConfig);
+                messageId = info.messageId;
+            } catch (gmailError) {
+                console.error('Gmail send error:', gmailError);
+                return res.status(500).json({ 
+                    error: 'Failed to send email via Gmail',
+                    details: gmailError.message 
+                });
+            }
+        } else {
+            // Use Resend for other email types
+            const { data, error } = await resend.emails.send(emailConfig);
+
+            if (error) {
+                console.error('Resend error:', error);
+                return res.status(400).json({ error: error.message });
+            }
+            
+            messageId = data.id;
         }
 
         // Log to email history
@@ -100,7 +150,7 @@ async function handleSendEmail(req, res) {
 
         res.status(200).json({ 
             success: true, 
-            messageId: data.id,
+            messageId: messageId,
             message: 'Email sent successfully' 
         });
 
@@ -453,3 +503,71 @@ function buildCustom({ to, subject, html, name, metadata, attachments }) {
 
     return emailConfig;
 }
+
+// Build marketing email (sent via Gmail)
+function buildMarketing({ to, subject, body, recipientName, companyName, metadata }) {
+    if (!to || !subject || !body) {
+        throw new Error('Missing required fields: to, subject, body');
+    }
+
+    // Get Gmail configuration
+    const fromName = process.env.GMAIL_FROM_NAME || 'Helmick Underground';
+    const fromEmail = process.env.GMAIL_USER || 'HelmickUnderground@gmail.com';
+    
+    // Replace variables in subject and body
+    let processedSubject = subject;
+    let processedBody = body;
+    
+    if (recipientName) {
+        processedSubject = processedSubject.replace(/\{name\}/gi, recipientName);
+        processedBody = processedBody.replace(/\{name\}/gi, recipientName);
+    }
+    
+    if (companyName) {
+        processedSubject = processedSubject.replace(/\{company\}/gi, companyName);
+        processedBody = processedBody.replace(/\{company\}/gi, companyName);
+    }
+    
+    // Convert plain text body to HTML with proper formatting
+    const htmlBody = processedBody
+        .replace(/\n\n/g, '</p><p style="margin-bottom: 1rem; line-height: 1.6;">')
+        .replace(/\n/g, '<br>');
+    
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 650px; margin: 0 auto; background: white;">
+        <div style="background: #1a1a1a; padding: 1.5rem; text-align: center;">
+            <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground" style="max-width: 200px; height: auto;">
+        </div>
+        <div style="padding: 2rem;">
+            <div style="color: #333; font-size: 1rem;">
+                <p style="margin-bottom: 1rem; line-height: 1.6;">${htmlBody}</p>
+            </div>
+        </div>
+        <div style="background: #0f0f0f; padding: 1.5rem; text-align: center; color: #999; font-size: 0.9rem;">
+            <p style="margin: 0.5rem 0;">Helmick Underground LLC</p>
+            <p style="margin: 0.5rem 0;">📞 (712) 330-6073 | (712) 330-2060</p>
+            <p style="margin: 0.5rem 0; color: #666; font-size: 0.8rem;">
+                © ${new Date().getFullYear()} Helmick Underground LLC. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>`;
+
+    return {
+        from: `${fromName} <${fromEmail}>`,
+        to: to,
+        replyTo: fromEmail, // Replies go back to Gmail
+        subject: processedSubject,
+        html,
+        text: processedBody // Plain text version for email clients that don't support HTML
+    };
+}
+

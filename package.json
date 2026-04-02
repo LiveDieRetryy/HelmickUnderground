@@ -24,6 +24,7 @@
     "cookie-parser": "^1.4.7",
     "fuse.js": "^7.1.0",
     "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^6.9.13",
     "resend": "^3.0.0"
   },
   "devDependencies": {
