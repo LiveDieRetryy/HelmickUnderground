@@ -139,6 +139,8 @@ I'd be glad to stop by, introduce myself, and talk through how we can help you h
 
 Would you have 15 minutes sometime this week or next?
 
+I look forward to hearing from you,
+
 Tommy Helmick`
     },
     custom: {
@@ -347,13 +349,6 @@ function generateEmailHTML(bodyText) {
         <!-- Main Content -->
         <div style="padding: 2.5rem 2rem;">
             ${htmlContent}
-        </div>
-        
-        <!-- Call to Action -->
-        <div style="background: linear-gradient(135deg, rgba(255, 107, 26, 0.1) 0%, rgba(255, 107, 26, 0.05) 100%); padding: 1.5rem; margin: 0 2rem 2rem; border-radius: 8px; border-left: 4px solid #ff6b1a;">
-            <p style="margin: 0; color: #ff6b1a; font-size: 0.95rem; line-height: 1.6; font-weight: 600;">
-                I look forward to hearing from you,
-            </p>
         </div>
         
         <!-- Footer -->

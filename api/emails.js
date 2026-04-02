@@ -589,13 +589,6 @@ function buildMarketing({ to, subject, body, recipientName, companyName, metadat
             ${htmlContent}
         </div>
         
-        <!-- Call to Action -->
-        <div style="background: linear-gradient(135deg, rgba(255, 107, 26, 0.1) 0%, rgba(255, 107, 26, 0.05) 100%); padding: 1.5rem; margin: 0 2rem 2rem; border-radius: 8px; border-left: 4px solid #ff6b1a;">
-            <p style="margin: 0; color: #ff6b1a; font-size: 0.95rem; line-height: 1.6; font-weight: 600;">
-                I look forward to hearing from you,
-            </p>
-        </div>
-        
         <!-- Footer -->
         <div style="background: linear-gradient(180deg, #0f0f0f 0%, #1a1a1a 100%); padding: 2rem; text-align: center; border-top: 2px solid #ff6b1a;">
             <p style="margin: 0 0 1rem 0; font-size: 1.1rem; font-weight: 600; color: #ff6b1a;">
