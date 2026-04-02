@@ -117,31 +117,44 @@ Your Partner in Underground Infrastructure
         subject: 'Local Crew for 2026–2027 Fiber Builds',
         body: `Hi {name},
 
-I'm reaching out regarding your 2026–2027 fiber build plans.
+I'm reaching out regarding your 2026–2027 fiber build plans. I saw your project includes {county}.
 
-I saw your project includes {county}.
+About Us
 
-My name is Tommy Helmick — I'm a partner at Helmick Underground formerly Triple J out of Mount Vernon. We're a local owner-operator crew focused on plowing and directional drilling.
+My name is Tommy Helmick — I'm a partner at Helmick Underground, formerly Triple J out of Mount Vernon. We're a local owner-operator crew focused on plowing and directional drilling.
 
 We've been in business since 1988, with a background working on long-term projects with Qwest/CenturyLink, building out rural networks with Springville Cooperative, and assisting in Panora Fiber's build.
 
-What sets us apart is how we operate as a crew.
+Why We're Different
 
-No rotating subs or shifting crews — just a consistent team that maintains steady production from start to finish.
+What sets us apart is how we operate as a crew:
 
-Being local, we take pride in the work we leave behind.
+- No rotating subs or shifting crews — just a consistent team that maintains steady production from start to finish
+- Being local, we take pride in the work we leave behind
+- We handle everything from prep through completion, keeping the project moving without relying on multiple crews
 
-We handle everything from prep through completion, which keeps the project moving without relying on multiple crews.
+Our Equipment & Capabilities
 
-We run a full setup with the versatility to handle changing conditions — a Ditch Witch 1250 quad track for direct bury (with backups in place), multiple drills (Vermeer 20x22 and two Astec DD-2024s) for crossings and long pipe sections, and a Larson trailer that allows for fast figure-eighting and smooth transitions between pipe and plow. More importantly, it's an experienced crew that shows up every day and keeps that equipment producing efficiently.
+We run a full setup with the versatility to handle changing conditions:
+
+- Ditch Witch 1250 quad track for direct bury (with backups in place)
+- Multiple drills: Vermeer 20x22 and two Astec DD-2024s for crossings and long pipe sections
+- Larson trailer that allows for fast figure-eighting and smooth transitions between pipe and plow
+
+More importantly, it's an experienced crew that shows up every day and keeps that equipment producing efficiently.
+
+Current Status
 
 We're local, CDL-A, fully insured, and currently active, with a focus on helping build out infrastructure closer to home.
+
+Let's Connect
 
 I'd be glad to stop by, introduce myself, and talk through how we can help you hit your 2026 and 2027 goals.
 
 Would you have 15 minutes sometime this week or next?
 
 I look forward to hearing from you,
+
 Tommy Helmick
 Partner, Helmick Underground
 319-721-9925
