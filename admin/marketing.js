@@ -214,15 +214,12 @@ function renderActionButtons() {
         existing.remove();
     }
     
-    // Add new action buttons
+    // Add preview button only
     const actionButtons = document.createElement('div');
     actionButtons.className = 'action-buttons';
     actionButtons.innerHTML = `
-        <button type="button" class="btn-preview" onclick="previewEmail()">
-            👁️ Preview
-        </button>
-        <button type="submit" class="btn-send" form="emailForm" id="sendBtn">
-            📧 Send Email
+        <button type="button" class="btn-send" onclick="previewEmail()" style="width: 100%;">
+            👁️ Preview & Send Email
         </button>
     `;
     
@@ -277,6 +274,31 @@ window.previewEmail = function() {
     if (!subject || !body) {
         showToast('Please fill in subject and message', 'error');
         return;
+    // Get form values
+    const companyName = document.getElementById('companyName').value.trim();
+    const contactName = document.getElementById('contactName').value.trim();
+    const emailAddress = document.getElementById('emailAddress').value.trim();
+    const county = document.getElementById('county').value.trim();
+    
+    const subject = document.getElementById('emailSubject').value;
+    const body = document.getElementById('emailBody').value;
+    
+    // Validate
+    if (!companyName || !contactName || !emailAddress) {
+        showToast('Please fill in all required recipient information', 'error');
+        return;
+    }
+    
+    if (!subject || !body) {
+        showToast('Please fill in subject and message', 'error');
+        return;
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailAddress)) {
+        showToast('Please enter a valid email address', 'error');
+        return;
     }
     
     // Replace variables with actual values
@@ -288,15 +310,17 @@ window.previewEmail = function() {
         .replace(/\{name\}/gi, contactName)
         .replace(/\{company\}/gi, companyName);
     
-    // Show preview in modal
+    // Show preview in modal with send button
+    const modalId = 'emailPreviewModal_' + Date.now();
     const modal = document.createElement('div');
+    modal.id = modalId;
     modal.style.cssText = `
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0,0,0,0.8);
+        background: rgba(0,0,0,0.9);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -304,27 +328,45 @@ window.previewEmail = function() {
         padding: 2rem;
     `;
     
+    const recipientInfo = `
+        <div style="background: linear-gradient(135deg, rgba(255, 107, 26, 0.15) 0%, rgba(255, 107, 26, 0.05) 100%); padding: 1.5rem; margin-bottom: 1.5rem; border-radius: 8px; border-left: 4px solid var(--primary-color);">
+            <div style="color: var(--primary-color); font-weight: 600; font-size: 1rem; margin-bottom: 0.75rem;">📧 Sending To:</div>
+            <div style="color: var(--white); font-size: 0.95rem; margin-bottom: 0.3rem;"><strong>${contactName}</strong> at ${companyName}</div>
+            <div style="color: var(--gray); font-size: 0.9rem;">${emailAddress}</div>
+            ${county ? `<div style="color: var(--gray); font-size: 0.85rem; margin-top: 0.3rem;">📍 ${county}</div>` : ''}
+        </div>
+    `;
+    
     modal.innerHTML = `
-        <div style="background: var(--card-dark); border-radius: 12px; max-width: 700px; width: 100%; max-height: 80vh; overflow-y: auto; border: 2px solid var(--primary-color);">
-            <div style="background: linear-gradient(135deg, var(--primary-color) 0%, #ff8c42 100%); padding: 1.5rem; color: var(--white); display: flex; justify-content: space-between; align-items: center;">
+        <div style="background: var(--card-dark); border-radius: 12px; max-width: 800px; width: 100%; max-height: 85vh; overflow-y: auto; border: 2px solid var(--primary-color); box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+            <div style="background: linear-gradient(135deg, var(--primary-color) 0%, #ff8c42 100%); padding: 1.5rem; color: var(--white); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1;">
                 <div>
-                    <h3 style="margin: 0 0 0.5rem 0; font-size: 1.3rem;">Email Preview</h3>
-                    <div style="opacity: 0.9; font-size: 0.9rem;">To: ${emailAddress}</div>
+                    <h3 style="margin: 0 0 0.3rem 0; font-size: 1.4rem;">📧 Email Preview</h3>
+                    <div style="opacity: 0.9; font-size: 0.85rem;">Review before sending</div>
                 </div>
-                <button onclick="this.closest('div').parentElement.parentElement.remove()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 1.2rem; font-weight: bold;">✕</button>
+                <button onclick="document.getElementById('${modalId}').remove()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 1.2rem; font-weight: bold; transition: all 0.2s;">✕</button>
             </div>
             <div style="padding: 2rem;">
+                ${recipientInfo}
+                
                 <div style="margin-bottom: 1.5rem;">
-                    <div style="color: var(--gray); font-size: 0.9rem; margin-bottom: 0.5rem;">Subject:</div>
-                    <div style="color: var(--white); font-size: 1.1rem; font-weight: 600;">${processedSubject}</div>
+                    <div style="color: var(--gray); font-size: 0.85rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Subject Line:</div>
+                    <div style="color: var(--white); font-size: 1.1rem; font-weight: 600; padding: 0.75rem; background: rgba(255, 107, 26, 0.1); border-radius: 6px;">${processedSubject}</div>
                 </div>
-                <div style="margin-bottom: 1.5rem;">
-                    <div style="color: var(--gray); font-size: 0.9rem; margin-bottom: 0.5rem;">Message:</div>
-                    <div style="color: var(--white); line-height: 1.8; white-space: pre-wrap;">${processedBody}</div>
+                
+                <div style="margin-bottom: 2rem;">
+                    <div style="color: var(--gray); font-size: 0.85rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Message Preview:</div>
+                    <div style="color: var(--white); line-height: 1.8; white-space: pre-wrap; padding: 1.5rem; background: rgba(255, 107, 26, 0.05); border-radius: 8px; border: 1px solid rgba(255, 107, 26, 0.2); max-height: 400px; overflow-y: auto;">${processedBody}</div>
                 </div>
-                <button onclick="this.closest('div').parentElement.parentElement.remove()" style="background: var(--primary-color); border: none; color: white; padding: 0.75rem 2rem; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%;">
-                    Close Preview
-                </button>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <button onclick="document.getElementById('${modalId}').remove()" style="background: var(--black); border: 2px solid rgba(255, 107, 26, 0.3); color: var(--gray); padding: 1rem 2rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: all 0.2s;">
+                        ← Go Back
+                    </button>
+                    <button id="sendEmailBtn_${modalId}" onclick="confirmAndSendEmail('${modalId}')" style="background: linear-gradient(135deg, var(--primary-color) 0%, #ff8c42 100%); border: none; color: white; padding: 1rem 2rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1rem; box-shadow: 0 4px 12px rgba(255, 107, 26, 0.4); transition: all 0.2s;">
+                        📧 Send Email →
+                    </button>
+                </div>
             </div>
         </div>
     `;
@@ -339,14 +381,22 @@ window.previewEmail = function() {
     });
 };
 
-// Send email
-window.sendEmail = async function(event) {
-    event.preventDefault();
+// Confirm and send email from modal
+window.confirmAndSendEmail = async function(modalId) {
+    const sendBtn = document.getElementById(`sendEmailBtn_${modalId}`);
+    const originalText = sendBtn.innerHTML;
     
-    // Get form values
+    // Disable button and show loading
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<span class="loading-spinner"></span> Sending...';
+    
+    // Get form values again
     const companyName = document.getElementById('companyName').value.trim();
     const contactName = document.getElementById('contactName').value.trim();
     const emailAddress = document.getElementById('emailAddress').value.trim();
+    const county = document.getElementById('county').value.trim();
+    const subject = document.getElementById('emailSubject').value;
+    const body = document.getElementById('emailBody').value;
     
     const subject = document.getElementById('emailSubject').value;
     const body = document.getElementById('emailBody').value;
@@ -370,10 +420,6 @@ window.sendEmail = async function(event) {
     }
     
     // Disable send button
-    const sendBtn = document.getElementById('sendBtn');
-    const originalText = sendBtn.innerHTML;
-    sendBtn.disabled = true;
-    sendBtn.innerHTML = '<span class="loading-spinner"></span> Sending...';
     
     try {
         const response = await apiFetch('/api/emails', {
@@ -388,12 +434,16 @@ window.sendEmail = async function(event) {
                 companyName: companyName,
                 metadata: {
                     company: companyName,
-                    contact: contactName
+                    contact: contactName,
+                    county: county || null
                 }
             })
         });
         
         if (response.success) {
+            // Close the modal
+            document.getElementById(modalId).remove();
+            
             showToast('Email sent successfully! ✅', 'success');
             
             // Reload email history for stats
@@ -404,17 +454,16 @@ window.sendEmail = async function(event) {
             document.getElementById('companyName').value = '';
             document.getElementById('contactName').value = '';
             document.getElementById('emailAddress').value = '';
+            document.getElementById('county').value = '';
             
-            // Optionally clear email content
-            // document.getElementById('emailSubject').value = '';
-            // document.getElementById('emailBody').value = '';
+            // Optionally scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
             throw new Error(response.error || 'Failed to send email');
         }
     } catch (error) {
         console.error('Send email error:', error);
         showToast(error.message || 'Failed to send email', 'error');
-    } finally {
         sendBtn.disabled = false;
         sendBtn.innerHTML = originalText;
     }
