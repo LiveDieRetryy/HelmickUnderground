@@ -592,8 +592,8 @@ function buildMarketing({ to, subject, body, recipientName, companyName, metadat
         <!-- Call to Action -->
         <div style="background: linear-gradient(135deg, rgba(255, 107, 26, 0.1) 0%, rgba(255, 107, 26, 0.05) 100%); padding: 1.5rem; margin: 0 2rem 2rem; border-radius: 8px; border-left: 4px solid #ff6b1a;">
             <p style="margin: 0; color: #333; font-size: 0.95rem; line-height: 1.6;">
-                <strong style="color: #ff6b1a;">Ready to discuss your project?</strong><br>
-                Contact us today for a consultation.
+                <strong style="color: #ff6b1a;">I look forward to hearing from you,</strong><br>
+                Tommy Helmick
             </p>
         </div>
         
@@ -603,10 +603,13 @@ function buildMarketing({ to, subject, body, recipientName, companyName, metadat
                 Helmick Underground LLC
             </p>
             <p style="margin: 0.5rem 0; color: #bbb; font-size: 0.95rem;">
-                📞 <strong style="color: #ff6b1a;">(712) 330-6073</strong> | <strong style="color: #ff6b1a;">(712) 330-2060</strong>
+                📞 <strong style="color: #ff6b1a;">319-721-9925</strong>
             </p>
             <p style="margin: 0.5rem 0; color: #bbb; font-size: 0.9rem;">
                 📧 ${fromEmail}
+            </p>
+            <p style="margin: 0.5rem 0; color: #bbb; font-size: 0.9rem;">
+                🌐 HelmickUnderground.com
             </p>
             <p style="margin: 1.5rem 0 0 0; color: #777; font-size: 0.8rem; line-height: 1.5;">
                 Expert underground utility services for fiber optic installation,<br>
