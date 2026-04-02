@@ -658,18 +658,40 @@ async function scrapeArcGIS() {
                     71: 'Licensed Fixed Wireless'
                 };
                 
+                // Extract funding amount (BEAD support is the federal grant amount)
+                const fundingAmount = attrs.bead_support || null;
+                const subgranteeMatch = attrs.subgrantee_match || null;
+                const totalFunding = fundingAmount && subgranteeMatch 
+                    ? fundingAmount + subgranteeMatch 
+                    : fundingAmount;
+                
+                // Build comprehensive notes with all project details
+                let notes = `Control ID: ${attrs.controlid}\n`;
+                notes += `Technology: ${techMap[attrs.technology] || attrs.technology}\n`;
+                notes += `Total Locations: ${attrs.total_locations || 0}, CAI: ${attrs.total_cai || 0}\n`;
+                if (attrs.total_unserved) notes += `Unserved: ${attrs.total_unserved}, `;
+                if (attrs.total_underserved) notes += `Underserved: ${attrs.total_underserved}\n`;
+                if (attrs.download_speed_anticipated && attrs.upload_speed_anticipated) {
+                    notes += `Speed: ${attrs.download_speed_anticipated}/${attrs.upload_speed_anticipated} Mbps\n`;
+                }
+                if (attrs.estimated_jobs) notes += `Est. Jobs: ${attrs.estimated_jobs}\n`;
+                if (attrs.uei) notes += `UEI: ${attrs.uei}\n`;
+                if (attrs.frn) notes += `FRN: ${attrs.frn}\n`;
+                
                 // Prepare recipient data
                 const recipient = {
                     company_name: attrs.uei_name || 'Unknown',
+                    funding_amount: totalFunding,
                     grant_program: 'NOFA 009 - Iowa Broadband',
                     award_date: '2025-09-04', // Posted 9/4/2025 according to metadata
                     city: attrs.project_name ? String(attrs.project_name).split(' - ')[0] : '',
                     state: 'IA',
+                    county: attrs.county_name || null,
                     project_description: attrs.project_description || '',
                     service_area: attrs.project_name || '',
                     status: 'not_contacted',
                     is_prospect: false,
-                    notes: `Control ID: ${attrs.controlid}, Technology: ${techMap[attrs.technology] || attrs.technology}, Total Locations: ${attrs.total_locations || 0}, CAI: ${attrs.total_cai || 0}`
+                    notes: notes.trim()
                 };
 
                 // Get geometry - calculate centroid of polygon and convert from Web Mercator to WGS84
@@ -704,15 +726,15 @@ async function scrapeArcGIS() {
                     // Insert new recipient
                     await sql`
                         INSERT INTO nofa_recipients (
-                            company_name, grant_program, award_date, city, state, 
-                            project_description, service_area, status, is_prospect, notes,
-                            latitude, longitude
+                            company_name, funding_amount, grant_program, award_date, 
+                            city, state, county, project_description, service_area, 
+                            status, is_prospect, notes, latitude, longitude
                         )
                         VALUES (
-                            ${recipient.company_name}, ${recipient.grant_program}, ${recipient.award_date},
-                            ${recipient.city}, ${recipient.state}, ${recipient.project_description},
-                            ${recipient.service_area}, ${recipient.status}, ${recipient.is_prospect},
-                            ${recipient.notes}, ${latitude}, ${longitude}
+                            ${recipient.company_name}, ${recipient.funding_amount}, ${recipient.grant_program}, 
+                            ${recipient.award_date}, ${recipient.city}, ${recipient.state}, ${recipient.county},
+                            ${recipient.project_description}, ${recipient.service_area}, ${recipient.status}, 
+                            ${recipient.is_prospect}, ${recipient.notes}, ${latitude}, ${longitude}
                         )
                     `;
 
