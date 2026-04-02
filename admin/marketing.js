@@ -142,10 +142,7 @@ Would you have 15 minutes sometime this week or next?
 I look forward to hearing from you,
 
 Tommy Helmick
-Partner, Helmick Underground
-319-721-9925
-HelmickUnderground@gmail.com
-HelmickUnderground.com`
+Partner, Helmick Underground`
     },
     custom: {
         name: 'Custom Message',
