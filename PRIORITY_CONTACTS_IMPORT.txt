@@ -1,0 +1,176 @@
+================================================================================
+PRIORITY CONTACTS IMPORT GUIDE
+================================================================================
+
+You have 10 priority companies you want to reach out to with contact info.
+
+================================================================================
+OPTION 1: CSV IMPORT (RECOMMENDED - QUICK & EASY)
+================================================================================
+
+I've created: iowa-nofa-priority-contacts.csv
+
+To import these contacts:
+
+1. Go to your NOFA Recipients page
+2. Click the "📥 Import CSV" button
+3. Drag and drop OR click to select: iowa-nofa-priority-contacts.csv
+4. Click "Import"
+
+The system will:
+✅ Check if the company already exists (by name)
+✅ If exists: UPDATE with the new contact info
+✅ If new: CREATE a new recipient record
+✅ All marked as "not_contacted" and ready for outreach
+
+================================================================================
+OPTION 2: MANUAL ENTRY (For specific records)
+================================================================================
+
+If you want to manually update existing records:
+
+1. Go to NOFA Recipients page
+2. Search for the company name
+3. Click on the company to open the edit modal
+4. Add/update:
+   - Contact Person: (name and title)
+   - Email: (contact email)
+   - Phone: (if you have it)
+   - Notes: "Priority contact - [their role]"
+5. Change Status to "prospect" when ready to reach out
+6. Save
+
+================================================================================
+MATCHING WITH EXISTING RECIPIENTS
+================================================================================
+
+Some of these companies might already be in your database from the ArcGIS sync
+with different names. Here's how to find and match them:
+
+South Slope Engineering
+  → Might be listed as: "South Slope Cooperative"
+  
+KCTC (Kalona)
+  → Might be listed as: "Kalona Cooperative Telephone Company"
+  
+Maquoketa Valley Fiber
+  → Might be listed as: "Maquoketa Valley Electric Cooperative"
+  
+Mechanicsville Fiber
+  → Might be listed as: "Mechanicsville Telephone Company"
+  
+Sharon Telephone
+  → Might be listed as: "Sharon Telephone Company"
+  
+F&B Communications
+  → Might be listed as: "Farmers & Businessmen's Telephone Company"
+  
+Cascade Communications
+  → Might be listed as: "Cascade Communications Company"
+  
+East Buchanan
+  → Might be listed as: "East Buchanan Telephone Cooperative"
+  
+Independence L&P
+  → Might be listed as: "Independence Light & Power"
+  
+Liberty Communications
+  → Might be listed as: "Liberty Communications, Inc."
+
+TIP: Use the search box on the NOFA Recipients page to find these companies
+by partial name match.
+
+================================================================================
+BULK UPDATE (If you want to match with existing records)
+================================================================================
+
+If you want to update existing ArcGIS-imported recipients with this contact info:
+
+1. Export your current recipients to CSV (if available)
+2. Open in Excel/Google Sheets
+3. Match company names manually
+4. Add contact info columns
+5. Re-import
+
+OR
+
+I can create a SQL script to bulk update matching records if you provide
+the exact company names as they appear in your database.
+
+================================================================================
+NEXT STEPS - OUTREACH WORKFLOW
+================================================================================
+
+After importing these contacts:
+
+1. VERIFY CONTACT INFO
+   - Send a test email or call to confirm contact is accurate
+   - Update phone numbers if available
+
+2. MARK AS PROSPECTS
+   - Change status from "not_contacted" to "prospect"
+   - This moves them to your active outreach list
+
+3. CREATE OUTREACH CAMPAIGN
+   - Draft personalized email template
+   - Reference their NOFA009 award
+   - Highlight underground utility contracting services
+   - Mention Helmick Underground's experience
+
+4. TRACK RESPONSES
+   - Update status as you get responses:
+     * "contacted" - initial outreach sent
+     * "responded" - they replied
+     * "interested" - expressed interest
+     * "quote_sent" - proposal submitted
+     * "customer" - closed deal!
+
+5. LOG ACTIVITIES
+   - Add notes for each interaction
+   - Track follow-up dates
+   - Document conversations
+
+================================================================================
+EMAIL TEMPLATE SUGGESTION
+================================================================================
+
+Subject: Underground Utility Support for Your NOFA 009 Broadband Project
+
+Hi [Contact Name],
+
+I saw that [Company Name] received funding through Iowa's NOFA 009 Broadband
+program - congratulations! As you begin your broadband expansion project,
+I wanted to reach out regarding underground utility contracting services.
+
+Helmick Underground specializes in:
+• Fiber optic cable installation
+• Horizontal directional drilling (HDD)
+• Trenching and excavation
+• Utility locating and coordination
+• ROW management
+
+We've worked with several Iowa broadband providers on similar NOFA-funded
+projects and understand the timeline and compliance requirements.
+
+Would you have 15 minutes this week to discuss your project timeline and
+how we might support your underground infrastructure needs?
+
+Best regards,
+[Your Name]
+Helmick Underground
+[Your Phone]
+[Your Email]
+
+================================================================================
+QUESTIONS?
+================================================================================
+
+Need help with:
+- Importing the CSV?
+- Matching companies to existing records?
+- Creating email templates?
+- Setting up outreach tracking?
+
+Just ask!
+
+================================================================================
