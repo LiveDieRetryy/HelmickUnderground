@@ -694,25 +694,27 @@ async function scrapeArcGIS() {
                 }
 
                 // Check if already exists
-                const existing = await pool.query(
-                    'SELECT id FROM nofa_recipients WHERE company_name = $1 AND grant_program = $2',
-                    [recipient.company_name, recipient.grant_program]
-                );
+                const existing = await sql`
+                    SELECT id FROM nofa_recipients 
+                    WHERE company_name = ${recipient.company_name} 
+                    AND grant_program = ${recipient.grant_program}
+                `;
 
                 if (existing.rows.length === 0) {
                     // Insert new recipient
-                    await pool.query(`
-                        INSERT INTO nofa_recipients 
-                        (company_name, grant_program, award_date, city, state, 
-                         project_description, service_area, status, is_prospect, notes,
-                         latitude, longitude)
-                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-                    `, [
-                        recipient.company_name, recipient.grant_program, recipient.award_date,
-                        recipient.city, recipient.state, recipient.project_description,
-                        recipient.service_area, recipient.status, recipient.is_prospect,
-                        recipient.notes, latitude, longitude
-                    ]);
+                    await sql`
+                        INSERT INTO nofa_recipients (
+                            company_name, grant_program, award_date, city, state, 
+                            project_description, service_area, status, is_prospect, notes,
+                            latitude, longitude
+                        )
+                        VALUES (
+                            ${recipient.company_name}, ${recipient.grant_program}, ${recipient.award_date},
+                            ${recipient.city}, ${recipient.state}, ${recipient.project_description},
+                            ${recipient.service_area}, ${recipient.status}, ${recipient.is_prospect},
+                            ${recipient.notes}, ${latitude}, ${longitude}
+                        )
+                    `;
 
                     results.imported++;
                     results.details.push({
