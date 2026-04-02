@@ -66,6 +66,16 @@ function loadAdminNavbar() {
                     <span class="sidebar-nav-item-text">Schedule</span>
                 </a>
                 
+                <div class="sidebar-section-header">NOFA Tracking</div>
+                <a href="/admin/nofa-iowa.html" class="sidebar-nav-item">
+                    <span class="sidebar-nav-item-icon">🗺️</span>
+                    <span class="sidebar-nav-item-text">Iowa Recipients</span>
+                </a>
+                <a href="/admin/nofa-prospects.html" class="sidebar-nav-item">
+                    <span class="sidebar-nav-item-icon">🎯</span>
+                    <span class="sidebar-nav-item-text">Prospects</span>
+                </a>
+                
                 <div class="sidebar-section-header">Financial</div>
                 <a href="/admin/rates.html" class="sidebar-nav-item">
                     <span class="sidebar-nav-item-icon">💰</span>

@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Iowa NOFA Recipients - Helmick Underground Admin</title>
+    <link rel="icon" type="image/png" href="../logo.png">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="sidebar.css">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        .nofa-container {
+            padding: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .page-header h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin: 0;
+        }
+
+        .page-header .actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Map Container */
+        #map {
+            height: 500px;
+            width: 100%;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 107, 26, 0.3);
+            margin-bottom: 2rem;
+            z-index: 1;
+        }
+
+        .map-legend {
+            background: var(--card-dark);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255, 107, 26, 0.2);
+        }
+
+        .map-legend h3 {
+            color: var(--white);
+            font-size: 1rem;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .legend-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .legend-dot.not-contacted { background-color: #dc143c; }
+        .legend-dot.prospect { background-color: #ffd700; }
+        .legend-dot.responded { background-color: #32cd32; }
+        .legend-dot.customer { background-color: #4169e1; }
+        .legend-dot.not-interested { background-color: #808080; }
+
+        /* Leaflet Popup Customization */
+        .leaflet-popup-content-wrapper {
+            background: var(--card-dark) !important;
+            color: var(--white) !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
+        }
+
+        .leaflet-popup-tip {
+            background: var(--card-dark) !important;
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .filter-group select {
+            padding: 0.5rem 1rem;
+            background: var(--card-dark);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            border-radius: 8px;
+            color: var(--white);
+            font-size: 0.9rem;
+        }
+
+        /* Table Styles */
+        .recipients-table {
+            background: var(--card-dark);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 107, 26, 0.2);
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 107, 26, 0.2);
+        }
+
+        .table-header h2 {
+            color: var(--white);
+            font-size: 1.3rem;
+            margin: 0;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            padding: 0.5rem 2.5rem 0.5rem 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            border-radius: 8px;
+            color: var(--white);
+            width: 300px;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: rgba(255, 107, 26, 0.1);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            color: var(--gray);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 1rem;
+            color: var(--white);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        tbody tr {
+            transition: background 0.3s;
+            cursor: pointer;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 107, 26, 0.1);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-badge.not-contacted {
+            background: rgba(220, 20, 60, 0.2);
+            color: #ff6b9d;
+        }
+
+        .status-badge.prospect {
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+        }
+
+        .status-badge.responded {
+            background: rgba(50, 205, 50, 0.2);
+            color: #32cd32;
+        }
+
+        .status-badge.customer {
+            background: rgba(65, 105, 225, 0.2);
+            color: #6495ed;
+        }
+
+        .status-badge.not-interested {
+            background: rgba(128, 128, 128, 0.2);
+            color: #a9a9a9;
+        }
+
+        .company-name {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .funding-amount {
+            font-weight: 600;
+            color: #32cd32;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .modal-content {
+            background: var(--card-dark);
+            border-radius: 16px;
+            max-width: 600px;
+            width: 100%;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 107, 26, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            color: var(--primary-color);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-item {
+            margin-bottom: 1rem;
+        }
+
+        .detail-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .detail-label {
+            display: block;
+            color: var(--gray);
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+        }
+
+        .detail-value {
+            color: var(--white);
+            font-size: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--gray);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            border-radius: 8px;
+            color: var(--white);
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid rgba(255, 107, 26, 0.2);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: var(--black);
+        }
+
+        .btn-primary:hover {
+            background: #ff8542;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 107, 26, 0.2);
+            color: var(--primary-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 107, 26, 0.3);
+        }
+
+        .btn-success {
+            background: #32cd32;
+            color: var(--black);
+        }
+
+        .btn-success:hover {
+            background: #28a428;
+        }
+
+        .btn-delete {
+            background: #dc143c;
+            color: var(--white);
+        }
+
+        .btn-delete:hover {
+            background: #b01030;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray);
+        }
+
+        .empty-state h3 {
+            color: var(--white);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nofa-container {
+                padding: 1rem;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            #map {
+                height: 400px;
+            }
+
+            .detail-grid,
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .search-box input {
+                width: 100%;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            th, td {
+                padding: 0.75rem 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <div id="sidebar"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="nofa-container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1>🗺️ Iowa NOFA Recipients</h1>
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="openAddModal()">+ Add Recipient</button>
+                </div>
+            </div>
+
+            <!-- Map Legend -->
+            <div class="map-legend">
+                <h3>Status Legend</h3>
+                <div class="legend-items">
+                    <div class="legend-item">
+                        <span class="legend-dot not-contacted"></span>
+                        <span>Not Contacted</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot prospect"></span>
+                        <span>Marked as Prospect</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot responded"></span>
+                        <span>Responded</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot customer"></span>
+                        <span>Became Customer</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot not-interested"></span>
+                        <span>Not Interested</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Status:</label>
+                    <select id="statusFilter" onchange="filterRecipients()">
+                        <option value="">All Statuses</option>
+                        <option value="not_contacted">Not Contacted</option>
+                        <option value="prospect">Prospect</option>
+                        <option value="responded">Responded</option>
+                        <option value="customer">Became Customer</option>
+                        <option value="not_interested">Not Interested</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Prospect Status:</label>
+                    <select id="prospectFilter" onchange="filterRecipients()">
+                        <option value="">All</option>
+                        <option value="true">Prospects Only</option>
+                        <option value="false">Non-Prospects Only</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Map -->
+            <div id="map"></div>
+
+            <!-- Recipients Table -->
+            <div class="recipients-table">
+                <div class="table-header">
+                    <h2>Recipients List</h2>
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Search companies..." oninput="searchRecipients()">
+                    </div>
+                </div>
+                <div id="tableContainer">
+                    <!-- Table will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Details Modal -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="viewCompanyName"></h2>
+                <button class="close-btn" onclick="closeViewModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="viewModalBody">
+                <!-- Details will be populated by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-delete" onclick="deleteRecipient()">Delete</button>
+                <button class="btn btn-secondary" onclick="openEditModal()">Edit</button>
+                <button class="btn btn-success" onclick="markAsProspect()" id="markProspectBtn">Mark as Prospect</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="formModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="formModalTitle">Add Recipient</h2>
+                <button class="close-btn" onclick="closeFormModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="recipientForm" onsubmit="saveRecipient(event)">
+                    <div class="form-group">
+                        <label>Company Name *</label>
+                        <input type="text" name="company_name" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Contact Person</label>
+                            <input type="text" name="contact_person">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" name="email">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="tel" name="phone">
+                        </div>
+                        <div class="form-group">
+                            <label>Website</label>
+                            <input type="url" name="website">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Funding Amount ($)</label>
+                            <input type="number" name="funding_amount" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Grant Program</label>
+                            <input type="text" name="grant_program" placeholder="e.g., BEAD, ReConnect">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Award Date</label>
+                        <input type="date" name="award_date">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Address</label>
+                        <input type="text" name="address">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>City</label>
+                            <input type="text" name="city">
+                        </div>
+                        <div class="form-group">
+                            <label>County</label>
+                            <input type="text" name="county">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>State</label>
+                            <input type="text" name="state" value="IA" maxlength="2">
+                        </div>
+                        <div class="form-group">
+                            <label>ZIP Code</label>
+                            <input type="text" name="zip">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Latitude</label>
+                            <input type="number" name="latitude" step="0.00000001" placeholder="41.9216">
+                        </div>
+                        <div class="form-group">
+                            <label>Longitude</label>
+                            <input type="number" name="longitude" step="0.00000001" placeholder="-91.3546">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Service Area</label>
+                        <input type="text" name="service_area" placeholder="e.g., Linn County, Marion area">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Project Description</label>
+                        <textarea name="project_description"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select name="status">
+                            <option value="not_contacted">Not Contacted</option>
+                            <option value="responded">Responded</option>
+                            <option value="customer">Became Customer</option>
+                            <option value="not_interested">Not Interested</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea name="notes"></textarea>
+                    </div>
+
+                    <input type="hidden" name="id" id="recipientId">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" onclick="closeFormModal()">Cancel</button>
+                <button class="btn btn-primary" type="submit" form="recipientForm">Save Recipient</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet.js -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script src="sidebar.js"></script>
+    <script src="utils.js"></script>
+    <script src="nofa-iowa.js"></script>
+</body>
+</html>

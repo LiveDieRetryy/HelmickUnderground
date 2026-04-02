@@ -1,0 +1,222 @@
+# NOFA Tracking System - User Guide
+
+## Overview
+The NOFA (Notice of Funding Availability) Tracking System helps you identify, track, and reach out to companies that have received government funding for rural fiber and broadband projects in Iowa.
+
+## 📊 System Components
+
+### 1. **Iowa Recipients** (`/admin/nofa-iowa.html`)
+Track companies that have received NOFA funding in Iowa.
+
+**Features:**
+- 🗺️ **Interactive Map** - Visual representation of funded companies across Iowa
+- 📍 **Color-Coded Markers**:
+  - 🔴 Red = Not Contacted
+  - 🟡 Yellow = Marked as Prospect
+  - 🟢 Green = Responded
+  - 🔵 Blue = Became Customer
+  - ⚪ Gray = Not Interested
+- 📋 **Sortable Table** - List view with search and filters
+- ➕ **Add Recipients** - Manual entry of NOFA award information
+- 🎯 **Quick Actions** - Mark as prospect directly from map or table
+
+### 2. **Prospects** (`/admin/nofa-prospects.html`)
+Manage your marketing outreach targets.
+
+**Features:**
+- 📊 **Dashboard Stats** - Track outreach progress
+- 🎯 **Status Tracking**:
+  - Not Contacted
+  - Email Sent
+  - Responded
+  - Follow-up Needed
+  - Became Customer
+  - Lost
+- 📧 **Email Integration** - Send emails to prospects
+- 📅 **Follow-up Reminders** - Track next contact dates
+- 📝 **Notes** - Keep internal notes about each prospect
+
+## 🚀 Getting Started
+
+### Step 1: Add NOFA Recipients
+
+1. Go to **NOFA Tracking → Iowa Recipients**
+2. Click **"+ Add Recipient"** button
+3. Fill in the form:
+   - **Company Name** (required)
+   - **Contact Information** (person, email, phone)
+   - **Funding Details** (amount, program, award date)
+   - **Location** (address, city, county, lat/long)
+   - **Project Info** (service area, description)
+
+**Finding Lat/Long Coordinates:**
+- Use Google Maps: Right-click location → Click coordinates to copy
+- Or use geocoding services to convert addresses
+
+### Step 2: View Recipients on Map
+
+The interactive map shows all Iowa NOFA recipients with color-coded markers.
+
+**Map Interactions:**
+- **Click a marker** → See quick info popup
+- **"View Details"** → Open full recipient information
+- **"→ Prospect"** → Mark as prospect for outreach
+- **Hover** → See company name tooltip
+
+**Table Features:**
+- **Search** - Find companies by name, city, or county
+- **Filter by Status** - Show only specific statuses
+- **Filter by Prospect** - Show only prospects or non-prospects
+- **Click row** → View full details
+
+### Step 3: Mark as Prospect
+
+When you identify a company to target for outreach:
+
+1. **From Map:**
+   - Click marker → Click "→ Prospect" in popup
+
+2. **From Table:**
+   - Click company row → Click "Mark as Prospect" button
+
+This automatically:
+- ✅ Creates a prospect entry
+- ✅ Marks recipient with yellow star (★)
+- ✅ Changes map marker to yellow
+- ✅ Copies contact information to prospects
+
+### Step 4: Manage Prospects
+
+Go to **NOFA Tracking → Prospects** to manage outreach.
+
+**Update Prospect Status:**
+1. Click prospect card
+2. Edit the prospect
+3. Update:
+   - Status (Not Contacted → Email Sent → Responded, etc.)
+   - Last Contacted date
+   - Next Follow-up date
+   - Notes about conversations
+
+**Send Emails:**
+- Click "📧 Send Email" on any prospect with an email
+- Opens your default email client with pre-filled template
+- Remember to update status to "Email Sent" after sending
+
+### Step 5: Track Follow-ups
+
+The Prospects page helps you stay organized:
+
+- **Dashboard Stats** - See how many prospects are in each stage
+- **Follow-up Dates** - Prospects with upcoming/overdue follow-ups shown first
+- **⚠ Overdue Alerts** - Red warning for past-due follow-ups
+- **Sort Options** - Sort by follow-up date, recently added, or company name
+
+## 📝 Best Practices
+
+### Data Entry Tips
+
+1. **Always include location data (city, county)** - Helps with territory planning
+2. **Add lat/long when possible** - Enables map visualization
+3. **Record funding amounts** - Helps prioritize larger opportunities
+4. **Note the grant program** - Different programs may need different approaches
+
+### Outreach Workflow
+
+**Recommended Process:**
+1. **Research Phase** - Add all Iowa NOFA recipients to the system
+2. **Prioritization** - Mark high-value targets as prospects
+3. **Initial Outreach** - Send email, update status to "Email Sent"
+4. **Set Follow-up** - Schedule next contact date (typically 7-14 days)
+5. **Track Response** - Update to "Responded" or "Follow-up Needed"
+6. **Convert** - Mark as "Customer" when you win the work
+
+### Status Definitions
+
+- **Not Contacted** - Haven't reached out yet
+- **Email Sent** - Initial email sent, waiting for response
+- **Responded** - They replied, conversation started
+- **Follow-up Needed** - Need to contact again
+- **Became Customer** - Successfully won the work 🎉
+- **Lost** - They declined or went with competitor
+
+## 🔧 Technical Details
+
+### Database Tables
+
+**nofa_recipients**
+- Stores NOFA funding award information
+- Tracks if marked as prospect (`is_prospect` flag)
+- Includes contact, location, and project data
+
+**prospects**
+- Marketing/outreach targets
+- Links to original NOFA recipient if applicable
+- Tracks status, dates, and notes
+
+### API Endpoints
+
+**NOFA Recipients:**
+- `GET /api/nofa-recipients?action=all&state=IA` - List Iowa recipients
+- `POST /api/nofa-recipients` - Add recipient
+- `PUT /api/nofa-recipients?id={id}` - Update recipient
+- `DELETE /api/nofa-recipients?id={id}` - Delete recipient
+
+**Prospects:**
+- `GET /api/prospects?action=all` - List all prospects
+- `POST /api/prospects` - Add prospect
+- `PUT /api/prospects?id={id}` - Update prospect
+- `DELETE /api/prospects?id={id}` - Delete prospect
+
+### Security
+
+All API endpoints require:
+- ✅ JWT Authentication
+- ✅ CSRF Token (for write operations)
+- ✅ Rate Limiting
+
+## 💡 Tips & Tricks
+
+1. **Use the map filters** to focus on specific areas or statuses
+2. **Set realistic follow-up dates** - giving too much time reduces urgency
+3. **Keep detailed notes** - helps when months pass between contacts
+4. **Update status immediately** - don't rely on memory later
+5. **Search works on city/county** - quick way to find all companies in an area
+6. **Star markers (★)** in the table indicate existing prospects
+
+## 🆘 Troubleshooting
+
+**Map markers not showing?**
+- Ensure latitude and longitude are entered correctly
+- Iowa coordinates: roughly 40.5° to 43.5° N, -96.6° to -90.1° W
+
+**Can't mark as prospect?**
+- Already marked - check if yellow star (★) appears
+- Refresh the page to see updated status
+
+**Email button not working?**
+- Make sure email address is filled in
+- Check your default email client settings
+
+## 📊 Reporting Ideas
+
+Use this system to track:
+- **Conversion Rate** - What % of prospects become customers?
+- **Response Rate** - What % respond to your emails?
+- **Geographic Coverage** - Which counties have you contacted?
+- **Time to Convert** - How long from first contact to customer?
+
+## 🔮 Future Enhancements
+
+Potential additions:
+- Polygon/service area visualization on map
+- Bulk email campaigns
+- Email templates
+- Automated follow-up reminders
+- Integration with customer management
+- Export reports (PDF, Excel)
+- Import from NOFA databases
+
+---
+
+**Questions?** This system is designed to grow with your business. Add suggestions or feature requests as you use it!

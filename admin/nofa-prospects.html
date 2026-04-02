@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Marketing Prospects - Helmick Underground Admin</title>
+    <link rel="icon" type="image/png" href="../logo.png">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="sidebar.css">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        .prospects-container {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .page-header h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin: 0;
+        }
+
+        .page-header .actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-dark);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 107, 26, 0.2);
+        }
+
+        .stat-card h3 {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin: 0 0 0.5rem 0;
+            text-transform: uppercase;
+        }
+
+        .stat-card .value {
+            color: var(--primary-color);
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .filter-group select {
+            padding: 0.5rem 1rem;
+            background: var(--card-dark);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            border-radius: 8px;
+            color: var(--white);
+            font-size: 0.9rem;
+        }
+
+        /* Prospects Grid */
+        .prospects-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .prospect-card {
+            background: var(--card-dark);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 107, 26, 0.2);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .prospect-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 26, 0.2);
+        }
+
+        .prospect-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .prospect-header h3 {
+            color: var(--primary-color);
+            font-size: 1.3rem;
+            margin: 0;
+        }
+
+        .prospect-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .prospect-status.not_contacted {
+            background: rgba(220, 20, 60, 0.2);
+            color: #ff6b9d;
+        }
+
+        .prospect-status.email_sent {
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+        }
+
+        .prospect-status.responded {
+            background: rgba(50, 205, 50, 0.2);
+            color: #32cd32;
+        }
+
+        .prospect-status.follow_up {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffa500;
+        }
+
+        .prospect-status.customer {
+            background: rgba(65, 105, 225, 0.2);
+            color: #6495ed;
+        }
+
+        .prospect-status.lost {
+            background: rgba(128, 128, 128, 0.2);
+            color: #a9a9a9;
+        }
+
+        .prospect-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .prospect-info-item {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .prospect-info-item strong {
+            color: var(--white);
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .prospect-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 107, 26, 0.2);
+        }
+
+        .prospect-actions button {
+            flex: 1;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-email {
+            background: var(--primary-color);
+            color: var(--black);
+        }
+
+        .btn-email:hover {
+            background: #ff8542;
+        }
+
+        .btn-edit {
+            background: rgba(255, 107, 26, 0.2);
+            color: var(--primary-color);
+        }
+
+        .btn-edit:hover {
+            background: rgba(255, 107, 26, 0.3);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .modal-content {
+            background: var(--card-dark);
+            border-radius: 16px;
+            max-width: 600px;
+            width: 100%;
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 107, 26, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            color: var(--primary-color);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--gray);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            border-radius: 8px;
+            color: var(--white);
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid rgba(255, 107, 26, 0.2);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: var(--black);
+        }
+
+        .btn-primary:hover {
+            background: #ff8542;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 107, 26, 0.2);
+            color: var(--primary-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 107, 26, 0.3);
+        }
+
+        .btn-delete {
+            background: #dc143c;
+            color: var(--white);
+        }
+
+        .btn-delete:hover {
+            background: #b01030;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray);
+            background: var(--card-dark);
+            border-radius: 12px;
+        }
+
+        .empty-state h3 {
+            color: var(--white);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .prospects-container {
+                padding: 1rem;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .prospect-info {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <div id="sidebar"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="prospects-container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1>👥 Marketing Prospects</h1>
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="openAddModal()">+ Add Prospect</button>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Prospects</h3>
+                    <div class="value" id="totalCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Not Contacted</h3>
+                    <div class="value" id="notContactedCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Email Sent</h3>
+                    <div class="value" id="emailSentCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Responded</h3>
+                    <div class="value" id="respondedCount">0</div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Status:</label>
+                    <select id="statusFilter" onchange="filterProspects()">
+                        <option value="">All Statuses</option>
+                        <option value="not_contacted">Not Contacted</option>
+                        <option value="email_sent">Email Sent</option>
+                        <option value="responded">Responded</option>
+                        <option value="follow_up">Follow-up Needed</option>
+                        <option value="customer">Became Customer</option>
+                        <option value="lost">Lost</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Sort By:</label>
+                    <select id="sortFilter" onchange="filterProspects()">
+                        <option value="next_followup">Next Follow-up</option>
+                        <option value="created">Recently Added</option>
+                        <option value="company">Company Name</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Prospects Grid -->
+            <div class="prospects-grid" id="prospectsGrid">
+                <!-- Prospects will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="formModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="formModalTitle">Add Prospect</h2>
+                <button class="close-btn" onclick="closeFormModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="prospectForm" onsubmit="saveProspect(event)">
+                    <div class="form-group">
+                        <label>Company Name *</label>
+                        <input type="text" name="company_name" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Contact Person</label>
+                            <input type="text" name="contact_person">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" name="email">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="tel" name="phone">
+                        </div>
+                        <div class="form-group">
+                            <label>Website</label>
+                            <input type="url" name="website">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Address</label>
+                        <input type="text" name="address">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>City</label>
+                            <input type="text" name="city">
+                        </div>
+                        <div class="form-group">
+                            <label>State</label>
+                            <input type="text" name="state" value="IA" maxlength="2">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>ZIP Code</label>
+                        <input type="text" name="zip">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select name="status">
+                                <option value="not_contacted">Not Contacted</option>
+                                <option value="email_sent">Email Sent</option>
+                                <option value="responded">Responded</option>
+                                <option value="follow_up">Follow-up Needed</option>
+                                <option value="customer">Became Customer</option>
+                                <option value="lost">Lost</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Next Follow-up</label>
+                            <input type="date" name="next_followup">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Last Contacted</label>
+                        <input type="date" name="last_contacted">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea name="notes" placeholder="Internal notes about this prospect..."></textarea>
+                    </div>
+
+                    <input type="hidden" name="id" id="prospectId">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-delete" type="button" onclick="deleteProspect()" id="deleteBtn" style="margin-right: auto; display: none;">Delete</button>
+                <button class="btn btn-secondary" type="button" onclick="closeFormModal()">Cancel</button>
+                <button class="btn btn-primary" type="submit" form="prospectForm">Save Prospect</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="sidebar.js"></script>
+    <script src="utils.js"></script>
+    <script src="nofa-prospects.js"></script>
+</body>
+</html>
