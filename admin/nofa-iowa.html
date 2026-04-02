@@ -491,6 +491,7 @@
             <div class="page-header">
                 <h1>🗺️ Iowa NOFA Recipients</h1>
                 <div class="actions">
+                    <button class="btn" onclick="openImportModal()" style="background: #4169e1;">📥 Import CSV</button>
                     <button class="btn btn-primary" onclick="openAddModal()">+ Add Recipient</button>
                 </div>
             </div>
@@ -702,6 +703,63 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary" type="button" onclick="closeFormModal()">Cancel</button>
                 <button class="btn btn-primary" type="submit" form="recipientForm">Save Recipient</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import CSV Modal -->
+    <div id="importModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📥 Import NOFA Recipients from CSV</h2>
+                <button class="close-btn" onclick="closeImportModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="import-instructions" style="background: linear-gradient(135deg, #2d2d2d 0%, #1f1f1f 100%); padding: 1.5rem; border-radius: 8px; border-left: 4px solid var(--primary-color); margin-bottom: 1.5rem;">
+                    <h3 style="color: var(--primary-color); margin: 0 0 1rem 0;">📋 How to Import</h3>
+                    <ol style="color: var(--light-gray); line-height: 1.8; margin: 0;">
+                        <li>Download NOFA recipient data from government sources:
+                            <ul style="margin-top: 0.5rem;">
+                                <li><strong>NTIA BEAD:</strong> <a href="https://broadbandusa.ntia.doc.gov/" target="_blank" style="color: var(--primary-color);">broadbandusa.ntia.doc.gov</a></li>
+                                <li><strong>USDA ReConnect:</strong> <a href="https://www.usda.gov/reconnect" target="_blank" style="color: var(--primary-color);">usda.gov/reconnect</a></li>
+                                <li><strong>FCC RDOF:</strong> <a href="https://www.fcc.gov/auction/904" target="_blank" style="color: var(--primary-color);">fcc.gov/auction/904</a></li>
+                            </ul>
+                        </li>
+                        <li>Export or save the data as CSV format</li>
+                        <li>Ensure your CSV has these columns (header names can vary):
+                            <div style="background: #1a1a1a; padding: 0.75rem; border-radius: 4px; margin-top: 0.5rem; font-family: monospace; font-size: 0.85rem;">
+                                company_name, contact_person, email, phone, funding_amount, grant_program, award_date, address, city, county, state, zip, latitude, longitude, service_area, project_description
+                            </div>
+                        </li>
+                        <li>Upload your CSV file below</li>
+                    </ol>
+                </div>
+
+                <div class="file-upload-area">
+                    <input type="file" id="csvFileInput" accept=".csv,.txt" style="display: none;" onchange="handleCSVFile(event)">
+                    <button class="btn btn-primary" onclick="document.getElementById('csvFileInput').click()" style="width: 100%; padding: 2rem; font-size: 1.1rem; background: linear-gradient(135deg, #4169e1 0%, #5a7fec 100%);">
+                        📁 Choose CSV File
+                    </button>
+                    <div id="fileNameDisplay" style="margin-top: 1rem; color: var(--gray); text-align: center;"></div>
+                    <div id="importProgress" style="margin-top: 1rem; display: none;">
+                        <div style="background: #1a1a1a; border-radius: 8px; padding: 1rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="color: var(--white);">Importing...</span>
+                                <span id="importProgressText" style="color: var(--primary-color);">0%</span>
+                            </div>
+                            <div style="background: #2d2d2d; height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div id="importProgressBar" style="background: linear-gradient(90deg, var(--primary-color), #ffd700); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                            </div>
+                            <div id="importStatus" style="color: var(--gray); font-size: 0.9rem; margin-top: 0.5rem;"></div>
+                        </div>
+                    </div>
+                    <div id="importResults" style="margin-top: 1rem; display: none;"></div>
+                </div>
+
+                <div class="download-template" style="margin-top: 2rem; text-align: center; padding-top: 1.5rem; border-top: 1px solid rgba(255, 107, 26, 0.2);">
+                    <p style="color: var(--gray); margin-bottom: 0.5rem;">Need a template?</p>
+                    <button class="btn btn-secondary" onclick="downloadCSVTemplate()">⬇️ Download CSV Template</button>
+                </div>
             </div>
         </div>
     </div>

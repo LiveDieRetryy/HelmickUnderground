@@ -623,3 +623,280 @@ function formatStatus(status) {
     const formatted = status.replace(/_/g, ' ');
     return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }
+
+/**
+ * Open CSV import modal
+ */
+function openImportModal() {
+    document.getElementById('importModal').classList.add('active');
+    document.getElementById('fileNameDisplay').textContent = '';
+    document.getElementById('importProgress').style.display = 'none';
+    document.getElementById('importResults').style.display = 'none';
+}
+
+/**
+ * Close CSV import modal
+ */
+function closeImportModal() {
+    document.getElementById('importModal').classList.remove('active');
+    document.getElementById('csvFileInput').value = '';
+}
+
+/**
+ * Handle CSV file selection
+ */
+function handleCSVFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    document.getElementById('fileNameDisplay').textContent = `Selected: ${file.name}`;
+    parseAndImportCSV(file);
+}
+
+/**
+ * Parse CSV and import data
+ */
+async function parseAndImportCSV(file) {
+    const progressDiv = document.getElementById('importProgress');
+    const statusDiv = document.getElementById('importStatus');
+    const resultsDiv = document.getElementById('importResults');
+    const progressBar = document.getElementById('importProgressBar');
+    const progressText = document.getElementById('importProgressText');
+    
+    progressDiv.style.display = 'block';
+    resultsDiv.style.display = 'none';
+    
+    try {
+        // Read file
+        const text = await file.text();
+        const lines = text.split('\n').filter(line => line.trim());
+        
+        if (lines.length < 2) {
+            throw new Error('CSV file must have at least a header and one data row');
+        }
+        
+        // Parse header
+        const header = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_'));
+        
+        // Map common column name variations
+        const columnMap = {
+            'company': 'company_name',
+            'organization': 'company_name',
+            'recipient': 'company_name',
+            'entity': 'company_name',
+            'contact': 'contact_person',
+            'amount': 'funding_amount',
+            'grant': 'grant_program',
+            'program': 'grant_program',
+            'award': 'award_date',
+            'date': 'award_date',
+            'lat': 'latitude',
+            'lon': 'longitude',
+            'lng': 'longitude',
+            'long': 'longitude',
+            'description': 'project_description',
+            'project': 'project_description'
+        };
+        
+        // Parse data rows
+        const recipients = [];
+        let successCount = 0;
+        let errorCount = 0;
+        const errors = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+            try {
+                const values = parseCSVLine(lines[i]);
+                if (values.length === 0 || !values[0]) continue; // Skip empty lines
+                
+                const row = {};
+                header.forEach((col, index) => {
+                    if (values[index]) {
+                        // Map column name to standard field
+                        const mappedCol = columnMap[col] || col;
+                        row[mappedCol] = values[index].trim();
+                    }
+                });
+                
+                // Ensure required field
+                if (!row.company_name) {
+                    errors.push(`Row ${i + 1}: Missing company name`);
+                    errorCount++;
+                    continue;
+                }
+                
+                // Set defaults
+                row.state = row.state || 'IA';
+                row.status = row.status || 'not_contacted';
+                
+                recipients.push(row);
+            } catch (error) {
+                errors.push(`Row ${i + 1}: ${error.message}`);
+                errorCount++;
+            }
+            
+            // Update progress
+            const progress = Math.floor((i / lines.length) * 100);
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `${progress}%`;
+            statusDiv.textContent = `Parsing row ${i} of ${lines.length - 1}...`;
+        }
+        
+        // Import recipients
+        statusDiv.textContent = 'Importing recipients...';
+        
+        for (let i = 0; i < recipients.length; i++) {
+            try {
+                const response = await apiFetch('/api/nofa?type=recipients', {
+                    method: 'POST',
+                    body: JSON.stringify(recipients[i])
+                });
+                
+                if (response.success) {
+                    successCount++;
+                } else {
+                    errorCount++;
+                    errors.push(`${recipients[i].company_name}: ${response.message}`);
+                }
+            } catch (error) {
+                errorCount++;
+                errors.push(`${recipients[i].company_name}: ${error.message}`);
+            }
+            
+            // Update progress
+            const progress = Math.floor(((i + 1) / recipients.length) * 100);
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `${progress}%`;
+            statusDiv.textContent = `Importing ${i + 1} of ${recipients.length}...`;
+        }
+        
+        // Show results
+        progressDiv.style.display = 'none';
+        resultsDiv.style.display = 'block';
+        resultsDiv.innerHTML = `
+            <div style="background: linear-gradient(135deg, #2d2d2d 0%, #1f1f1f 100%); padding: 1.5rem; border-radius: 8px; border-left: 4px solid ${successCount > 0 ? 'var(--primary-color)' : '#dc143c'};">
+                <h3 style="color: var(--white); margin: 0 0 1rem 0;">Import Complete</h3>
+                <div style="color: var(--light-gray); line-height: 2;">
+                    <div> Successfully imported: <strong style="color: #32cd32;">${successCount}</strong> recipients</div>
+                    ${errorCount > 0 ? `<div> Failed: <strong style="color: #dc143c;">${errorCount}</strong> rows</div>` : ''}
+                </div>
+                ${errors.length > 0 && errors.length <= 10 ? `
+                    <details style="margin-top: 1rem;">
+                        <summary style="color: var(--primary-color); cursor: pointer;">View Errors</summary>
+                        <div style="margin-top: 0.5rem; padding: 0.75rem; background: #1a1a1a; border-radius: 4px; font-family: monospace; font-size: 0.85rem; max-height: 200px; overflow-y: auto;">
+                            ${errors.map(e => `<div>${e}</div>`).join('')}
+                        </div>
+                    </details>
+                ` : ''}
+            </div>
+        `;
+        
+        // Reload data
+        if (successCount > 0) {
+            await loadRecipients();
+            showNotification(`Imported ${successCount} recipients successfully!`, 'success');
+        }
+        
+    } catch (error) {
+        progressDiv.style.display = 'none';
+        resultsDiv.style.display = 'block';
+        resultsDiv.innerHTML = `
+            <div style="background: linear-gradient(135deg, #2d2d2d 0%, #1f1f1f 100%); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #dc143c;">
+                <h3 style="color: #dc143c; margin: 0 0 1rem 0;">Import Failed</h3>
+                <div style="color: var(--light-gray);">${error.message}</div>
+            </div>
+        `;
+        showNotification('Import failed', 'error');
+    }
+}
+
+/**
+ * Parse a CSV line handling quotes and commas
+ */
+function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+            if (inQuotes && line[i + 1] === '"') {
+                current += '"';
+                i++;
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (char === ',' && !inQuotes) {
+            result.push(current);
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    
+    result.push(current);
+    return result.map(v => v.replace(/^"|"$/g, '').trim());
+}
+
+/**
+ * Download CSV template
+ */
+function downloadCSVTemplate() {
+    const headers = [
+        'company_name',
+        'contact_person',
+        'email',
+        'phone',
+        'website',
+        'funding_amount',
+        'grant_program',
+        'award_date',
+        'address',
+        'city',
+        'county',
+        'state',
+        'zip',
+        'latitude',
+        'longitude',
+        'service_area',
+        'project_description',
+        'notes'
+    ];
+    
+    const exampleRow = [
+        'Iowa Fiber Networks',
+        'John Doe',
+        'john@iowafiber.com',
+        '515-555-0100',
+        'https://iowafiber.com',
+        '5000000',
+        'NTIA BEAD',
+        '2025-01-15',
+        '123 Main St',
+        'Des Moines',
+        'Polk County',
+        'IA',
+        '50309',
+        '41.5868',
+        '-93.6250',
+        'Polk County rural areas',
+        'Fiber to the home deployment',
+        'Potential high-value prospect'
+    ];
+    
+    const csv = [headers.join(','), exampleRow.join(',')].join('\n');
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'nofa_recipients_template.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+    showNotification('Template downloaded!', 'success');
+}
