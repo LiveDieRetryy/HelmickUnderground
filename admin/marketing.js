@@ -7,35 +7,35 @@ let emailHistory = [];
 const emailTemplates = {
     introduction: {
         name: 'Introduction',
-        description: 'Introduce services',
-        subject: 'Underground Utility Services for {company}',
-        body: `Hello {name},
+        description: 'Local crew for fiber builds',
+        subject: 'Local Crew for 2026–2027 Fiber Builds',
+        body: `Hi {name},
 
-I hope this message finds you well. My name is with Helmick Underground LLC, and I'm reaching out regarding your recent NOFA funding for broadband infrastructure in Iowa.
+I'm reaching out regarding your 2026–2027 fiber build plans for {company}.
 
-Why Helmick Underground?
+My name is Tommy Helmick. I'm a partner at Helmick Underground formerly known as Triple J Construction, out of Mount Vernon. We're a local owner-operator crew focused on plowing and directional drilling.
 
-We specialize in underground utility services with a proven track record in fiber optic installation and broadband infrastructure projects. Our team brings:
+We've been in business since 1988, with extensive experience working with Qwest/CenturyLink across a wide range of projects, building out rural networks with Springville Cooperative, and assisting with Panora Fiber's build.
 
-- Expert fiber optic cable installation and splicing
-- Precision directional drilling and underground boring
-- Professional utility line location and repair services
-- Full support for commercial and municipal projects
-- Modern equipment and experienced crew
+What sets us apart is how we operate as a crew.
 
-Your NOFA Project
+No rotating subs or shifting crews. Just a consistent team that maintains steady production from start to finish.
 
-We understand that {company} has been awarded funding for expanding broadband access in your service area. Our services are specifically designed to support projects like yours, ensuring quality installation and on-time completion.
+We handle everything from prep through completion, which keeps the project moving without relying on multiple crews.
 
-Let's Connect
+Being local, we take pride in the work we leave behind. Site cleanup is a priority, and we aim to leave every job looking as good as we found it.
 
-I'd welcome the opportunity to discuss how we can support your infrastructure projects. Whether you need installation services, equipment support, or consulting on project execution, we're here to help.
+We run a full setup with the versatility to handle a variety of conditions. A Ditch Witch 1250 quad track for direct bury with backups in place, multiple drills including a Vermeer 20x22 and two Astec DD 2024s for crossings and long pipe sections, with a Larson trailer that allows for fast figure eighting and smooth transitions between pipe and plow. More importantly, it's an experienced crew that shows up every day and keeps that equipment producing efficiently.
 
-Best regards,
+We're local, CDL A, fully insured. With a focus on continuing to help build rural infrastructure within our own community.
 
-Helmick Underground LLC
-Underground Utility Experts
-(712) 330-6073 | (712) 330-2060`
+I'd be glad to stop by, introduce myself, and talk through how we can help you hit your 2026 and 2027 goals.
+
+Would you have 15 minutes sometime this week or next?
+
+I look forward to hearing from you,
+
+Tommy Helmick`
     },
     followup: {
         name: 'Follow-Up',
@@ -111,38 +111,6 @@ Helmick Underground LLC
 Your Partner in Underground Infrastructure
 (712) 330-6073 | (712) 330-2060`
     },
-    fiber2026: {
-        name: '2026-2027 Fiber Build',
-        description: 'Local crew for fiber builds',
-        subject: 'Local Crew for 2026–2027 Fiber Builds',
-        body: `Hi {name},
-
-I'm reaching out regarding your 2026–2027 fiber build plans for {company}.
-
-My name is Tommy Helmick. I'm a partner at Helmick Underground formerly known as Triple J Construction, out of Mount Vernon. We're a local owner-operator crew focused on plowing and directional drilling.
-
-We've been in business since 1988, with extensive experience working with Qwest/CenturyLink across a wide range of projects, building out rural networks with Springville Cooperative, and assisting with Panora Fiber's build.
-
-What sets us apart is how we operate as a crew.
-
-No rotating subs or shifting crews. Just a consistent team that maintains steady production from start to finish.
-
-We handle everything from prep through completion, which keeps the project moving without relying on multiple crews.
-
-Being local, we take pride in the work we leave behind. Site cleanup is a priority, and we aim to leave every job looking as good as we found it.
-
-We run a full setup with the versatility to handle a variety of conditions. A Ditch Witch 1250 quad track for direct bury with backups in place, multiple drills including a Vermeer 20x22 and two Astec DD 2024s for crossings and long pipe sections, with a Larson trailer that allows for fast figure eighting and smooth transitions between pipe and plow. More importantly, it's an experienced crew that shows up every day and keeps that equipment producing efficiently.
-
-We're local, CDL A, fully insured. With a focus on continuing to help build rural infrastructure within our own community.
-
-I'd be glad to stop by, introduce myself, and talk through how we can help you hit your 2026 and 2027 goals.
-
-Would you have 15 minutes sometime this week or next?
-
-I look forward to hearing from you,
-
-Tommy Helmick`
-    },
     custom: {
         name: 'Custom Message',
         description: 'Write your own',
@@ -189,7 +157,7 @@ function initializeComposer() {
         <div class="template-selector">
             <button class="template-btn active" data-template="introduction" onclick="selectTemplate('introduction')">
                 <strong>Introduction</strong>
-                <span>Introduce services</span>
+                <span>Local crew for fiber builds</span>
             </button>
             <button class="template-btn" data-template="followup" onclick="selectTemplate('followup')">
                 <strong>Follow-Up</strong>
@@ -198,10 +166,6 @@ function initializeComposer() {
             <button class="template-btn" data-template="partnership" onclick="selectTemplate('partnership')">
                 <strong>Partnership</strong>
                 <span>Propose collaboration</span>
-            </button>
-            <button class="template-btn" data-template="fiber2026" onclick="selectTemplate('fiber2026')">
-                <strong>2026 Fiber Build</strong>
-                <span>Local crew outreach</span>
             </button>
             <button class="template-btn" data-template="custom" onclick="selectTemplate('custom')">
                 <strong>Custom</strong>
