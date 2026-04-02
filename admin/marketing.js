@@ -127,9 +127,9 @@ What sets us apart is how we operate as a crew.
 
 No rotating subs or shifting crews. Just a consistent team that maintains steady production from start to finish.
 
-Being local, we take pride in the work we leave behind. Site cleanup is a priority, and we strive to always leave jobs looking as good as we found them.
-
 We handle everything from prep through completion, which keeps the project moving without relying on multiple crews.
+
+Being local, we take pride in the work we leave behind. Site cleanup is a priority, and we aim to leave every job looking as good as we found it.
 
 We run a full setup with the versatility to handle a variety of conditions. A Ditch Witch 1250 quad track for direct bury with backups in place, multiple drills including a Vermeer 20x22 and two Astec DD 2024s for crossings and long pipe sections, with a Larson trailer that allows for fast figure eighting and smooth transitions between pipe and plow. More importantly, it's an experienced crew that shows up every day and keeps that equipment producing efficiently.
 
