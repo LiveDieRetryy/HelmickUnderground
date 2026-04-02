@@ -127,7 +127,7 @@ What sets us apart is how we operate as a crew.
 
 No rotating subs or shifting crews. Just a consistent team that maintains steady production from start to finish.
 
-Being local, we take pride in the work we leave behind.
+Being local, we take pride in the work we leave behind. We always strive to leave our jobs looking just as good as we found them.
 
 We handle everything from prep through completion, which keeps the project moving without relying on multiple crews.
 
