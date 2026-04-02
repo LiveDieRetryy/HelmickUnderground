@@ -260,7 +260,7 @@
     <script>
         async function loadRecipients() {
             try {
-                const response = await fetch('/api/email-history?action=all');
+                const response = await fetch('/api/emails?action=all');
                 const data = await response.json();
                 
                 document.getElementById('loadingMessage').style.display = 'none';

@@ -48,7 +48,7 @@ function initMap() {
  */
 async function loadRecipients() {
     try {
-        const response = await apiFetch('/api/nofa-recipients?action=all&state=IA');
+        const response = await apiFetch('/api/nofa?type=recipients&action=all&state=IA');
         
         if (response.success) {
             recipients = response.data;
@@ -492,13 +492,13 @@ async function saveRecipient(event) {
         let response;
         if (recipientId) {
             // Update existing
-            response = await apiFetch(`/api/nofa-recipients?id=${recipientId}`, {
+            response = await apiFetch(`/api/nofa?type=recipients&id=${recipientId}`, {
                 method: 'PUT',
                 body: JSON.stringify(data)
             });
         } else {
             // Create new
-            response = await apiFetch('/api/nofa-recipients', {
+            response = await apiFetch('/api/nofa?type=recipients', {
                 method: 'POST',
                 body: JSON.stringify(data)
             });
@@ -528,7 +528,7 @@ async function deleteRecipient() {
     }
     
     try {
-        const response = await apiFetch(`/api/nofa-recipients?id=${currentRecipient.id}`, {
+        const response = await apiFetch(`/api/nofa?type=recipients&id=${currentRecipient.id}`, {
             method: 'DELETE'
         });
         
@@ -568,7 +568,7 @@ async function markAsProspect() {
             notes: `NOFA Recipient: ${currentRecipient.grant_program || 'Unknown'} - $${currentRecipient.funding_amount || '0'}`
         };
         
-        const response = await apiFetch('/api/prospects', {
+        const response = await apiFetch('/api/nofa?type=prospects', {
             method: 'POST',
             body: JSON.stringify(prospectData)
         });

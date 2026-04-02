@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async function() {
  */
 async function loadProspects() {
     try {
-        const response = await apiFetch('/api/prospects?action=all');
+        const response = await apiFetch('/api/nofa?type=prospects&action=all');
         
         if (response.success) {
             prospects = response.data;
@@ -257,13 +257,13 @@ async function saveProspect(event) {
         let response;
         if (prospectId) {
             // Update existing
-            response = await apiFetch(`/api/prospects?id=${prospectId}`, {
+            response = await apiFetch(`/api/nofa?type=prospects&id=${prospectId}`, {
                 method: 'PUT',
                 body: JSON.stringify(data)
             });
         } else {
             // Create new
-            response = await apiFetch('/api/prospects', {
+            response = await apiFetch('/api/nofa?type=prospects', {
                 method: 'POST',
                 body: JSON.stringify(data)
             });
@@ -293,7 +293,7 @@ async function deleteProspect() {
     }
     
     try {
-        const response = await apiFetch(`/api/prospects?id=${currentProspect.id}`, {
+        const response = await apiFetch(`/api/nofa?type=prospects&id=${currentProspect.id}`, {
             method: 'DELETE'
         });
         

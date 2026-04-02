@@ -1224,7 +1224,7 @@
                 sendBtn.textContent = 'Sending...';
                 sendBtn.disabled = true;
 
-                const response = await fetch('/api/send-email', {
+                const response = await fetch('/api/emails', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

@@ -1044,7 +1044,7 @@ async function saveAndSendQuote() {
         }
 
         // Send quote email via API
-        const emailRes = await fetch('/api/send-email', {
+        const emailRes = await fetch('/api/emails', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

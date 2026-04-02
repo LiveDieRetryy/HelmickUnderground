@@ -273,7 +273,7 @@
 
         async function loadEmailHistory() {
             try {
-                const response = await fetch('/api/email-history?action=all');
+                const response = await fetch('/api/emails?action=all');
                 if (!response.ok) throw new Error('Failed to load email history');
                 
                 allEmails = await response.json();

@@ -1,18 +1,44 @@
 const { Resend } = require('resend');
+const { sql } = require('@vercel/postgres');
+const { requireAuth } = require('../lib/auth-middleware');
+const { requireCsrfToken } = require('../lib/csrf-middleware');
+const { enforceRateLimit } = require('../lib/rate-limiter');
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 module.exports = async function handler(req, res) {
     // Set CORS headers
+    res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
 
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
+    // For GET requests (email history), require auth
+    if (req.method === 'GET') {
+        return handleEmailHistory(req, res);
+    }
+
+    // For POST requests, check if it's send or log
+    const { action } = req.body;
+    
+    if (action === 'log') {
+        // Log-only request (from send-email after sending)
+        return handleLogEmail(req, res);
+    } else {
+        // Send email (default)
+        return handleSendEmail(req, res);
+    }
+};
+
+// Handle email sending
+async function handleSendEmail(req, res) {
+    // Apply rate limiting for email sending
+    if (!enforceRateLimit(req, res, 'email')) {
+        return; // Rate limit exceeded
     }
 
     try {
@@ -56,7 +82,7 @@ module.exports = async function handler(req, res) {
 
         // Log to email history
         try {
-            await fetch(`${req.headers.origin || 'https://helmickunderground.com'}/api/email-history`, {
+            await fetch(`${req.headers.origin || 'https://helmickunderground.com'}/api/emails`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -85,7 +111,134 @@ module.exports = async function handler(req, res) {
             details: error.message 
         });
     }
-};
+}
+
+// Handle email history logging
+async function handleLogEmail(req, res) {
+    // Apply rate limiting
+    if (!enforceRateLimit(req, res, 'apiWrite')) {
+        return;
+    }
+
+    try {
+        // Create table if it doesn't exist
+        await sql`
+            CREATE TABLE IF NOT EXISTS email_history (
+                id BIGSERIAL PRIMARY KEY,
+                email_type VARCHAR(50) NOT NULL,
+                recipient_email VARCHAR(255) NOT NULL,
+                recipient_name VARCHAR(255),
+                subject VARCHAR(500),
+                sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                status VARCHAR(50) DEFAULT 'sent',
+                submission_id BIGINT,
+                invoice_id BIGINT,
+                metadata JSONB
+            )
+        `;
+
+        const { emailType, recipientEmail, recipientName, subject, submissionId, invoiceId, metadata } = req.body;
+        
+        // Log email send
+        await sql`
+            INSERT INTO email_history (
+                email_type,
+                recipient_email,
+                recipient_name,
+                subject,
+                submission_id,
+                invoice_id,
+                metadata
+            )
+            VALUES (
+                ${emailType},
+                ${recipientEmail},
+                ${recipientName || null},
+                ${subject || null},
+                ${submissionId || null},
+                ${invoiceId || null},
+                ${metadata ? JSON.stringify(metadata) : null}
+            )
+        `;
+        
+        return res.status(200).json({ success: true });
+
+    } catch (error) {
+        console.error('Email history log error:', error);
+        return res.status(500).json({ 
+            error: 'Internal server error', 
+            message: error.message 
+        });
+    }
+}
+
+// Handle email history retrieval
+async function handleEmailHistory(req, res) {
+    // Require authentication for email history access
+    if (!requireAuth(req, res)) {
+        return;
+    }
+
+    // Require CSRF token
+    if (!requireCsrfToken(req, res)) {
+        return;
+    }
+
+    // Apply rate limiting
+    if (!enforceRateLimit(req, res, 'apiRead')) {
+        return;
+    }
+
+    try {
+        // Create table if it doesn't exist
+        await sql`
+            CREATE TABLE IF NOT EXISTS email_history (
+                id BIGSERIAL PRIMARY KEY,
+                email_type VARCHAR(50) NOT NULL,
+                recipient_email VARCHAR(255) NOT NULL,
+                recipient_name VARCHAR(255),
+                subject VARCHAR(500),
+                sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                status VARCHAR(50) DEFAULT 'sent',
+                submission_id BIGINT,
+                invoice_id BIGINT,
+                metadata JSONB
+            )
+        `;
+
+        const { action } = req.query;
+        
+        if (action === 'all') {
+            const result = await sql`
+                SELECT * FROM email_history 
+                ORDER BY sent_at DESC 
+                LIMIT 500
+            `;
+            return res.status(200).json(result.rows);
+        }
+        
+        if (action === 'stats') {
+            const result = await sql`
+                SELECT 
+                    email_type,
+                    COUNT(*) as count,
+                    MAX(sent_at) as last_sent
+                FROM email_history
+                GROUP BY email_type
+            `;
+            return res.status(200).json(result.rows);
+        }
+
+        return res.status(400).json({ error: 'Invalid action parameter' });
+
+    } catch (error) {
+        console.error('Email history API error:', error);
+        return res.status(500).json({ 
+            error: 'Internal server error', 
+            message: error.message 
+        });
+    }
+}
 
 // Email builders
 async function buildAcknowledgment({ name, email, services }) {

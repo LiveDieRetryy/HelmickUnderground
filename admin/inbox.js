@@ -605,7 +605,7 @@ async function sendAcknowledgmentEmail(id) {
     btn.innerHTML = '<span>📧</span><span>Sending...</span>';
 
     try {
-        const response = await fetch('/api/send-email', {
+        const response = await fetch('/api/emails', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

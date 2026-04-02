@@ -2179,7 +2179,7 @@ async function emailInvoice() {
         `;
         
         // Send email via consolidated email API
-        const response = await fetch('/api/send-email', {
+        const response = await fetch('/api/emails', {
             method: 'POST',
             credentials: 'include',
             headers: {

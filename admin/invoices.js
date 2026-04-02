@@ -710,7 +710,7 @@ async function sendInvoiceEmail(id) {
         }
         
         // Send email via consolidated email API with PDF attachment
-        const response = await fetch('/api/send-email', {
+        const response = await fetch('/api/emails', {
             method: 'POST',
             credentials: 'include',
             headers: {

@@ -863,7 +863,7 @@ async function sendQuoteEmail() {
     };
     
     try {
-        const response = await fetch('/api/send-email', {
+        const response = await fetch('/api/emails', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
