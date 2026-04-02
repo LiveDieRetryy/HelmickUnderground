@@ -215,22 +215,19 @@ function initializeComposer() {
             <div class="form-group">
                 <label>Subject:</label>
                 <input type="text" id="emailSubject" required placeholder="Email subject...">
-                <div class="form-hint">Use {name}, {company}, or {county} to personalize</div>
+                <div class="form-hint">Use {name} or {company} to personalize</div>
                 <div class="variable-tags">
                     <span class="variable-tag" onclick="insertVariable('emailSubject', '{name}')">Insert {name}</span>
                     <span class="variable-tag" onclick="insertVariable('emailSubject', '{company}')">Insert {company}</span>
-                    <span class="variable-tag" onclick="insertVariable('emailSubject', '{county}')">Insert {county}</span>
                 </div>
             </div>
 
             <div class="form-group">
                 <label>Message:</label>
                 <textarea id="emailBody" required placeholder="Your message..."></textarea>
-                <div class="form-hint">Use {name}, {company}, or {county} to personalize</div>
+                <div class="form-hint">Use {name} or {company} to personalize</div>
                 <div class="variable-tags">
                     <span class="variable-tag" onclick="insertVariable('emailBody', '{name}')">Insert {name}</span>
-                    <span class="variable-tag" onclick="insertVariable('emailBody', '{company}')">Insert {company}</span>
-                    <span class="variable-tag" onclick="insertVariable('emailBody', '{county}')">Insert {county}</span>
                     <span class="variable-tag" onclick="insertVariable('emailBody', '{company}')">Insert {company}</span>
                 </div>
             </div>
@@ -393,7 +390,6 @@ window.previewEmail = function() {
     const companyName = document.getElementById('companyName').value.trim();
     const contactName = document.getElementById('contactName').value.trim();
     const emailAddress = document.getElementById('emailAddress').value.trim();
-    const county = document.getElementById('county').value.trim();
     
     const subject = document.getElementById('emailSubject').value;
     const body = document.getElementById('emailBody').value;
@@ -419,13 +415,11 @@ window.previewEmail = function() {
     // Replace variables with actual values
     const processedSubject = subject
         .replace(/\{name\}/gi, contactName)
-        .replace(/\{company\}/gi, companyName)
-        .replace(/\{county\}/gi, county || '[County]');
+        .replace(/\{company\}/gi, companyName);
         
     const processedBody = body
         .replace(/\{name\}/gi, contactName)
-        .replace(/\{company\}/gi, companyName)
-        .replace(/\{county\}/gi, county || '[County]');
+        .replace(/\{company\}/gi, companyName);
     
     // Generate HTML email template (matching buildMarketing() from api/emails.js)
     const emailHTML = generateEmailHTML(processedBody);
@@ -454,7 +448,6 @@ window.previewEmail = function() {
             <div style="color: var(--primary-color); font-weight: 600; font-size: 1rem; margin-bottom: 0.75rem;">📧 Sending To:</div>
             <div style="color: var(--white); font-size: 0.95rem; margin-bottom: 0.3rem;"><strong>${contactName}</strong> at ${companyName}</div>
             <div style="color: var(--gray); font-size: 0.9rem;">${emailAddress}</div>
-            ${county ? `<div style="color: var(--gray); font-size: 0.85rem; margin-top: 0.3rem;">📍 ${county}</div>` : ''}
         </div>
     `;
     
@@ -533,7 +526,6 @@ window.confirmAndSendEmail = async function(modalId) {
     const companyName = document.getElementById('companyName').value.trim();
     const contactName = document.getElementById('contactName').value.trim();
     const emailAddress = document.getElementById('emailAddress').value.trim();
-    const county = document.getElementById('county').value.trim();
     const subject = document.getElementById('emailSubject').value;
     const body = document.getElementById('emailBody').value;
     
@@ -568,8 +560,7 @@ window.confirmAndSendEmail = async function(modalId) {
                 companyName: companyName,
                 metadata: {
                     company: companyName,
-                    contact: contactName,
-                    county: county || null
+                    contact: contactName
                 }
             })
         });
@@ -588,7 +579,6 @@ window.confirmAndSendEmail = async function(modalId) {
             document.getElementById('companyName').value = '';
             document.getElementById('contactName').value = '';
             document.getElementById('emailAddress').value = '';
-            document.getElementById('county').value = '';
             
             // Optionally scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' });
