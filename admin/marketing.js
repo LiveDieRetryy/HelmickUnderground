@@ -78,6 +78,11 @@ Helmick Underground
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', async function() {
+    // Check authentication first
+    if (!checkAuth()) {
+        return;
+    }
+    
     // Load recipients and email history
     await Promise.all([
         loadRecipients(),
@@ -113,9 +118,9 @@ function setupEventListeners() {
 // Load recipients from API
 async function loadRecipients() {
     try {
-        const response = await apiFetch('/api/nofa?type=recipients&state=Iowa');
-        if (response && response.length > 0) {
-            recipients = response;
+        const response = await apiFetch('/api/nofa?type=recipients&action=all&state=Iowa');
+        if (response && response.success) {
+            recipients = response.data || [];
             filterAndRenderRecipients();
         }
     } catch (error) {

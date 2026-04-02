@@ -229,12 +229,7 @@ async function handleEmailHistory(req, res) {
         return;
     }
 
-    // Require CSRF token
-    if (!requireCsrfToken(req, res)) {
-        return;
-    }
-
-    // Apply rate limiting
+    // Apply rate limiting (no CSRF needed for GET requests)
     if (!enforceRateLimit(req, res, 'apiRead')) {
         return;
     }

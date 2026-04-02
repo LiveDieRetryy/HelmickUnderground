@@ -10,6 +10,7 @@ package-lock.json
 .env.local
 .env.production
 .env.development
+GMAIL_CREDENTIALS.txt
 
 # Build outputs
 dist/
