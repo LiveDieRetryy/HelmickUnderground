@@ -540,7 +540,7 @@ async function handleScraper(req, res) {
         return sendErrorResponse(res, 'METHOD_NOT_ALLOWED', 'Only POST method allowed for scraper', 405);
     }
 
-    const { source } = req.body;
+    const { source, clearExisting } = req.body;
 
     try {
         let results = {
@@ -549,6 +549,26 @@ async function handleScraper(req, res) {
             errors: 0,
             details: []
         };
+
+        // Clear existing recipients if requested
+        if (clearExisting === true) {
+            try {
+                const deleted = await sql`DELETE FROM nofa_recipients WHERE grant_program = 'NOFA 009 - Iowa Broadband'`;
+                console.log(`Cleared ${deleted.count || 0} existing NOFA 009 recipients`);
+                results.details.push({
+                    source: 'Database',
+                    status: 'Cleared',
+                    message: `Deleted ${deleted.count || 0} existing recipients before re-sync`
+                });
+            } catch (clearError) {
+                console.error('Error clearing existing recipients:', clearError);
+                results.details.push({
+                    source: 'Database',
+                    status: 'Clear failed',
+                    error: clearError.message
+                });
+            }
+        }
 
         // Scrape from requested source(s)
         if (source === 'arcgis' || source === 'all') {

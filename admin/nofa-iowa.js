@@ -1012,11 +1012,15 @@ async function fetchFromInternet() {
  */
 async function syncFromMap() {
     const confirmation = confirm(
-        '🔄 Sync from Official Map\n\n' +
-        'This will extract recipient data from the official Iowa government ArcGIS dashboard.\n\n' +
-        'Source: NOFA 009 Broadband Initial Project Awards\n' +
+        '🔄 Clear & Re-Sync from Official Map\n\n' +
+        '⚠️ This will DELETE all existing NOFA 009 recipients and re-import fresh data.\n\n' +
+        'This ensures you get:\n' +
+        '✅ Latest funding amounts\n' +
+        '✅ Updated project details\n' +
+        '✅ Complete county information\n\n' +
+        'Source: Iowa NOFA 009 Broadband Dashboard\n' +
         'Published: 9/4/2025\n\n' +
-        'This may take 10-30 seconds. Continue?'
+        'This will take 10-30 seconds. Continue?'
     );
     
     if (!confirmation) return;
@@ -1025,7 +1029,7 @@ async function syncFromMap() {
     const syncBtn = document.getElementById('syncMapBtn');
     const originalText = syncBtn.innerHTML;
     syncBtn.disabled = true;
-    syncBtn.innerHTML = '⏳ Syncing...';
+    syncBtn.innerHTML = '⏳ Clearing & Syncing...';
     
     // Show loading notification
     const loadingNotif = document.createElement('div');
@@ -1048,8 +1052,8 @@ async function syncFromMap() {
     loadingNotif.innerHTML = `
         <div class="spinner" style="border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid white; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite;"></div>
         <div>
-            <div>🔄 Syncing from ArcGIS map...</div>
-            <div style="font-size: 0.85rem; opacity: 0.9; margin-top: 0.25rem;">Extracting official data</div>
+            <div>🔄 Clearing old data & syncing from map...</div>
+            <div style="font-size: 0.85rem; opacity: 0.9; margin-top: 0.25rem;">This will take a moment</div>
         </div>
     `;
     document.body.appendChild(loadingNotif);
@@ -1071,7 +1075,8 @@ async function syncFromMap() {
         const response = await apiFetch('/api/nofa?type=scraper', {
             method: 'POST',
             body: JSON.stringify({
-                source: 'arcgis'
+                source: 'arcgis',
+                clearExisting: true
             })
         });
         

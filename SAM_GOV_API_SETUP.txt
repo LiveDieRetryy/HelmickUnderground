@@ -1,0 +1,221 @@
+================================================================================
+SAM.GOV API SETUP GUIDE
+================================================================================
+
+How to Get Contact Information for NOFA Recipients using SAM.gov API
+
+The government's System for Award Management (SAM.gov) provides a free API
+that allows you to look up business contact information using the UEI 
+(Unique Entity Identifier) that we extract from the ArcGIS data.
+
+================================================================================
+STEP 1: CREATE SAM.GOV ACCOUNT
+================================================================================
+
+1. Go to: https://sam.gov/
+2. Click "Sign In" in the top right corner
+3. Click "Create a SAM.gov Account"
+4. Fill out the registration form:
+   - Email address
+   - Password
+   - First and Last Name
+   - Phone number
+5. Verify your email address
+6. Complete 2-factor authentication setup
+
+NOTE: This is completely FREE - SAM.gov does not charge for API access.
+
+================================================================================
+STEP 2: REQUEST API KEY
+================================================================================
+
+1. Log into your SAM.gov account
+2. Go to: https://sam.gov/data-services/Data%20Access/Public%20API
+3. Scroll to "How to Obtain an API Key"
+4. Click "Request a Public API Key"
+5. Fill out the API Key Request Form:
+   - Purpose: "Business intelligence for government contract outreach"
+   - Email: (your business email)
+   - Rate Limit Needed: Standard (1,000 requests/day is usually enough)
+6. Submit the form
+
+You'll receive your API key via email within 1-2 business days.
+
+================================================================================
+STEP 3: WHAT THE API PROVIDES
+================================================================================
+
+Once you have the API key, you can look up each NOFA recipient using their UEI
+and get:
+
+✅ Business Information:
+   - Legal Business Name
+   - DBA (Doing Business As) names
+   - Business Type (Corporation, LLC, etc.)
+
+✅ Contact Information:
+   - Physical Address
+   - Mailing Address
+   - Phone Numbers
+   - Email Addresses (if publicly listed)
+   - Website URL
+
+✅ Registration Details:
+   - CAGE Code
+   - NAICS Codes (business categories)
+   - Registration status and expiration dates
+
+✅ Points of Contact:
+   - Electronic Business POC
+   - Government Business POC
+   - Names and contact info for key personnel
+
+================================================================================
+STEP 4: API ENDPOINT
+================================================================================
+
+Entity Management API Endpoint:
+https://api.sam.gov/entity-information/v3/entities
+
+Example query by UEI:
+GET https://api.sam.gov/entity-information/v3/entities?ueiSAM={UEI}&api_key={YOUR_KEY}
+
+Replace {UEI} with the company's UEI (stored in the "notes" field)
+Replace {YOUR_KEY} with your SAM.gov API key
+
+================================================================================
+STEP 5: INTEGRATION OPTIONS
+================================================================================
+
+Option A: MANUAL LOOKUP (Immediate)
+   - For each recipient, copy the UEI from the "Notes" field
+   - Visit: https://sam.gov/search/
+   - Paste the UEI in the search box
+   - View the full business profile with contact info
+   - Manually add contact details to the recipient record
+
+Option B: AUTOMATED LOOKUP (Requires Development)
+   - I can add a "Fetch Contact Info" button to each recipient
+   - Clicking it will automatically call the SAM.gov API
+   - Populate email, phone, website, and address fields
+   - Requires you to provide the API key (stored as environment variable)
+
+================================================================================
+STEP 6: ADD API KEY TO ENVIRONMENT
+================================================================================
+
+If you choose Option B (automated lookup), you'll need to add your API key:
+
+1. In Vercel Dashboard:
+   - Go to: https://vercel.com/helmickunderground
+   - Select your project
+   - Go to "Settings" → "Environment Variables"
+   - Add new variable:
+     * Key: SAM_GOV_API_KEY
+     * Value: (paste your API key)
+     * Environments: Production, Preview
+
+2. Redeploy your site after adding the variable
+
+================================================================================
+EXAMPLE API RESPONSE
+================================================================================
+
+{
+  "entityData": [{
+    "entityRegistration": {
+      "samRegistered": "Yes",
+      "ueiSAM": "ABC123DEF456",
+      "legalBusinessName": "AMG Technology Investment Group, LLC",
+      "dbaName": "Nextlink Internet",
+      "physicalAddress": {
+        "addressLine1": "1234 Main Street",
+        "city": "Des Moines",
+        "stateOrProvinceCode": "IA",
+        "zipCode": "50309",
+        "countryCode": "USA"
+      }
+    },
+    "coreData": {
+      "entityInformation": {
+        "entityURL": "https://www.nextlinkinternet.com",
+        "entityDivisionName": "Broadband Division"
+      },
+      "physicalAddress": { ... },
+      "mailingAddress": { ... }
+    },
+    "pointsOfContact": {
+      "governmentBusinessPOC": {
+        "firstName": "John",
+        "lastName": "Smith",
+        "title": "Business Development Director",
+        "email": "john.smith@company.com",
+        "usPhoneNumber": "(515) 555-1234"
+      },
+      "electronicBusinessPOC": { ... }
+    }
+  }]
+}
+
+================================================================================
+RATE LIMITS
+================================================================================
+
+Free API Tier:
+- 1,000 requests per day
+- 10 requests per second
+
+Since you have ~109 recipients, a one-time bulk contact fetch would use
+109 API calls, well within the daily limit.
+
+================================================================================
+PRIVACY & COMPLIANCE
+================================================================================
+
+✅ SAM.gov data is PUBLIC information
+✅ Companies voluntarily register and provide this info
+✅ Using this data for B2B outreach is permitted
+✅ All data is already publicly searchable on SAM.gov
+
+⚠️ Best Practices:
+- Only use contact info for legitimate business inquiries
+- Honor any opt-out requests
+- Follow CAN-SPAM Act for email marketing
+- Keep contact information up to date
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+1. ✅ Register for SAM.gov account (free)
+2. ✅ Request API key via the form
+3. ⏳ Wait 1-2 business days for approval
+4. 📧 Receive API key via email
+5. 💬 Let me know when you have it, and I can add the automated lookup feature!
+
+================================================================================
+ALTERNATIVE: MANUAL RESEARCH
+================================================================================
+
+If you don't want to wait for the API key, you can still find contact info:
+
+1. Google Search: "{Company Name} Iowa broadband"
+2. LinkedIn: Search for company page and employees
+3. Corporate Website: Look for "Contact Us" or "About" pages
+4. Iowa Secretary of State Business Search: 
+   https://sos.iowa.gov/search/business/search.aspx
+5. Better Business Bureau: Check for contact details
+6. Local Chamber of Commerce directories
+
+================================================================================
+QUESTIONS?
+================================================================================
+
+Need help with:
+- Setting up the SAM.gov account?
+- Integrating the API once you have the key?
+- Understanding the API response format?
+
+Just ask and I can guide you through it!
+
+================================================================================
