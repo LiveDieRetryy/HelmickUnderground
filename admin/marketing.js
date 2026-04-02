@@ -13,59 +13,106 @@ const emailTemplates = {
         name: 'Introduction',
         description: 'Introduce Helmick Underground services',
         subject: 'Underground Utility Services for {company}',
-        body: `Hi {name},
+        body: `Hello {name},
 
-I'm reaching out from Helmick Underground, a leading provider of underground utility services in Iowa.
+I hope this message finds you well. My name is with Helmick Underground LLC, and I'm reaching out regarding your recent NOFA funding for broadband infrastructure in Iowa.
 
-We specialize in:
-- Fiber optic installation and maintenance
-- Underground boring and directional drilling
-- Utility line location and repair
-- Commercial and residential projects
+Why Helmick Underground?
 
-I noticed that {company} is involved in broadband infrastructure projects, and I believe our services could be valuable for your ongoing and future work.
+We specialize in underground utility services with a proven track record in fiber optic installation and broadband infrastructure projects. Our team brings:
 
-Would you be open to a brief conversation about how we can support your projects?
+- Expert fiber optic cable installation and splicing
+- Precision directional drilling and underground boring
+- Professional utility line location and repair services
+- Full support for commercial and municipal projects
+- Modern equipment and experienced crew
+
+Your NOFA Project
+
+We understand that {company} has been awarded funding for expanding broadband access in your service area. Our services are specifically designed to support projects like yours, ensuring quality installation and on-time completion.
+
+Let's Connect
+
+I'd welcome the opportunity to discuss how we can support your infrastructure projects. Whether you need installation services, equipment support, or consulting on project execution, we're here to help.
 
 Best regards,
-Helmick Underground
+
+Helmick Underground LLC
+Underground Utility Experts
 (712) 330-6073 | (712) 330-2060`
     },
     followup: {
         name: 'Follow-Up',
         description: 'Follow up on previous contact',
-        subject: 'Following up - {company}',
-        body: `Hi {name},
+        subject: 'Following Up: Partnership with {company}',
+        body: `Hello {name},
 
-I wanted to follow up on my previous message regarding underground utility services for {company}.
+I wanted to follow up on my previous message regarding underground utility services for your NOFA-funded broadband projects.
 
-Helmick Underground has extensive experience working with broadband providers and infrastructure projects across Iowa. We'd love to discuss how we can support your current or upcoming projects.
+Quick Recap
 
-Are you available for a quick call this week?
+Helmick Underground specializes in:
+- Fiber optic installation for broadband expansion
+- Directional drilling and underground boring
+- Utility line services for municipal projects
+- Professional project support from planning to completion
+
+Timeline Considerations
+
+We understand that NOFA projects often have strict timelines and requirements. Our experienced team is ready to support your project schedule and ensure quality results.
+
+Next Steps
+
+Would you be available for a brief call this week? I'd be happy to:
+- Answer any questions about our services
+- Discuss your specific project requirements
+- Provide references from similar projects
+- Share competitive pricing information
+
+I look forward to hearing from you.
 
 Best regards,
-Helmick Underground
+
+Helmick Underground LLC
 (712) 330-6073 | (712) 330-2060`
     },
     partnership: {
         name: 'Partnership Opportunity',
         description: 'Propose partnership or collaboration',
-        subject: 'Partnership Opportunity - Helmick Underground',
-        body: `Hi {name},
+        subject: 'Partnership Opportunity: {company} & Helmick Underground',
+        body: `Hello {name},
 
-I'm reaching out to explore potential partnership opportunities between Helmick Underground and {company}.
+I'm reaching out to explore a partnership opportunity between Helmick Underground and {company} for your broadband infrastructure initiatives.
 
-With your work on broadband infrastructure and our expertise in underground utility installation, I believe there's strong potential for collaboration on current and future projects in Iowa.
+About Our Partnership Approach
 
-We offer:
-- Competitive pricing and reliable service
-- Experienced crew with modern equipment
-- Proven track record with NOFA and broadband projects
+We work collaboratively with utilities, municipalities, and broadband providers to deliver:
+- Turnkey underground utility installation services
+- Flexible project support tailored to your needs
+- Competitive and transparent pricing
+- Quality workmanship with modern equipment
+- Reliable communication and project management
 
-Would you be interested in discussing this further?
+Your Success is Our Priority
+
+With your NOFA funding and our installation expertise, we can work together to:
+- Meet aggressive deployment timelines
+- Ensure quality fiber optic installations
+- Manage costs effectively
+- Achieve your broadband expansion goals
+
+Our Track Record
+
+Helmick Underground has successfully completed numerous fiber optic and underground utility projects across Iowa. We understand the unique challenges of rural broadband deployment and NOFA-funded initiatives.
+
+Let's Discuss Collaboration
+
+I'd value the opportunity to explore how we can support {company}'s infrastructure projects. Can we schedule a brief call to discuss potential collaboration?
 
 Best regards,
-Helmick Underground
+
+Helmick Underground LLC
+Your Partner in Underground Infrastructure
 (712) 330-6073 | (712) 330-2060`
     },
     custom: {

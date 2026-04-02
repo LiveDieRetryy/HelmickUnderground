@@ -523,10 +523,45 @@ function buildMarketing({ to, subject, body, recipientName, companyName, metadat
         processedBody = processedBody.replace(/\{company\}/gi, companyName);
     }
     
-    // Convert plain text body to HTML with proper formatting
-    const htmlBody = processedBody
-        .replace(/\n\n/g, '</p><p style="margin-bottom: 1rem; line-height: 1.6;">')
-        .replace(/\n/g, '<br>');
+    // Convert plain text body to professional HTML with sections
+    // Split by double newlines to identify paragraphs
+    const paragraphs = processedBody.split('\n\n').filter(p => p.trim());
+    
+    // Build HTML paragraphs with proper styling
+    let htmlContent = '';
+    paragraphs.forEach(para => {
+        const trimmed = para.trim();
+        
+        // Check if it's a bulleted list
+        if (trimmed.includes('\n-') || trimmed.includes('\n•')) {
+            const items = trimmed.split('\n').filter(line => line.trim().startsWith('-') || line.trim().startsWith('•'));
+            const listItems = items.map(item => {
+                const text = item.replace(/^[-•]\s*/, '').trim();
+                return `<li style="margin-bottom: 0.5rem; color: #444;">${text}</li>`;
+            }).join('');
+            
+            htmlContent += `
+                <ul style="margin: 1.5rem 0; padding-left: 1.5rem; line-height: 1.8;">
+                    ${listItems}
+                </ul>
+            `;
+        } else if (trimmed.length < 100 && !trimmed.endsWith('.') && !trimmed.endsWith('?') && !trimmed.endsWith('!')) {
+            // Likely a heading or subheading
+            htmlContent += `
+                <h3 style="color: #ff6b1a; margin: 1.5rem 0 1rem; font-size: 1.1rem; font-weight: 600;">
+                    ${trimmed}
+                </h3>
+            `;
+        } else {
+            // Regular paragraph
+            const formatted = trimmed.replace(/\n/g, '<br>');
+            htmlContent += `
+                <p style="margin-bottom: 1.2rem; line-height: 1.8; color: #333; font-size: 1rem;">
+                    ${formatted}
+                </p>
+            `;
+        }
+    });
     
     const html = `
 <!DOCTYPE html>
@@ -535,20 +570,42 @@ function buildMarketing({ to, subject, body, recipientName, companyName, metadat
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
-    <div style="max-width: 650px; margin: 0 auto; background: white;">
-        <div style="background: #1a1a1a; padding: 1.5rem; text-align: center;">
-            <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground" style="max-width: 200px; height: auto;">
+<body style="margin: 0; padding: 0; font-family: 'Arial', 'Helvetica', sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 650px; margin: 0 auto; background: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <!-- Header with Logo -->
+        <div style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); padding: 2rem; text-align: center; border-bottom: 4px solid #ff6b1a;">
+            <img src="https://helmickunderground.com/logo.png" alt="Helmick Underground" style="max-width: 220px; height: auto; margin-bottom: 0.5rem;">
         </div>
-        <div style="padding: 2rem;">
-            <div style="color: #333; font-size: 1rem;">
-                <p style="margin-bottom: 1rem; line-height: 1.6;">${htmlBody}</p>
-            </div>
+        
+        <!-- Main Content -->
+        <div style="padding: 2.5rem 2rem;">
+            ${htmlContent}
         </div>
-        <div style="background: #0f0f0f; padding: 1.5rem; text-align: center; color: #999; font-size: 0.9rem;">
-            <p style="margin: 0.5rem 0;">Helmick Underground LLC</p>
-            <p style="margin: 0.5rem 0;">📞 (712) 330-6073 | (712) 330-2060</p>
-            <p style="margin: 0.5rem 0; color: #666; font-size: 0.8rem;">
+        
+        <!-- Call to Action -->
+        <div style="background: linear-gradient(135deg, rgba(255, 107, 26, 0.1) 0%, rgba(255, 107, 26, 0.05) 100%); padding: 1.5rem; margin: 0 2rem 2rem; border-radius: 8px; border-left: 4px solid #ff6b1a;">
+            <p style="margin: 0; color: #333; font-size: 0.95rem; line-height: 1.6;">
+                <strong style="color: #ff6b1a;">Ready to discuss your project?</strong><br>
+                Contact us today for a consultation.
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background: linear-gradient(180deg, #0f0f0f 0%, #1a1a1a 100%); padding: 2rem; text-align: center; border-top: 2px solid #ff6b1a;">
+            <p style="margin: 0 0 1rem 0; font-size: 1.1rem; font-weight: 600; color: #ff6b1a;">
+                Helmick Underground LLC
+            </p>
+            <p style="margin: 0.5rem 0; color: #bbb; font-size: 0.95rem;">
+                📞 <strong style="color: #ff6b1a;">(712) 330-6073</strong> | <strong style="color: #ff6b1a;">(712) 330-2060</strong>
+            </p>
+            <p style="margin: 0.5rem 0; color: #bbb; font-size: 0.9rem;">
+                📧 ${fromEmail}
+            </p>
+            <p style="margin: 1.5rem 0 0 0; color: #777; font-size: 0.8rem; line-height: 1.5;">
+                Expert underground utility services for fiber optic installation,<br>
+                directional drilling, and broadband infrastructure in Iowa
+            </p>
+            <p style="margin: 1rem 0 0 0; color: #666; font-size: 0.75rem;">
                 © ${new Date().getFullYear()} Helmick Underground LLC. All rights reserved.
             </p>
         </div>
