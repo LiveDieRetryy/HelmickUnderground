@@ -23,24 +23,17 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (!checkAuth()) return;
     
     setupLogoutButton();
-    initMap();
+    // Map is now embedded ArcGIS iframe - no need to initialize Leaflet
     await loadRecipients();
 });
 
 /**
  * Initialize Leaflet map centered on Iowa
+ * NOTE: Map is now an embedded ArcGIS iframe, this function is deprecated
  */
 function initMap() {
-    // Center on Iowa (approximate center)
-    const iowaCenter = [42.0751, -93.4960];
-    
-    map = L.map('map').setView(iowaCenter, 7);
-    
-    // Add tile layer (OpenStreetMap)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 18
-    }).addTo(map);
+    // Map initialization removed - using embedded ArcGIS dashboard instead
+    console.log('Map is now embedded ArcGIS dashboard - Leaflet map deprecated');
 }
 
 /**
@@ -68,6 +61,12 @@ async function loadRecipients() {
  * Render markers on map
  */
 function renderMapMarkers() {
+    // Skip if using embedded ArcGIS map instead of Leaflet
+    if (!map) {
+        console.log(`${filteredRecipients.length} recipients loaded (map rendered by ArcGIS)`);
+        return;
+    }
+    
     // Clear existing markers
     markers.forEach(marker => map.removeLayer(marker));
     markers = [];
