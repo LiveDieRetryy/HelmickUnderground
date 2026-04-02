@@ -134,6 +134,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Update stats
     updateStats();
+    
+    // Render outbox
+    renderOutbox();
 });
 
 // Load email history
@@ -540,6 +543,7 @@ window.confirmAndSendEmail = async function(modalId) {
             // Reload email history for stats
             await loadEmailHistory();
             updateStats();
+            renderOutbox();
             
             // Clear recipient form fields (ready for next email)
             document.getElementById('companyName').value = '';
@@ -587,3 +591,109 @@ function showToast(message, type = 'success') {
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
+
+// Render outbox with sent emails
+function renderOutbox() {
+    const outboxBody = document.getElementById('outboxBody');
+    
+    if (!emailHistory || emailHistory.length === 0) {
+        outboxBody.innerHTML = `
+            <div class="empty-outbox">
+                <h3>No emails sent yet</h3>
+                <p>Sent marketing emails will appear here</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Sort by most recent first
+    const sortedEmails = [...emailHistory].sort((a, b) => {
+        return new Date(b.sent_at) - new Date(a.sent_at);
+    });
+    
+    const emailList = sortedEmails.map(email => {
+        const sentDate = new Date(email.sent_at);
+        const formattedDate = sentDate.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
+        });
+        
+        // Get preview text (first 150 chars)
+        const metadata = typeof email.metadata === 'string' ? JSON.parse(email.metadata) : email.metadata;
+        const bodyText = metadata?.body || email.subject || '';
+        const preview = bodyText.substring(0, 150) + (bodyText.length > 150 ? '...' : '');
+        
+        return `
+            <div class="email-item" onclick='viewEmailDetail(${JSON.stringify(email).replace(/'/g, "&apos;")})'>
+                <div class="email-item-header">
+                    <div class="email-item-info">
+                        <div class="email-recipient">${email.recipient_name || 'Unknown'}</div>
+                        <div class="email-company">${metadata?.company || email.to_email || ''}</div>
+                    </div>
+                    <div class="email-date">${formattedDate}</div>
+                </div>
+                <div class="email-subject">${email.subject}</div>
+                <div class="email-preview">${preview}</div>
+            </div>
+        `;
+    }).join('');
+    
+    outboxBody.innerHTML = `<div class="email-list">${emailList}</div>`;
+}
+
+// View email detail in modal
+function viewEmailDetail(email) {
+    const modal = document.getElementById('emailModal');
+    const modalBody = document.getElementById('emailModalBody');
+    
+    const sentDate = new Date(email.sent_at);
+    const formattedDate = sentDate.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+    });
+    
+    const metadata = typeof email.metadata === 'string' ? JSON.parse(email.metadata) : email.metadata;
+    const bodyContent = metadata?.body || 'No content available';
+    
+    modalBody.innerHTML = `
+        <div class="email-meta">
+            <div class="email-meta-label">To:</div>
+            <div class="email-meta-value">${email.recipient_name || 'Unknown'} &lt;${email.to_email}&gt;</div>
+            
+            <div class="email-meta-label">Company:</div>
+            <div class="email-meta-value">${metadata?.company || 'N/A'}</div>
+            
+            <div class="email-meta-label">Subject:</div>
+            <div class="email-meta-value">${email.subject}</div>
+            
+            <div class="email-meta-label">Sent:</div>
+            <div class="email-meta-value">${formattedDate}</div>
+        </div>
+        
+        <div class="email-content">${bodyContent}</div>
+    `;
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+// Close email detail modal
+function closeEmailModal() {
+    const modal = document.getElementById('emailModal');
+    modal.classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+// Close modal on outside click
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('emailModal');
+    if (e.target === modal) {
+        closeEmailModal();
+    }
+});
