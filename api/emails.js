@@ -27,7 +27,7 @@ module.exports = async function handler(req, res) {
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') {
@@ -37,6 +37,11 @@ module.exports = async function handler(req, res) {
     // For GET requests (email history), require auth
     if (req.method === 'GET') {
         return handleEmailHistory(req, res);
+    }
+
+    // For DELETE requests (delete email from history), require auth
+    if (req.method === 'DELETE') {
+        return handleDeleteEmail(req, res);
     }
 
     // For POST requests, check if it's send or log
@@ -297,6 +302,42 @@ async function handleEmailHistory(req, res) {
 
     } catch (error) {
         console.error('Email history API error:', error);
+        return res.status(500).json({ 
+            error: 'Internal server error', 
+            message: error.message 
+        });
+    }
+}
+
+// Handle email deletion from history
+async function handleDeleteEmail(req, res) {
+    // Require authentication for deletion
+    if (!requireAuth(req, res)) {
+        return;
+    }
+
+    // Apply rate limiting
+    if (!enforceRateLimit(req, res, 'apiWrite')) {
+        return;
+    }
+
+    try {
+        const { emailId } = req.body;
+
+        if (!emailId) {
+            return res.status(400).json({ error: 'emailId is required' });
+        }
+
+        // Delete the email from history
+        await sql`
+            DELETE FROM email_history 
+            WHERE id = ${emailId}
+        `;
+
+        return res.status(200).json({ success: true, message: 'Email deleted successfully' });
+
+    } catch (error) {
+        console.error('Email deletion error:', error);
         return res.status(500).json({ 
             error: 'Internal server error', 
             message: error.message 

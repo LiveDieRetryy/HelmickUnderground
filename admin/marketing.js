@@ -627,16 +627,19 @@ function renderOutbox() {
         const preview = bodyText.substring(0, 150).replace(/</g, '&lt;').replace(/>/g, '&gt;') + (bodyText.length > 150 ? '...' : '');
         
         return `
-            <div class="email-item" onclick="viewEmailDetail(${index})">
-                <div class="email-item-header">
-                    <div class="email-item-info">
-                        <div class="email-recipient">${email.recipient_name || 'Unknown'}</div>
-                        <div class="email-company">${metadata?.company || email.recipient_email || ''}</div>
+            <div class="email-item">
+                <button class="email-delete-btn" onclick="deleteEmail(event, ${email.id})" title="Delete email">🗑️ Delete</button>
+                <div class="email-item-content" onclick="viewEmailDetail(${index})">
+                    <div class="email-item-header">
+                        <div class="email-item-info">
+                            <div class="email-recipient">${email.recipient_name || 'Unknown'}</div>
+                            <div class="email-company">${metadata?.company || email.recipient_email || ''}</div>
+                        </div>
+                        <div class="email-date">${formattedDate}</div>
                     </div>
-                    <div class="email-date">${formattedDate}</div>
+                    <div class="email-subject">${email.subject}</div>
+                    <div class="email-preview">${preview}</div>
                 </div>
-                <div class="email-subject">${email.subject}</div>
-                <div class="email-preview">${preview}</div>
             </div>
         `;
     }).join('');
@@ -697,6 +700,44 @@ function closeEmailModal() {
     const modal = document.getElementById('emailModal');
     modal.classList.remove('active');
     document.body.style.overflow = 'auto';
+}
+
+// Delete email from history
+async function deleteEmail(event, emailId) {
+    // Stop propagation to prevent opening the email detail
+    event.stopPropagation();
+    
+    if (!emailId) {
+        showToast('Invalid email ID', 'error');
+        return;
+    }
+    
+    // Confirm deletion
+    if (!confirm('Are you sure you want to delete this email from your outbox?')) {
+        return;
+    }
+    
+    try {
+        const response = await apiFetch('/api/emails', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ emailId: emailId })
+        });
+        
+        if (response.success) {
+            showToast('Email deleted successfully', 'success');
+            
+            // Reload email history and refresh outbox
+            await loadEmailHistory();
+            updateStats();
+            renderOutbox();
+        } else {
+            throw new Error(response.error || 'Failed to delete email');
+        }
+    } catch (error) {
+        console.error('Delete email error:', error);
+        showToast(error.message || 'Failed to delete email', 'error');
+    }
 }
 
 // Close modal on outside click
