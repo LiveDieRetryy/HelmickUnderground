@@ -615,6 +615,15 @@ async function updateRecipientStatus(recipientId, newStatus) {
                 recipient.status = newStatus;
             }
             
+            // Update the filtered recipients array too
+            const filteredRecipient = filteredRecipients.find(r => r.id === recipientId);
+            if (filteredRecipient) {
+                filteredRecipient.status = newStatus;
+            }
+            
+            // Re-render table to show updated status color immediately
+            renderTable();
+            
             // Re-render map markers to reflect new status color
             renderMapMarkers();
         } else {
