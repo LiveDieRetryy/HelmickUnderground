@@ -208,7 +208,7 @@ function renderTable() {
                 ${filteredRecipients.map(recipient => `
                     <tr data-recipient-id="${recipient.id}">
                         <td onclick="viewRecipient(${recipient.id})" style="cursor: pointer;">
-                            <span class="status-indicator ${recipient.status || 'not_contacted'}"></span>
+                            <span class="status-indicator ${(recipient.status || 'not_contacted').replaceAll('_', '-')}"></span>
                             <span class="company-name">${recipient.company_name}</span>
                             ${recipient.is_prospect ? '<span style="color: #ffd700; margin-left: 0.5rem;">★</span>' : ''}
                         </td>
@@ -628,8 +628,8 @@ async function updateRecipientStatus(recipientId, newStatus) {
                 if (statusIndicator) {
                     // Remove all status classes
                     statusIndicator.className = 'status-indicator';
-                    // Add the new status class
-                    statusIndicator.classList.add(newStatus);
+                    // Add the new status class (convert underscores to hyphens for CSS class)
+                    statusIndicator.classList.add(newStatus.replaceAll('_', '-'));
                 }
             }
             
