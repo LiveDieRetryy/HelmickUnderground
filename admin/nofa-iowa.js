@@ -178,11 +178,10 @@ function renderTable() {
     
     if (filteredRecipients.length === 0) {
         const statusFilter = document.getElementById('statusFilter')?.value;
-        const prospectFilter = document.getElementById('prospectFilter')?.value;
         const searchTerm = document.getElementById('searchInput')?.value;
         
         // Check if filters are active
-        const hasActiveFilters = statusFilter || prospectFilter || searchTerm;
+        const hasActiveFilters = statusFilter || searchTerm;
         
         container.innerHTML = `
             <div class="empty-state">
@@ -248,19 +247,10 @@ function renderTable() {
  */
 function filterRecipients() {
     const statusFilter = document.getElementById('statusFilter').value;
-    const prospectFilter = document.getElementById('prospectFilter').value;
     
     filteredRecipients = recipients.filter(recipient => {
         // Status filter
         if (statusFilter && recipient.status !== statusFilter) {
-            return false;
-        }
-        
-        // Prospect filter
-        if (prospectFilter === 'true' && !recipient.is_prospect) {
-            return false;
-        }
-        if (prospectFilter === 'false' && recipient.is_prospect) {
             return false;
         }
         
