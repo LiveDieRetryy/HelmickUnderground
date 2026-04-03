@@ -621,8 +621,17 @@ async function updateRecipientStatus(recipientId, newStatus) {
                 filteredRecipient.status = newStatus;
             }
             
-            // Re-render table to show updated status color immediately
-            renderTable();
+            // Update the status indicator color immediately without full re-render
+            const row = document.querySelector(`tr[data-recipient-id="${recipientId}"]`);
+            if (row) {
+                const statusIndicator = row.querySelector('.status-indicator');
+                if (statusIndicator) {
+                    // Remove all status classes
+                    statusIndicator.className = 'status-indicator';
+                    // Add the new status class
+                    statusIndicator.classList.add(newStatus);
+                }
+            }
             
             // Re-render map markers to reflect new status color
             renderMapMarkers();
