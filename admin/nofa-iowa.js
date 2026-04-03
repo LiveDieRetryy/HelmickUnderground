@@ -209,6 +209,7 @@ function renderTable() {
                 ${filteredRecipients.map(recipient => `
                     <tr data-recipient-id="${recipient.id}">
                         <td onclick="viewRecipient(${recipient.id})" style="cursor: pointer;">
+                            <span class="status-indicator ${recipient.status || 'not_contacted'}"></span>
                             <span class="company-name">${recipient.company_name}</span>
                             ${recipient.is_prospect ? '<span style="color: #ffd700; margin-left: 0.5rem;">★</span>' : ''}
                         </td>

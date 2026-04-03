@@ -158,6 +158,22 @@
         .legend-dot.customer { background-color: #4169e1; }
         .legend-dot.not-interested { background-color: #808080; }
 
+        /* Status indicator in table */
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .status-indicator.not-contacted { background-color: #dc143c; }
+        .status-indicator.prospect { background-color: #ffd700; }
+        .status-indicator.responded { background-color: #32cd32; }
+        .status-indicator.customer { background-color: #4169e1; }
+        .status-indicator.not-interested { background-color: #808080; }
+
         /* Leaflet Popup Customization */
         .leaflet-popup-content-wrapper {
             background: var(--card-dark) !important;
@@ -594,6 +610,20 @@
                 </div>
             </div>
 
+            <!-- Embedded ArcGIS Map -->
+            <div style="margin-bottom: 2rem;">
+                <div style="background: var(--card-dark); padding: 1rem; border-radius: 12px 12px 0 0; border: 2px solid rgba(255, 107, 26, 0.3); border-bottom: none;">
+                    <h3 style="color: var(--primary-color); margin: 0; font-size: 1.1rem;">📍 Official NOFA Recipients Map</h3>
+                    <p style="color: var(--gray); margin: 0.5rem 0 0 0; font-size: 0.9rem;">Interactive map from government sources showing broadband funding recipients</p>
+                </div>
+                <iframe 
+                    src="https://www.arcgis.com/apps/dashboards/7a9f409f086c4036a71d9d1196f164ec" 
+                    style="width: 100%; height: 600px; border: 2px solid rgba(255, 107, 26, 0.3); border-radius: 0 0 12px 12px; border-top: none;"
+                    frameborder="0"
+                    allowfullscreen>
+                </iframe>
+            </div>
+
             <!-- Map Legend -->
             <div class="map-legend">
                 <h3>Status Legend</h3>
@@ -619,20 +649,6 @@
                         <span>Not Interested</span>
                     </div>
                 </div>
-            </div>
-
-            <!-- Embedded ArcGIS Map -->
-            <div style="margin-bottom: 2rem;">
-                <div style="background: var(--card-dark); padding: 1rem; border-radius: 12px 12px 0 0; border: 2px solid rgba(255, 107, 26, 0.3); border-bottom: none;">
-                    <h3 style="color: var(--primary-color); margin: 0; font-size: 1.1rem;">📍 Official NOFA Recipients Map</h3>
-                    <p style="color: var(--gray); margin: 0.5rem 0 0 0; font-size: 0.9rem;">Interactive map from government sources showing broadband funding recipients</p>
-                </div>
-                <iframe 
-                    src="https://www.arcgis.com/apps/dashboards/7a9f409f086c4036a71d9d1196f164ec" 
-                    style="width: 100%; height: 600px; border: 2px solid rgba(255, 107, 26, 0.3); border-radius: 0 0 12px 12px; border-top: none;"
-                    frameborder="0"
-                    allowfullscreen>
-                </iframe>
             </div>
 
             <!-- Filters -->
