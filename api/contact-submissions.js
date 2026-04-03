@@ -183,11 +183,13 @@ module.exports = async function handler(req, res) {
             // Check for suspicious patterns in name
             if (name) {
                 // Check for random character strings (like "CbNaPyWmMBgOWIWOrU")
-                const hasRandomPattern = /^[A-Z][a-z][A-Z][a-z][A-Z]/i.test(name) && name.length > 10;
+                // This should catch names with strict alternating caps like: CbNaPyWmMBgOWIWOrU
+                const hasStrictAlternatingCaps = /^([A-Z][a-z]){4,}[A-Z]?$/.test(name) && !name.includes(' ');
                 const hasNoSpaces = !name.includes(' ') && name.length > 15;
-                const hasRepeatingPattern = /([A-Z][a-z]){5,}/i.test(name);
+                // Check for excessive random capitals in middle of name (not at word boundaries)
+                const hasRandomCaps = /[a-z][A-Z][a-z][A-Z][a-z]/.test(name.replace(/\s+/g, ''));
                 
-                if (hasRandomPattern || hasNoSpaces || hasRepeatingPattern) {
+                if (hasStrictAlternatingCaps || hasNoSpaces || hasRandomCaps) {
                     isSpam = true;
                     spamReasons.push('suspicious_name_pattern');
                 }
