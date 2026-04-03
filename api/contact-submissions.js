@@ -127,11 +127,15 @@ module.exports = async function handler(req, res) {
                               WHERE table_name='contact_submissions' AND column_name='completed_at') THEN
                     ALTER TABLE contact_submissions ADD COLUMN completed_at TIMESTAMP;
                 END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                              WHERE table_name='contact_submissions' AND column_name='location') THEN
+                    ALTER TABLE contact_submissions ADD COLUMN location VARCHAR(255);
+                END IF;
             END $$;
         `;
 
         if (req.method === 'POST') {
-            const { name, email, phone, services, message, timestamp, honeypot, recaptchaToken } = req.body;
+            const { name, email, phone, location, services, message, timestamp, honeypot, recaptchaToken } = req.body;
             
             // Get client IP
             const ip = req.headers['x-forwarded-for']?.split(',')[0] || 
@@ -245,8 +249,8 @@ module.exports = async function handler(req, res) {
                 
                 // Still insert as spam for admin review with special status
                 await sql`
-                    INSERT INTO contact_submissions (name, email, phone, services, message, ip, timestamp, status, notes)
-                    VALUES (${name}, ${email}, ${phone || null}, ${services || []}, ${message}, ${ip}, ${timestamp || new Date().toISOString()}, 'spam', ${`[SPAM] ${spamReasons.join(', ')}`})
+                    INSERT INTO contact_submissions (name, email, phone, location, services, message, ip, timestamp, status, notes)
+                    VALUES (${name}, ${email}, ${phone || null}, ${location || null}, ${services || []}, ${message}, ${ip}, ${timestamp || new Date().toISOString()}, 'spam', ${`[SPAM] ${spamReasons.join(', ')}`})
                 `;
                 
                 // Return success to fool bots
@@ -255,8 +259,8 @@ module.exports = async function handler(req, res) {
             
             // Insert legitimate submission
             const result = await sql`
-                INSERT INTO contact_submissions (name, email, phone, services, message, ip, timestamp, status)
-                VALUES (${name}, ${email}, ${phone || null}, ${services || []}, ${message}, ${ip}, ${timestamp || new Date().toISOString()}, 'unread')
+                INSERT INTO contact_submissions (name, email, phone, location, services, message, ip, timestamp, status)
+                VALUES (${name}, ${email}, ${phone || null}, ${location || null}, ${services || []}, ${message}, ${ip}, ${timestamp || new Date().toISOString()}, 'unread')
                 RETURNING id
             `;
             
@@ -281,6 +285,7 @@ module.exports = async function handler(req, res) {
                     name: row.name,
                     email: row.email,
                     phone: row.phone,
+                    location: row.location,
                     services: row.services,
                     message: row.message,
                     status: row.status,

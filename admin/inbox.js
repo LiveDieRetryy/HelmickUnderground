@@ -225,6 +225,11 @@ function renderSubmissions() {
                     <div class="info-item">
                         <strong>Phone:</strong> ${sub.phone || 'Not provided'}
                     </div>
+                    ${sub.location ? `
+                        <div class="info-item">
+                            <strong>Location:</strong> ${sub.location}
+                        </div>
+                    ` : ''}
                     <div class="info-item">
                         <strong>Date:</strong> ${dateStr}
                     </div>
@@ -303,6 +308,12 @@ async function viewSubmission(id) {
             <div class="detail-label">Phone</div>
             <div class="detail-value"><a href="tel:${sub.phone}" style="color: var(--primary-color);">${sub.phone || 'Not provided'}</a></div>
         </div>
+        ${sub.location ? `
+            <div class="detail-section">
+                <div class="detail-label">Location</div>
+                <div class="detail-value">${sub.location}</div>
+            </div>
+        ` : ''}
         <div class="detail-section">
             <div class="detail-label">Date Submitted</div>
             <div class="detail-value">${dateStr}</div>

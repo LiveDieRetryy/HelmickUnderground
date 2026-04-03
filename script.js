@@ -151,6 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
             name: formData.get('name'),
             email: formData.get('email'),
             phone: formData.get('phone'),
+            location: formData.get('location'),
             services: servicesSelected,
             message: formData.get('message'),
             timestamp: new Date().toISOString(),
@@ -168,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
             web3FormData.append('name', formData.get('name'));
             web3FormData.append('email', formData.get('email'));
             web3FormData.append('phone', formData.get('phone'));
+            web3FormData.append('location', formData.get('location'));
             web3FormData.append('message', formData.get('message'));
             
             // Add services as comma-separated string
