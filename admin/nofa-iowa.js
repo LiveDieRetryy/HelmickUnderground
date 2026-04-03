@@ -177,10 +177,17 @@ function renderTable() {
     const container = document.getElementById('tableContainer');
     
     if (filteredRecipients.length === 0) {
+        const statusFilter = document.getElementById('statusFilter')?.value;
+        const prospectFilter = document.getElementById('prospectFilter')?.value;
+        const searchTerm = document.getElementById('searchInput')?.value;
+        
+        // Check if filters are active
+        const hasActiveFilters = statusFilter || prospectFilter || searchTerm;
+        
         container.innerHTML = `
             <div class="empty-state">
-                <h3>No Recipients Found</h3>
-                <p>Start by adding NOFA recipients to track potential business opportunities.</p>
+                <h3>${hasActiveFilters ? 'No Recipients Match Your Filters' : 'No Recipients Found'}</h3>
+                <p>${hasActiveFilters ? 'Try adjusting your search or filter criteria.' : 'Start by adding NOFA recipients to track potential business opportunities.'}</p>
             </div>
         `;
         return;
