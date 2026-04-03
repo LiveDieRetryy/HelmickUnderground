@@ -15,7 +15,7 @@ I'm reaching out regarding your 2026–2027 fiber build plans for {company}.
 
 My name is Tommy Helmick. I'm a partner at Helmick Underground formerly known as Triple J Construction, out of Mount Vernon. We're a local owner-operator crew focused on plowing and directional drilling.
 
-We've been in business since 1988, with extensive experience working with Qwest/CenturyLink across a wide range of projects, building out rural networks with Springville Cooperative, and assisting with Panora Fiber's build.
+We've been in business since 1988, with extensive experience working with Qwest/CenturyLink across a wide range of projects, as well as building out rural networks with Springville Cooperative, and assisting with Panora Fiber's build.
 
 What sets us apart is how we operate as a crew.
 
