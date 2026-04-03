@@ -560,7 +560,7 @@ function buildCustom({ to, subject, html, name, metadata, attachments }) {
 }
 
 // Build marketing email (sent via Gmail)
-function buildMarketing({ to, subject, body, recipientName, companyName, metadata }) {
+function buildMarketing({ to, subject, body, recipientName, companyName, metadata, attachments }) {
     if (!to || !subject || !body) {
         throw new Error('Missing required fields: to, subject, body');
     }
@@ -689,7 +689,8 @@ function buildMarketing({ to, subject, body, recipientName, companyName, metadat
         replyTo: fromEmail, // Replies go back to Gmail
         subject: processedSubject,
         html,
-        text: processedBody // Plain text version for email clients that don't support HTML
+        text: processedBody, // Plain text version for email clients that don't support HTML
+        attachments: attachments || [] // Add attachments if provided
     };
 }
 

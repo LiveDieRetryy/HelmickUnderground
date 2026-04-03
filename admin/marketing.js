@@ -137,6 +137,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Render outbox
     renderOutbox();
+    
+    // Setup file attachment display
+    setupAttachmentDisplay();
 });
 
 // Load email history
@@ -197,6 +200,13 @@ function initializeComposer() {
                     <span class="variable-tag" onclick="insertVariable('emailBody', '{company}')">Insert {company}</span>
                 </div>
             </div>
+
+            <div class="form-group">
+                <label>Attachments (Optional):</label>
+                <input type="file" id="emailAttachments" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
+                <div class="form-hint">Attach files like quotes, PDFs, or images (max 10MB per file)</div>
+                <div id="attachmentsList" style="margin-top: 0.5rem;"></div>
+            </div>
         </form>
     `;
     
@@ -227,6 +237,39 @@ function renderActionButtons() {
     `;
     
     composerBody.appendChild(actionButtons);
+}
+
+// Setup file attachment display
+function setupAttachmentDisplay() {
+    // Use event delegation since the input is dynamically created
+    document.addEventListener('change', function(e) {
+        if (e.target && e.target.id === 'emailAttachments') {
+            const fileInput = e.target;
+            const files = Array.from(fileInput.files);
+            
+            // Find or create attachment list display
+            let attachmentList = document.getElementById('attachmentList');
+            if (!attachmentList) {
+                attachmentList = document.createElement('div');
+                attachmentList.id = 'attachmentList';
+                attachmentList.style.cssText = 'margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 14px;';
+                fileInput.parentElement.appendChild(attachmentList);
+            }
+            
+            // Display selected files
+            if (files.length === 0) {
+                attachmentList.innerHTML = '';
+            } else {
+                const fileListHTML = files.map(file => {
+                    const sizeKB = (file.size / 1024).toFixed(1);
+                    const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                    const sizeDisplay = file.size > 1024 * 1024 ? `${sizeMB} MB` : `${sizeKB} KB`;
+                    return `<div style="padding: 5px 0;"><strong>${file.name}</strong> (${sizeDisplay})</div>`;
+                }).join('');
+                attachmentList.innerHTML = `<div style="margin-bottom: 5px; color: #4CAF50;"><strong>📎 ${files.length} file(s) selected:</strong></div>${fileListHTML}`;
+            }
+        }
+    });
 }
 
 // Select email template
@@ -501,11 +544,15 @@ window.confirmAndSendEmail = async function(modalId) {
     // Validate all fields
     if (!companyName || !contactName || !emailAddress) {
         showToast('Please fill in all recipient information', 'error');
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = originalText;
         return;
     }
     
     if (!subject || !body) {
         showToast('Please fill in subject and message', 'error');
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = originalText;
         return;
     }
     
@@ -513,10 +560,47 @@ window.confirmAndSendEmail = async function(modalId) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(emailAddress)) {
         showToast('Please enter a valid email address', 'error');
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = originalText;
         return;
     }
     
     try {
+        // Handle file attachments
+        const fileInput = document.getElementById('emailAttachments');
+        const attachments = [];
+        
+        if (fileInput && fileInput.files.length > 0) {
+            // Convert files to base64
+            for (const file of fileInput.files) {
+                // Check file size (10MB limit)
+                if (file.size > 10 * 1024 * 1024) {
+                    showToast(`File "${file.name}" is too large. Max size is 10MB.`, 'error');
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = originalText;
+                    return;
+                }
+                
+                // Read file as base64
+                const base64Content = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        // Remove data URL prefix to get just the base64 content
+                        const base64 = reader.result.split(',')[1];
+                        resolve(base64);
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+                
+                attachments.push({
+                    filename: file.name,
+                    content: base64Content,
+                    encoding: 'base64'
+                });
+            }
+        }
+        
         const response = await apiFetch('/api/emails', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -527,6 +611,7 @@ window.confirmAndSendEmail = async function(modalId) {
                 body: body,
                 recipientName: contactName,
                 companyName: companyName,
+                attachments: attachments.length > 0 ? attachments : undefined,
                 metadata: {
                     company: companyName,
                     contact: contactName
