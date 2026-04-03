@@ -383,7 +383,7 @@ async function buildAcknowledgment({ name, email, services }) {
         </div>
         <div style="background: #0f0f0f; padding: 2rem; text-align: center; border-radius: 0 0 12px 12px;">
             <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem;">Questions? Contact us:</p>
-            <p style="color: #ff6b1a; font-size: 1rem; font-weight: 600; margin: 0.5rem 0;">📞 (712) 330-6073 | (712) 330-2060</p>
+            <p style="color: #ff6b1a; font-size: 1rem; font-weight: 600; margin: 0.5rem 0;">📞 319-721-9925 | 319-551-4323</p>
             <p style="color: #6b7280; font-size: 0.85rem; margin-top: 1.5rem;">© ${new Date().getFullYear()} Helmick Underground LLC. All rights reserved.</p>
         </div>
     </div>
@@ -466,7 +466,7 @@ async function buildQuote({ to, customerName, quoteData }) {
         </div>
         <div style="background: #0f0f0f; padding: 2rem; text-align: center; border-radius: 0 0 12px 12px;">
             <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem;">Questions? Contact us:</p>
-            <p style="color: #ff6b1a; font-size: 1rem; font-weight: 600; margin: 0.5rem 0;">📞 (712) 330-6073 | (712) 330-2060</p>
+            <p style="color: #ff6b1a; font-size: 1rem; font-weight: 600; margin: 0.5rem 0;">📞 319-721-9925 | 319-551-4323</p>
             <p style="color: #6b7280; font-size: 0.85rem; margin-top: 1.5rem;">© ${new Date().getFullYear()} Helmick Underground LLC. All rights reserved.</p>
         </div>
     </div>
@@ -524,7 +524,7 @@ async function buildRates({ recipientEmail, ratesData }) {
         </div>
         <div style="background: #0f0f0f; padding: 2rem; text-align: center; border-radius: 0 0 12px 12px;">
             <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem;">Questions? Contact us:</p>
-            <p style="color: #ff6b1a; font-size: 1rem; font-weight: 600; margin: 0.5rem 0;">📞 (712) 330-6073 | (712) 330-2060</p>
+            <p style="color: #ff6b1a; font-size: 1rem; font-weight: 600; margin: 0.5rem 0;">📞 319-721-9925 | 319-551-4323</p>
             <p style="color: #6b7280; font-size: 0.85rem; margin-top: 1.5rem;">© ${new Date().getFullYear()} Helmick Underground LLC. All rights reserved.</p>
         </div>
     </div>
