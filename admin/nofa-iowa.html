@@ -166,13 +166,14 @@
             display: inline-block;
             margin-right: 0.5rem;
             border: 2px solid rgba(255, 255, 255, 0.3);
+            background-color: #808080; /* Default gray if no status class applied */
         }
 
-        .status-indicator.not-contacted { background-color: #808080; }
-        .status-indicator.prospect { background-color: #ffd700; }
-        .status-indicator.responded { background-color: #32cd32; }
-        .status-indicator.customer { background-color: #4169e1; }
-        .status-indicator.not-interested { background-color: #dc143c; }
+        .status-indicator.not-contacted { background-color: #808080 !important; }
+        .status-indicator.prospect { background-color: #ffd700 !important; }
+        .status-indicator.responded { background-color: #32cd32 !important; }
+        .status-indicator.customer { background-color: #4169e1 !important; }
+        .status-indicator.not-interested { background-color: #dc143c !important; }
 
         /* Leaflet Popup Customization */
         .leaflet-popup-content-wrapper {

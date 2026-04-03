@@ -205,10 +205,13 @@ function renderTable() {
                 </tr>
             </thead>
             <tbody>
-                ${filteredRecipients.map(recipient => `
+                ${filteredRecipients.map(recipient => {
+                    const status = recipient.status || 'not_contacted';
+                    const statusClass = status.replaceAll('_', '-');
+                    return `
                     <tr data-recipient-id="${recipient.id}">
                         <td onclick="viewRecipient(${recipient.id})" style="cursor: pointer;">
-                            <span class="status-indicator ${(recipient.status || 'not_contacted').replaceAll('_', '-')}"></span>
+                            <span class="status-indicator ${statusClass}"></span>
                             <span class="company-name">${recipient.company_name}</span>
                             ${recipient.is_prospect ? '<span style="color: #ffd700; margin-left: 0.5rem;">★</span>' : ''}
                         </td>
@@ -226,15 +229,15 @@ function renderTable() {
                         </td>
                         <td>
                             <select class="status-dropdown" onchange="updateRecipientStatus(${recipient.id}, this.value)">
-                                <option value="not_contacted" ${recipient.status === 'not_contacted' ? 'selected' : ''}>Not Contacted</option>
-                                <option value="prospect" ${recipient.status === 'prospect' ? 'selected' : ''}>Prospect</option>
-                                <option value="responded" ${recipient.status === 'responded' ? 'selected' : ''}>Responded</option>
-                                <option value="customer" ${recipient.status === 'customer' ? 'selected' : ''}>Customer</option>
-                                <option value="not_interested" ${recipient.status === 'not_interested' ? 'selected' : ''}>Not Interested</option>
+                                <option value="not_contacted" ${status === 'not_contacted' ? 'selected' : ''}>Not Contacted</option>
+                                <option value="prospect" ${status === 'prospect' ? 'selected' : ''}>Prospect</option>
+                                <option value="responded" ${status === 'responded' ? 'selected' : ''}>Responded</option>
+                                <option value="customer" ${status === 'customer' ? 'selected' : ''}>Customer</option>
+                                <option value="not_interested" ${status === 'not_interested' ? 'selected' : ''}>Not Interested</option>
                             </select>
                         </td>
                     </tr>
-                `).join('')}
+                `}).join('')}
             </tbody>
         </table>
     `;
@@ -601,6 +604,8 @@ async function markAsProspectFromMap(id) {
  */
 async function updateRecipientStatus(recipientId, newStatus) {
     try {
+        console.log('Updating status:', { recipientId, newStatus });
+        
         const response = await apiFetch(`/api/nofa?type=recipients&id=${recipientId}`, {
             method: 'PUT',
             body: JSON.stringify({ status: newStatus })
@@ -613,6 +618,7 @@ async function updateRecipientStatus(recipientId, newStatus) {
             const recipient = recipients.find(r => r.id === recipientId);
             if (recipient) {
                 recipient.status = newStatus;
+                console.log('Updated recipient:', recipient);
             }
             
             // Update the filtered recipients array too
@@ -629,7 +635,9 @@ async function updateRecipientStatus(recipientId, newStatus) {
                     // Remove all status classes
                     statusIndicator.className = 'status-indicator';
                     // Add the new status class (convert underscores to hyphens for CSS class)
-                    statusIndicator.classList.add(newStatus.replaceAll('_', '-'));
+                    const statusClass = newStatus.replaceAll('_', '-');
+                    statusIndicator.classList.add(statusClass);
+                    console.log('Updated indicator class to:', statusClass);
                 }
             }
             
