@@ -11,11 +11,11 @@ let currentRecipient = null;
 
 // Status color mapping
 const STATUS_COLORS = {
-    'not_contacted': '#dc143c',  // Red
+    'not_contacted': '#808080',  // Gray
     'prospect': '#ffd700',       // Yellow (when is_prospect = true)
     'responded': '#32cd32',      // Green
     'customer': '#4169e1',       // Blue
-    'not_interested': '#808080'  // Gray
+    'not_interested': '#dc143c'  // Red
 };
 
 // Initialize page
