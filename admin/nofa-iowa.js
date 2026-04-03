@@ -200,29 +200,31 @@ function renderTable() {
             </thead>
             <tbody>
                 ${filteredRecipients.map(recipient => `
-                    <tr onclick="viewRecipient(${recipient.id})" data-recipient-id="${recipient.id}">
-                        <td>
+                    <tr data-recipient-id="${recipient.id}">
+                        <td onclick="viewRecipient(${recipient.id})" style="cursor: pointer;">
                             <span class="company-name">${recipient.company_name}</span>
                             ${recipient.is_prospect ? '<span style="color: #ffd700; margin-left: 0.5rem;">★</span>' : ''}
                         </td>
-                        <td class="funding-amount">
+                        <td onclick="viewRecipient(${recipient.id})" style="cursor: pointer;" class="funding-amount">
                             ${recipient.funding_amount 
                                 ? '$' + parseFloat(recipient.funding_amount).toLocaleString() 
                                 : 'N/A'}
                         </td>
-                        <td>${recipient.grant_program || 'N/A'}</td>
-                        <td>${recipient.city || 'N/A'}, ${recipient.state || 'IA'}</td>
-                        <td>
+                        <td onclick="viewRecipient(${recipient.id})" style="cursor: pointer;">${recipient.grant_program || 'N/A'}</td>
+                        <td onclick="viewRecipient(${recipient.id})" style="cursor: pointer;">${recipient.city || 'N/A'}, ${recipient.state || 'IA'}</td>
+                        <td onclick="viewRecipient(${recipient.id})" style="cursor: pointer;">
                             ${recipient.award_date 
                                 ? new Date(recipient.award_date).toLocaleDateString() 
                                 : 'N/A'}
                         </td>
                         <td>
-                            <span class="status-badge ${recipient.is_prospect ? 'prospect' : recipient.status}">
-                                ${recipient.is_prospect 
-                                    ? 'Prospect' 
-                                    : formatStatus(recipient.status)}
-                            </span>
+                            <select class="status-dropdown" onchange="updateRecipientStatus(${recipient.id}, this.value)">
+                                <option value="not_contacted" ${recipient.status === 'not_contacted' ? 'selected' : ''}>Not Contacted</option>
+                                <option value="prospect" ${recipient.status === 'prospect' ? 'selected' : ''}>Prospect</option>
+                                <option value="responded" ${recipient.status === 'responded' ? 'selected' : ''}>Responded</option>
+                                <option value="customer" ${recipient.status === 'customer' ? 'selected' : ''}>Customer</option>
+                                <option value="not_interested" ${recipient.status === 'not_interested' ? 'selected' : ''}>Not Interested</option>
+                            </select>
                         </td>
                     </tr>
                 `).join('')}
@@ -594,6 +596,40 @@ async function markAsProspectFromMap(id) {
     
     currentRecipient = recipient;
     await markAsProspect();
+}
+
+/**
+ * Update recipient status from dropdown
+ */
+async function updateRecipientStatus(recipientId, newStatus) {
+    try {
+        const response = await apiFetch(`/api/nofa?type=recipients&id=${recipientId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ status: newStatus })
+        });
+        
+        if (response.success) {
+            showNotification('Status updated successfully', 'success');
+            
+            // Update local recipient data
+            const recipient = recipients.find(r => r.id === recipientId);
+            if (recipient) {
+                recipient.status = newStatus;
+            }
+            
+            // Re-render map markers to reflect new status color
+            renderMapMarkers();
+        } else {
+            showNotification('Failed to update status', 'error');
+            // Reload to reset dropdown to previous value
+            await loadRecipients();
+        }
+    } catch (error) {
+        console.error('Error updating status:', error);
+        showNotification('Failed to update status', 'error');
+        // Reload to reset dropdown to previous value
+        await loadRecipients();
+    }
 }
 
 /**

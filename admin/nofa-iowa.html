@@ -314,6 +314,37 @@
             color: #32cd32;
         }
 
+        /* Status Dropdown */
+        .status-dropdown {
+            padding: 0.5rem 0.75rem;
+            background: var(--black);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            border-radius: 6px;
+            color: var(--white);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 130px;
+        }
+
+        .status-dropdown:hover {
+            border-color: var(--primary-color);
+            background: rgba(255, 107, 26, 0.1);
+        }
+
+        .status-dropdown:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 107, 26, 0.2);
+        }
+
+        .status-dropdown option {
+            background: var(--card-dark);
+            color: var(--white);
+            padding: 0.5rem;
+        }
+
         /* Modal Styles */
         .modal {
             display: none;
