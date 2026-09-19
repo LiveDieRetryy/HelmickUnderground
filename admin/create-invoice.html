@@ -679,12 +679,22 @@
                         <span class="summary-label">Subtotal:</span>
                         <span class="summary-value" id="subtotalDisplay">$0.00</span>
                     </div>
+
+                    <div id="invoiceItemsSummary" style="margin: 1rem 0; padding: 0.75rem; background: rgba(0, 0, 0, 0.2); border-radius: 8px; max-height: 240px; overflow-y: auto;">
+                        <div style="color: var(--gray); font-size: 0.85rem; text-align: center;">No line items added</div>
+                    </div>
                     
                     <div style="background: rgba(255, 107, 26, 0.05); padding: 1rem; border-radius: 8px; margin: 1rem 0;">
                         <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--white); font-weight: 600;">
                             <input type="checkbox" id="iowaWorkCheckbox" onchange="calculateTotals()" style="width: 18px; height: 18px; cursor: pointer;">
                             Work performed in Iowa (7% tax)
                         </label>
+                    </div>
+
+                    <div style="background: rgba(59, 130, 246, 0.08); padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                        <label for="retainageRate" style="display: block; color: var(--white); font-weight: 600; margin-bottom: 0.5rem;">Retainage (%)</label>
+                        <input type="number" id="retainageRate" min="0" max="100" step="0.01" value="0" onchange="calculateTotals()" style="width: 100%; box-sizing: border-box;">
+                        <small style="color: var(--gray);">Optional percentage held until project completion.</small>
                     </div>
                     
                     <div class="summary-row" id="taxRow" style="display: none; color: var(--primary-color);">
@@ -787,6 +797,7 @@
     <script src="../form-validator.js"></script>
     <script src="auth.js"></script>
     <script src="sidebar.js"></script>
+    <script src="invoice-template.js"></script>
     <script src="create-invoice.js"></script>
 </body>
 </html>

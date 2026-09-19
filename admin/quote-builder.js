@@ -1,5 +1,5 @@
 // Check auth
-if (!sessionStorage.getItem('adminLoggedIn')) {
+if (!sessionStorage.getItem('adminLoggedIn') && !localStorage.getItem('auth_token')) {
     window.location.href = '/admin/index.html';
 }
 

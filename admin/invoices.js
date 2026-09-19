@@ -1,5 +1,5 @@
 // Check auth
-if (!sessionStorage.getItem('adminLoggedIn')) {
+if (!sessionStorage.getItem('adminLoggedIn') && !localStorage.getItem('auth_token')) {
     window.location.href = '/admin/index.html';
 }
 
@@ -74,7 +74,8 @@ function displayInvoices(invoices) {
                 <td data-label="Customer">${invoice.customer_name}</td>
                 <td data-label="Date">${invoiceDate}</td>
                 <td data-label="Due Date">${dueDate}</td>
-                <td data-label="Amount">$${parseFloat(invoice.total).toFixed(2)}</td>
+                <td data-label="Amount">$${parseFloat(invoice.total).toFixed(2)}<br><small>Due: $${parseFloat(invoice.amount_due ?? invoice.total).toFixed(2)}</small></td>
+                <td data-label="Retainage"><strong>${parseFloat(invoice.retainage_rate || 0).toFixed(2)}%</strong><br><small>$${parseFloat(invoice.retainage_amount || 0).toFixed(2)}</small><br><select class="retainage-status-select" aria-label="Retainage status" onchange="updateRetainageStatus(${invoice.id}, this.value)"><option value="none" ${invoice.retainage_status === 'none' ? 'selected' : ''}>No retainage</option><option value="pending" ${invoice.retainage_status === 'pending' ? 'selected' : ''}>Retainage pending</option><option value="paid" ${invoice.retainage_status === 'paid' ? 'selected' : ''}>Retainage paid</option></select></td>
                 <td data-label="Status">
                     <select onchange="updateInvoiceStatus(${invoice.id}, this.value)" class="status-select" style="background: ${getStatusColor(invoice.status)}; color: white; padding: 0.5rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer;">
                         <option value="draft" ${invoice.status === 'draft' ? 'selected' : ''}>Draft</option>
@@ -153,6 +154,8 @@ async function loadStats() {
         if (totalInvoicesEl) totalInvoicesEl.textContent = stats.total || 0;
         if (totalRevenueEl) totalRevenueEl.textContent = `$${(stats.paidAmount || 0).toFixed(2)}`;
         if (pendingAmountEl) pendingAmountEl.textContent = `$${(stats.pendingAmount || 0).toFixed(2)}`;
+        const pendingRetainageEl = document.getElementById('pendingRetainage');
+        if (pendingRetainageEl) pendingRetainageEl.textContent = `Retainage: $${(stats.pendingRetainageAmount || 0).toFixed(2)}`;
         if (overdueCountEl) overdueCountEl.textContent = stats.overdue || 0;
     } catch (error) {
         console.error('Error loading stats:', error);
@@ -292,6 +295,29 @@ async function updateInvoiceStatus(id, status) {
     }
 }
 
+async function updateRetainageStatus(id, retainageStatus) {
+    try {
+        const csrfToken = window.adminAuth?.getCsrfToken();
+        const response = await fetch(`/api/invoices?action=updateRetainageStatus&id=${id}`, {
+            method: 'PUT',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(csrfToken && { 'x-csrf-token': csrfToken })
+            },
+            body: JSON.stringify({ retainageStatus })
+        });
+
+        if (!response.ok) throw new Error('Failed to update retainage status');
+        showNotification('Retainage status updated successfully', 'success');
+        await loadInvoices();
+    } catch (error) {
+        console.error('Error updating retainage status:', error);
+        showNotification('Failed to update retainage status', 'error');
+        await loadInvoices();
+    }
+}
+
 // View invoice
 async function viewInvoice(id) {
     try {
@@ -301,6 +327,8 @@ async function viewInvoice(id) {
         if (!response.ok) throw new Error('Failed to load invoice');
         
         const invoice = await response.json();
+        window.invoiceTemplate.showPreview(invoice);
+        return;
         const items = typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items;
         
         // Build the same email HTML that gets sent
@@ -440,8 +468,15 @@ async function viewInvoice(id) {
 
 // Edit invoice
 function editInvoice(id) {
-    // Redirect to edit page with invoice ID
-    window.location.href = `/admin/create-invoice.html?id=${id}`;
+    const invoiceId = String(id || '').trim();
+    if (!invoiceId || invoiceId === 'undefined') {
+        showNotification('Unable to edit invoice: missing invoice ID', 'error');
+        return;
+    }
+
+    // Keep a fallback because clean-URL redirects can strip query strings locally.
+    sessionStorage.setItem('editingInvoiceId', invoiceId);
+    window.location.href = `/admin/create-invoice.html?id=${encodeURIComponent(invoiceId)}`;
 }
 
 // Delete invoice
@@ -834,6 +869,8 @@ async function downloadInvoicePDF(id) {
         if (!response.ok) throw new Error('Failed to load invoice');
         
         const invoice = await response.json();
+        window.invoiceTemplate.printInvoice(invoice);
+        return;
         const items = typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items;
         
         // Get jsPDF constructor

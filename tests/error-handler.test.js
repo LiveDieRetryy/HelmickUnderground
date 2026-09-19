@@ -10,7 +10,7 @@ const {
     validateRequiredFields,
     validateEmail,
     validatePhone
-} = require('../api/error-handler');
+} = require('../lib/error-handler');
 
 describe('Error Handler', () => {
     describe('ERROR_TYPES', () => {

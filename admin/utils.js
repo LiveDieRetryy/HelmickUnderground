@@ -16,7 +16,7 @@
  * @returns {boolean} True if authenticated, false otherwise
  */
 function checkAuth() {
-    const isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
+    const isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true' || Boolean(localStorage.getItem('auth_token'));
     if (!isLoggedIn) {
         window.location.href = '/admin/index.html';
         return false;

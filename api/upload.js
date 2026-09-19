@@ -13,8 +13,28 @@ export default async function handler(req, res) {
     }
     
     const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-    const REPO_OWNER = 'LiveDieRetryy';
-    const REPO_NAME = 'HelmickUnderground';
+    const isTestEnvironment = process.env.APP_ENV === 'preview' ||
+        process.env.VERCEL_ENV === 'preview' ||
+        process.env.NODE_ENV === 'development';
+    const allowExternalWrites = process.env.ALLOW_EXTERNAL_WRITES === 'true' || !isTestEnvironment;
+    const REPO_OWNER = process.env.GITHUB_REPO_OWNER || (isTestEnvironment ? '' : 'LiveDieRetryy');
+    const REPO_NAME = process.env.GITHUB_REPO_NAME || (isTestEnvironment ? '' : 'HelmickUnderground');
+
+    if (!allowExternalWrites) {
+        return res.status(409).json({
+            success: false,
+            error: 'TEST_MODE_WRITE_DISABLED',
+            message: 'External file writes are disabled in this test environment.'
+        });
+    }
+
+    if (!REPO_OWNER || !REPO_NAME) {
+        return res.status(503).json({
+            success: false,
+            error: 'TEST_REPOSITORY_NOT_CONFIGURED',
+            message: 'Configure GITHUB_REPO_OWNER and GITHUB_REPO_NAME for this environment.'
+        });
+    }
     
     if (!GITHUB_TOKEN) {
         return res.status(500).json({ error: 'GitHub token not configured' });

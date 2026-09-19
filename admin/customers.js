@@ -174,6 +174,7 @@ function displayCustomers(searchTerm = '') {
                         </div>
                     ` : ''}
                     ${customer.preferred_contact ? `<div class="customer-info-row"><span class="customer-info-label">Prefer:</span> ${customer.preferred_contact}</div>` : ''}
+                    <div class="customer-info-row"><span class="customer-info-label">Retainage:</span> ${parseFloat(customer.retainage_rate || 0).toFixed(2)}% held${customer.total_retainage !== undefined ? ` ($${parseFloat(customer.total_retainage || 0).toFixed(2)})` : ''}</div>
                 </div>
                 
                 <div class="customer-stats">
@@ -262,6 +263,7 @@ async function editCustomer(customerId) {
         document.getElementById('customerZip').value = customer.zip || '';
         document.getElementById('preferredContact').value = customer.preferred_contact || 'phone';
         document.getElementById('customerNotes').value = customer.notes || '';
+            document.getElementById('customerRetainageRate').value = customer.retainage_rate || 0;
         
         // Populate custom line items table
         const tableBody = document.getElementById('customLineItemsTable');
@@ -379,6 +381,7 @@ function createInvoiceForCustomer(customerId) {
     
     // Store customer data in sessionStorage to pre-fill invoice
     sessionStorage.setItem('invoiceCustomer', JSON.stringify({
+        id: customer.id,
         name: customer.name,
         contactPerson: customer.contact_person,
         phone: customer.phone,
@@ -387,6 +390,7 @@ function createInvoiceForCustomer(customerId) {
         city: customer.city,
         state: customer.state,
         zip: customer.zip,
+        retainageRate: customer.retainage_rate || 0,
         customLineItems: customer.custom_line_items || []
     }));
     
@@ -430,6 +434,7 @@ document.getElementById('customerForm').addEventListener('submit', async functio
         zip: document.getElementById('customerZip').value.trim(),
         preferred_contact: document.getElementById('preferredContact').value,
         notes: document.getElementById('customerNotes').value.trim(),
+        retainage_rate: parseFloat(document.getElementById('customerRetainageRate').value) || 0,
         custom_line_items: customLineItems
     };
     

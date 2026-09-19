@@ -1,5 +1,5 @@
 // Check auth
-if (!sessionStorage.getItem('adminLoggedIn')) {
+if (!sessionStorage.getItem('adminLoggedIn') && !localStorage.getItem('auth_token')) {
     window.location.href = '/admin/index.html';
 }
 
@@ -7,6 +7,10 @@ let ratesData = [];
 let lineItemCounter = 0;
 let companyProfiles = [];
 let currentCategory = 'baseRates';
+let currentRetainageStatus = 'none';
+let currentInvoiceStatus = 'draft';
+let currentCustomerId = null;
+let currentInvoiceCustomerName = '';
 
 // Notification system
 function showNotification(message, type = 'success') {
@@ -63,6 +67,7 @@ function showNotification(message, type = 'success') {
 
 // Populate customer information from customer database
 function populateCustomerInfo(customer) {
+    currentCustomerId = customer.id || customer.customerId || null;
     // Fill in all customer fields
     if (customer.name) {
         document.getElementById('customerName').value = customer.name;
@@ -81,6 +86,10 @@ function populateCustomerInfo(customer) {
     if (customer.address) {
         const fullAddress = `${customer.address}, ${customer.city}, ${customer.state} ${customer.zip}`;
         document.getElementById('customerAddress').value = fullAddress;
+    }
+    const customerRetainageRate = customer.retainageRate ?? customer.retainage_rate;
+    if (customerRetainageRate !== undefined) {
+        document.getElementById('retainageRate').value = customerRetainageRate || 0;
     }
     
     // Load custom line items if available
@@ -131,6 +140,7 @@ async function loadProfiles() {
         
         // Convert all customers to profile format
         companyProfiles = customers.map(customer => ({
+            id: customer.id,
             name: customer.name,
             email: customer.email,
             phone: customer.phone,
@@ -139,6 +149,7 @@ async function loadProfiles() {
             state: customer.state,
             zip: customer.zip,
             contactPerson: customer.contact_person,
+            retainageRate: customer.retainage_rate || 0,
             lineItems: customer.custom_line_items || []
         }));
         
@@ -164,6 +175,14 @@ function updateProfileDropdown() {
                     : profile.name;
                 return `<option value="${index}">${displayName}</option>`;
             }).join('');
+
+        if (currentCustomerId || currentInvoiceCustomerName) {
+            const profileIndex = companyProfiles.findIndex(profile =>
+                (currentCustomerId && profile.id === Number(currentCustomerId)) ||
+                (!currentCustomerId && profile.name === currentInvoiceCustomerName)
+            );
+            if (profileIndex >= 0) select.value = String(profileIndex);
+        }
     }
 }
 
@@ -289,6 +308,11 @@ function loadCompanyProfile() {
     
     const profile = companyProfiles[index];
     if (!profile) return;
+
+    currentCustomerId = profile.id || null;
+    currentInvoiceCustomerName = profile.name || '';
+    document.getElementById('retainageRate').value = profile.retainageRate || 0;
+    calculateTotals();
     
     // Populate customer information fields
     document.getElementById('customerName').value = profile.name || '';
@@ -539,6 +563,46 @@ function addLineItem(description = '', quantity = 1, rate = 0) {
     calculateTotals();
 }
 
+// Validate and normalize line items before creating or updating an invoice.
+function validateInvoiceLineItems(items) {
+    if (!Array.isArray(items) || items.length === 0) {
+        throw new Error('Please add at least one line item');
+    }
+
+    return items.map((item, index) => {
+        const description = String(item.description || '').trim();
+        const quantity = Number(item.quantity);
+        const rate = Number(item.rate);
+
+        if (!description) {
+            throw new Error(`Line item ${index + 1} is missing a description`);
+        }
+        if (!Number.isFinite(quantity) || quantity <= 0) {
+            throw new Error(`Line item ${index + 1} has an invalid quantity`);
+        }
+        if (!Number.isFinite(rate) || rate < 0) {
+            throw new Error(`Line item ${index + 1} has an invalid rate`);
+        }
+
+        return {
+            ...item,
+            description,
+            quantity,
+            rate,
+            amount: quantity * rate
+        };
+    });
+}
+
+function escapeInvoiceText(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 // Remove line item
 function removeLineItem(id) {
     const item = document.querySelector(`.line-item[data-id="${id}"]`);
@@ -563,12 +627,26 @@ function calculateTotals() {
         subtotal += amount;
         if (quantity > 0) itemCount++;
     });
+
+    const itemsSummary = document.getElementById('invoiceItemsSummary');
+    if (itemsSummary) {
+        const summaryItems = Array.from(items).map(item => {
+            const description = item.querySelector('.item-description').value.trim();
+            const quantity = parseFloat(item.querySelector('.item-quantity').value) || 0;
+            const rate = parseFloat(item.querySelector('.item-rate').value) || 0;
+            return `<div style="display:flex;justify-content:space-between;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid rgba(255,107,26,0.12);font-size:0.82rem;"><span style="color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeInvoiceText(description || 'Unnamed item')} <small style="color:var(--gray);">(${quantity} × $${rate.toFixed(2)})</small></span><strong style="color:var(--primary-color);white-space:nowrap;">$${(quantity * rate).toFixed(2)}</strong></div>`;
+        }).join('');
+        itemsSummary.innerHTML = summaryItems || '<div style="color: var(--gray); font-size: 0.85rem; text-align: center;">No line items added</div>';
+    }
     
     // Check if Iowa work checkbox is checked
     const iowaWorkCheckbox = document.getElementById('iowaWorkCheckbox');
     const taxRate = iowaWorkCheckbox && iowaWorkCheckbox.checked ? 7 : 0;
     const tax = subtotal * (taxRate / 100);
     const total = subtotal + tax;
+    const retainageRate = Math.max(0, Math.min(100, parseFloat(document.getElementById('retainageRate')?.value) || 0));
+    const retainageAmount = total * (retainageRate / 100);
+    const amountDue = total - retainageAmount;
     
     // Update displays
     document.getElementById('totalItems').textContent = itemCount;
@@ -644,6 +722,9 @@ function previewPDF() {
     const subtotal = items.reduce((sum, item) => sum + item.amount, 0);
     const tax = subtotal * (taxRate / 100);
     const total = subtotal + tax;
+    const retainageRate = Math.max(0, Math.min(100, parseFloat(document.getElementById('retainageRate')?.value) || 0));
+    const retainageAmount = total * (retainageRate / 100);
+    const amountDue = total - retainageAmount;
     
     const invoiceDate = new Date(document.getElementById('invoiceDate').value).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     const dueDate = new Date(document.getElementById('dueDate').value).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -749,15 +830,18 @@ function previewPDF() {
 document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    const items = Array.from(document.querySelectorAll('.line-item')).map(item => ({
+    const rawItems = Array.from(document.querySelectorAll('.line-item')).map(item => ({
         description: item.querySelector('.item-description').value,
         quantity: parseFloat(item.querySelector('.item-quantity').value),
         rate: parseFloat(item.querySelector('.item-rate').value),
         amount: parseFloat(item.querySelector('.item-quantity').value) * parseFloat(item.querySelector('.item-rate').value)
     }));
-    
-    if (items.length === 0) {
-        alert('Please add at least one line item');
+
+    let items;
+    try {
+        items = validateInvoiceLineItems(rawItems);
+    } catch (error) {
+        alert(error.message);
         return;
     }
     
@@ -770,12 +854,16 @@ document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
     
     // Get invoice notes
     const invoiceNotes = document.getElementById('invoiceNotes')?.value || '';
+    const retainageRate = Math.max(0, Math.min(100, parseFloat(document.getElementById('retainageRate')?.value) || 0));
+    const retainageAmount = total * (retainageRate / 100);
+    const amountDue = total - retainageAmount;
     
     const invoiceData = {
         invoiceNumber: document.getElementById('invoiceNumber').value,
         invoiceDate: document.getElementById('invoiceDate').value,
         dueDate: document.getElementById('dueDate').value,
         customer: {
+            customerId: currentCustomerId,
             name: document.getElementById('customerName').value,
             email: document.getElementById('customerEmail').value,
             phone: document.getElementById('customerPhone').value,
@@ -792,14 +880,18 @@ document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
         subtotal: subtotal,
         tax: tax,
         total: total,
+        retainageRate,
+        retainageAmount,
+        amountDue,
+        retainageStatus: currentRetainageStatus,
         notes: invoiceNotes,
-        status: 'draft',
+        status: currentInvoiceStatus,
         createdAt: new Date().toISOString()
     };
     
     // Check if editing existing invoice
     const urlParams = new URLSearchParams(window.location.search);
-    const invoiceId = urlParams.get('id');
+    const invoiceId = window.currentInvoiceId || urlParams.get('id') || sessionStorage.getItem('editingInvoiceId');
     
     try {
         let response;
@@ -876,9 +968,18 @@ document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
 // Initialize
 async function init() {
     setDefaultDates();
-    await generateInvoiceNumber();
-    await loadRates();
-    await loadProfiles();
+    const urlParams = new URLSearchParams(window.location.search);
+    const invoiceId = urlParams.get('id') || sessionStorage.getItem('editingInvoiceId');
+
+    // Load the existing invoice first so its summary appears immediately.
+    if (invoiceId) {
+        await loadInvoiceForEdit(invoiceId);
+    } else {
+        await generateInvoiceNumber();
+    }
+
+    // These support controls can load in parallel after the invoice is visible.
+    await Promise.all([loadRates(), loadProfiles()]);
     
     // Check if coming from customer database
     const customerData = sessionStorage.getItem('invoiceCustomer');
@@ -893,7 +994,6 @@ async function init() {
     }
     
     // Check if coming from accepted quote
-    const urlParams = new URLSearchParams(window.location.search);
     const fromQuote = urlParams.get('fromQuote');
     
     if (fromQuote === 'true') {
@@ -902,10 +1002,8 @@ async function init() {
     }
     
     // Check if editing existing invoice
-    const invoiceId = urlParams.get('id');
-    
     if (invoiceId) {
-        await loadInvoiceForEdit(invoiceId);
+        sessionStorage.removeItem('editingInvoiceId');
     }
     // Don't add a default empty line item - user can add items manually
 }
@@ -922,6 +1020,9 @@ async function loadInvoiceForEdit(id) {
         
         // Populate form fields
         document.getElementById('invoiceNumber').value = invoice.invoice_number;
+        currentInvoiceStatus = invoice.status || 'draft';
+        currentCustomerId = invoice.customer_id || null;
+        currentInvoiceCustomerName = invoice.customer_name || '';
         
         // Format dates to YYYY-MM-DD for date inputs
         const invoiceDate = invoice.invoice_date ? invoice.invoice_date.split('T')[0] : '';
@@ -933,6 +1034,8 @@ async function loadInvoiceForEdit(id) {
         document.getElementById('customerEmail').value = invoice.customer_email || '';
         document.getElementById('customerPhone').value = invoice.customer_phone || '';
         document.getElementById('customerAddress').value = invoice.customer_address || '';
+        document.getElementById('retainageRate').value = invoice.retainage_rate || 0;
+        currentRetainageStatus = invoice.retainage_status || (invoice.retainage_amount > 0 ? 'pending' : 'none');
         
         // Set Iowa work checkbox if tax was applied
         const iowaCheckbox = document.getElementById('iowaWorkCheckbox');
@@ -962,11 +1065,32 @@ async function loadInvoiceForEdit(id) {
             items = [];
         }
         
-        if (Array.isArray(items)) {
-            items.forEach(item => {
-                addLineItem(item.description, item.quantity, item.rate);
-            });
+        const validatedItems = validateInvoiceLineItems(items);
+        validatedItems.forEach(item => {
+            addLineItem(item.description, item.quantity, item.rate);
+        });
+
+        // If the invoice has no saved retainage, inherit the current customer default.
+        if (!Number(invoice.retainage_rate) && (invoice.customer_id || invoice.customer_name)) {
+            try {
+                const customerUrl = invoice.customer_id
+                    ? `/api/customers?action=get&id=${invoice.customer_id}`
+                    : `/api/customers?action=all`;
+                const customerResponse = await fetch(customerUrl, { credentials: 'include' });
+                if (customerResponse.ok) {
+                    const customerData = await customerResponse.json();
+                    const customer = Array.isArray(customerData)
+                        ? customerData.find(item => item.name === invoice.customer_name)
+                        : (customerData.customer || customerData);
+                    if (customer?.retainage_rate > 0) {
+                        document.getElementById('retainageRate').value = customer.retainage_rate;
+                    }
+                }
+            } catch (error) {
+                console.warn('Could not load customer retainage default:', error);
+            }
         }
+        calculateTotals();
         
         // Update page title
         const titleEl = document.querySelector('.page-header h1');
@@ -979,8 +1103,7 @@ async function loadInvoiceForEdit(id) {
         
     } catch (error) {
         console.error('Error loading invoice:', error);
-        alert('Failed to load invoice. Redirecting to create new invoice.');
-        window.location.href = '/admin/create-invoice.html';
+        alert(`Failed to load invoice: ${error.message}`);
     }
 }
 
@@ -1041,15 +1164,18 @@ init();
 
 // Preview invoice in modal
 async function previewInvoice() {
-    const items = Array.from(document.querySelectorAll('.line-item')).map(item => ({
+    const rawItems = Array.from(document.querySelectorAll('.line-item')).map(item => ({
         description: item.querySelector('.item-description').value,
         quantity: parseFloat(item.querySelector('.item-quantity').value),
         rate: parseFloat(item.querySelector('.item-rate').value),
         amount: parseFloat(item.querySelector('.item-quantity').value) * parseFloat(item.querySelector('.item-rate').value)
-    })).filter(item => item.quantity > 0 && item.description);
-    
-    if (items.length === 0) {
-        alert('Please add at least one line item');
+    }));
+
+    let items;
+    try {
+        items = validateInvoiceLineItems(rawItems);
+    } catch (error) {
+        alert(error.message);
         return;
     }
     
@@ -1113,7 +1239,7 @@ async function previewInvoice() {
                 subtotal,
                 tax,
                 total,
-                status: 'draft',
+                status: currentInvoiceStatus,
                 submissionId
             })
         });
@@ -1145,6 +1271,10 @@ async function previewInvoice() {
         }
         
         showNotification('Invoice saved as draft', 'success');
+
+        // Use the shared document for edit/create previews.
+        window.invoiceTemplate.showPreview(window.invoiceTemplate.fromForm());
+        return;
     } catch (error) {
         console.error('Error saving invoice:', error);
         showNotification('Failed to save invoice: ' + error.message, 'error');
@@ -1257,6 +1387,9 @@ function closeInvoicePreview() {
 
 // Download invoice as PDF
 async function downloadInvoicePDF() {
+    window.invoiceTemplate.printInvoice(window.invoiceTemplate.fromForm());
+    return;
+
     try {
         // Check if jsPDF is loaded (handle both possible exports)
         const jsPDFLib = window.jspdf || window.jsPDF;
@@ -1291,6 +1424,8 @@ async function downloadInvoicePDF() {
         const taxRate = iowaWork ? 0.07 : 0;
         const tax = subtotal * taxRate;
         const total = subtotal + tax;
+        const retainageRate = Math.max(0, Math.min(100, parseFloat(document.getElementById('retainageRate')?.value) || 0));
+        const retainageAmount = total * (retainageRate / 100);
         
         const invoiceNumber = document.getElementById('invoiceNumber').value;
         const invoiceDate = new Date(document.getElementById('invoiceDate').value).toLocaleDateString();
@@ -1375,7 +1510,7 @@ async function downloadInvoicePDF() {
             
             if (jobNumber) {
                 doc.setFont('helvetica', 'bold');
-                doc.text('Job Number:', margin + 15, jobY);
+                doc.text('Project Number:', margin + 15, jobY);
                 doc.setFont('helvetica', 'normal');
                 doc.text(String(jobNumber), margin + 85, jobY);
             }
@@ -1411,7 +1546,7 @@ async function downloadInvoicePDF() {
         doc.text('498 Elbow Creek Rd', margin + 15, yPos + 48);
         doc.text('Mount Vernon, IA 52314', margin + 15, yPos + 61);
         doc.text('HelmickUnderground@gmail.com', margin + 15, yPos + 74);
-        doc.text('(319) 229-4046', margin + 15, yPos + 87);
+        doc.text('(319) 721-9925', margin + 15, yPos + 87);
         
         // Bill To
         const billToX = pageWidth / 2 + 10;
@@ -1574,14 +1709,32 @@ async function downloadInvoicePDF() {
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
         doc.text(`$${total.toFixed(2)}`, pageWidth - margin - 10, yPos + 20, { align: 'right' });
+
+        if (retainageAmount > 0) {
+            yPos += 42;
+            doc.setTextColor(220, 38, 38);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Retainage (${retainageRate}%): $${retainageAmount.toFixed(2)}`, pageWidth - margin - 10, yPos, { align: 'right' });
+        }
         
-        // Notes section
+        // Notes section. Move notes to a new page if they would enter the footer area.
         if (invoiceNotes) {
-            yPos += 45;
+            const noteLines = doc.splitTextToSize(invoiceNotes, pageWidth - 2 * margin - 30);
+            const noteHeight = Math.max(60, 30 + (noteLines.length * 10));
+            const footerTop = pageHeight - margin - 40;
+
+            if (yPos + 45 + noteHeight > footerTop) {
+                doc.addPage();
+                yPos = margin;
+            } else {
+                yPos += 45;
+            }
+
             doc.setFillColor(245, 245, 245);
-            doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 60, 3, 3, 'F');
+            doc.roundedRect(margin, yPos, pageWidth - 2 * margin, noteHeight, 3, 3, 'F');
             doc.setFillColor(255, 107, 26);
-            doc.rect(margin, yPos, 3, 60, 'F');
+            doc.rect(margin, yPos, 3, noteHeight, 'F');
             
             doc.setTextColor(255, 107, 26);
             doc.setFontSize(9);
@@ -1590,7 +1743,6 @@ async function downloadInvoicePDF() {
             doc.setTextColor(80, 80, 80);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(8);
-            const noteLines = doc.splitTextToSize(invoiceNotes, pageWidth - 2 * margin - 30);
             doc.text(noteLines, margin + 15, yPos + 30);
         }
         
@@ -1679,7 +1831,7 @@ async function generateInvoicePDFBase64() {
                 const logoWidth = 120;
                 const aspectRatio = logoData.width / logoData.height;
                 logoHeight = logoWidth / aspectRatio;
-                doc.addImage(logoData.dataURL, 'JPEG', margin, yPos, logoWidth, logoHeight);
+                doc.addImage(logoData.dataURL, 'PNG', margin, yPos, logoWidth, logoHeight);
             }
         } catch (e) {
             console.error('Logo failed to load:', e);
@@ -1725,7 +1877,7 @@ async function generateInvoicePDFBase64() {
             
             if (jobNumber) {
                 doc.setFont('helvetica', 'bold');
-                doc.text('Job Number:', margin + 15, jobY);
+                doc.text('Project Number:', margin + 15, jobY);
                 doc.setFont('helvetica', 'normal');
                 doc.text(String(jobNumber), margin + 85, jobY);
             }
@@ -1761,7 +1913,7 @@ async function generateInvoicePDFBase64() {
         doc.text('498 Elbow Creek Rd', margin + 15, yPos + 48);
         doc.text('Mount Vernon, IA 52314', margin + 15, yPos + 61);
         doc.text('HelmickUnderground@gmail.com', margin + 15, yPos + 74);
-        doc.text('(319) 229-4046', margin + 15, yPos + 87);
+        doc.text('(319) 721-9925', margin + 15, yPos + 87);
         
         // Bill To
         const billToX = pageWidth / 2 + 10;
@@ -1926,8 +2078,8 @@ async function getLogoBase64() {
         img.crossOrigin = 'anonymous';
         img.onload = function() {
             try {
-                // Resize logo to small dimensions for PDF (max 150px width)
-                const maxWidth = 150;
+                // Keep enough source resolution for crisp PDF output.
+                const maxWidth = 600;
                 const aspectRatio = img.width / img.height;
                 const targetWidth = Math.min(img.width, maxWidth);
                 const targetHeight = targetWidth / aspectRatio;
@@ -1937,14 +2089,9 @@ async function getLogoBase64() {
                 canvas.height = targetHeight;
                 const ctx = canvas.getContext('2d');
                 
-                // Fill with white background (JPEG doesn't support transparency)
-                ctx.fillStyle = '#FFFFFF';
-                ctx.fillRect(0, 0, targetWidth, targetHeight);
-                
                 ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
                 
-                // Use JPEG with quality 0.5 for minimal file size
-                const dataURL = canvas.toDataURL('image/jpeg', 0.5);
+                const dataURL = canvas.toDataURL('image/png');
                 resolve({
                     dataURL: dataURL,
                     width: targetWidth,
@@ -2000,14 +2147,6 @@ function printInvoice() {
 
 // Email invoice
 async function emailInvoice() {
-    const customerEmail = document.getElementById('customerEmail').value;
-    const customerName = document.getElementById('customerName').value;
-    
-    if (!customerEmail) {
-        alert('Please enter a customer email address first.');
-        return;
-    }
-    
     try {
         // Get invoice data
         const items = Array.from(document.querySelectorAll('.line-item')).map(item => ({
@@ -2025,6 +2164,7 @@ async function emailInvoice() {
         const invoiceNumber = document.getElementById('invoiceNumber').value;
         const invoiceDate = new Date(document.getElementById('invoiceDate').value);
         const dueDate = new Date(document.getElementById('dueDate').value);
+        const customerName = document.getElementById('customerName').value;
         const customerAddress = document.getElementById('customerAddress').value;
         const customerPhone = document.getElementById('customerPhone').value;
         const jobNumber = document.getElementById('jobNumber')?.value || '';

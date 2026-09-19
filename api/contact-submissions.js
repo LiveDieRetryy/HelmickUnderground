@@ -4,6 +4,28 @@ const { requireAuth } = require('../lib/auth-middleware');
 const { requireCsrfToken } = require('../lib/csrf-middleware');
 const { enforceRateLimit } = require('../lib/rate-limiter');
 const { logActivity } = require('./activity-log');
+const memoryStore = require('../lib/dev-memory-store');
+
+function handleMemorySubmissions(req, res) {
+    const action = req.query.action || 'all';
+    if (req.method === 'GET' && action === 'all') {
+        return res.status(200).json(memoryStore.clone(memoryStore.submissions));
+    }
+    if (req.method === 'GET' && action === 'stats') {
+        const submissions = memoryStore.submissions;
+        const stats = { total: submissions.length, today: submissions.length };
+        submissions.forEach(item => { stats[item.status] = (stats[item.status] || 0) + 1; });
+        return res.status(200).json(stats);
+    }
+    if (req.method === 'PUT') {
+        const submission = memoryStore.submissions.find(item => item.id === Number(req.query.id || req.body?.id));
+        if (!submission) return res.status(404).json({ error: 'Submission not found' });
+        Object.assign(submission, req.body, { updated_at: new Date().toISOString() });
+        memoryStore.save();
+        return res.status(200).json({ success: true, submission: memoryStore.clone(submission) });
+    }
+    return res.status(409).json({ success: false, error: 'MEMORY_MODE_OPERATION_UNSUPPORTED' });
+}
 
 /**
  * Contact Submissions API Handler
@@ -56,9 +78,15 @@ module.exports = async function handler(req, res) {
         return res.status(200).end();
     }
 
-    // Require authentication for admin operations (GET, PUT)
-    // POST is public for contact form submissions
-    if (req.method !== 'POST' && !requireAuth(req, res)) {
+    if (memoryStore.enabled() && req.query.action !== 'availability') {
+        if (req.method !== 'POST' && !requireAuth(req, res)) return;
+        return handleMemorySubmissions(req, res);
+    }
+
+    const isAvailabilityRead = req.method === 'GET' && req.query.action === 'availability';
+
+    // Availability is public-read; all other GET/PUT operations are admin-only.
+    if (!isAvailabilityRead && req.method !== 'POST' && !requireAuth(req, res)) {
         return; // requireAuth already sent error response
     }
 
@@ -82,6 +110,57 @@ module.exports = async function handler(req, res) {
     }
 
     try {
+        if (req.query.action === 'availability') {
+            if (memoryStore.enabled()) {
+                if (req.method === 'GET') return res.status(200).json(memoryStore.clone(memoryStore.availability));
+                if (req.method === 'PUT') {
+                    if (!requireCsrfToken(req, res)) return;
+                    const validStatuses = ['accepting', 'busy', 'closed'];
+                    const { status, message, responseTimeframe } = req.body || {};
+                    if (!validStatuses.includes(status)) return res.status(400).json({ success: false, error: 'Invalid availability status' });
+                    const setting = { status, message: String(message || '').trim(), responseTimeframe: String(responseTimeframe || '').trim() };
+                    memoryStore.setAvailability(setting);
+                    return res.status(200).json({ success: true, ...setting });
+                }
+            }
+
+            await sql`
+                CREATE TABLE IF NOT EXISTS site_settings (
+                    setting_key VARCHAR(100) PRIMARY KEY,
+                    setting_value JSONB NOT NULL,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            `;
+
+            if (req.method === 'GET') {
+                const result = await sql`
+                    SELECT setting_value FROM site_settings WHERE setting_key = 'work_request_availability'
+                `;
+                return res.status(200).json(result.rows[0]?.setting_value || {
+                    status: 'accepting',
+                    message: 'We are currently accepting new work requests.',
+                    responseTimeframe: 'We typically respond within 24 hours.'
+                });
+            }
+
+            if (req.method === 'PUT') {
+                if (!requireCsrfToken(req, res)) return;
+                const validStatuses = ['accepting', 'busy', 'closed'];
+                const { status, message, responseTimeframe } = req.body || {};
+                if (!validStatuses.includes(status)) {
+                    return res.status(400).json({ success: false, error: 'Invalid availability status' });
+                }
+
+                const setting = { status, message: String(message || '').trim(), responseTimeframe: String(responseTimeframe || '').trim() };
+                await sql`
+                    INSERT INTO site_settings (setting_key, setting_value, updated_at)
+                    VALUES ('work_request_availability', ${JSON.stringify(setting)}, CURRENT_TIMESTAMP)
+                    ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = CURRENT_TIMESTAMP
+                `;
+                return res.status(200).json({ success: true, ...setting });
+            }
+        }
+
         // Create table if it doesn't exist
         await sql`
             CREATE TABLE IF NOT EXISTS contact_submissions (

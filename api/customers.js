@@ -4,6 +4,47 @@ const { requireAuth } = require('../lib/auth-middleware');
 const { requireCsrfToken } = require('../lib/csrf-middleware');
 const { enforceRateLimit } = require('../lib/rate-limiter');
 const { logActivity } = require('./activity-log');
+const memoryStore = require('../lib/dev-memory-store');
+const { calculateRetainage, normalizeRetainageRate } = require('../lib/retainage');
+
+function handleMemoryCustomers(req, res) {
+    const action = req.query.action || 'all';
+
+    if (req.method === 'GET' && action === 'all') {
+        return res.status(200).json({ customers: memoryStore.clone(memoryStore.customers), pagination: { page: 1, limit: 1000, totalCount: memoryStore.customers.length, totalPages: 1, hasNextPage: false, hasPrevPage: false } });
+    }
+    if (req.method === 'GET' && (action === 'get' || action === 'full')) {
+        const customer = memoryStore.customers.find(item => item.id === Number(req.query.id));
+        if (!customer) return sendErrorResponse(res, 'NOT_FOUND', 'Customer not found');
+        if (action === 'full') {
+            const relatedInvoices = memoryStore.invoices.filter(invoice => invoice.customer_id === customer.id || invoice.customer_name === customer.name);
+            return res.status(200).json({ customer: memoryStore.clone(customer), projects: [], invoices: memoryStore.clone(relatedInvoices), stats: { totalJobs: 0, activeJobs: 0, completedJobs: 0, totalInvoiced: relatedInvoices.reduce((sum, invoice) => sum + invoice.total, 0), totalRetainage: relatedInvoices.reduce((sum, invoice) => sum + invoice.retainage_amount, 0), paidInvoices: relatedInvoices.filter(invoice => invoice.status === 'paid').length, unpaidInvoices: relatedInvoices.filter(invoice => invoice.status !== 'paid').length } });
+        }
+        return res.status(200).json(memoryStore.clone(customer));
+    }
+    if (req.method === 'POST') {
+        const customer = { ...req.body, id: memoryStore.nextCustomerId(), custom_line_items: req.body.custom_line_items || [], retainage_rate: Math.max(0, Math.min(100, Number(req.body.retainage_rate) || 0)), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+        memoryStore.customers.push(customer);
+        memoryStore.save();
+        return res.status(201).json(memoryStore.clone(customer));
+    }
+    if (req.method === 'PUT') {
+        const customer = memoryStore.customers.find(item => item.id === Number(req.query.id));
+        if (!customer) return sendErrorResponse(res, 'NOT_FOUND', 'Customer not found');
+        Object.assign(customer, req.body, { retainage_rate: Math.max(0, Math.min(100, Number(req.body.retainage_rate) || 0)) });
+        memoryStore.updateCustomerRetainage(customer.id, customer.retainage_rate);
+        memoryStore.save();
+        return res.status(200).json(memoryStore.clone(customer));
+    }
+    if (req.method === 'DELETE') {
+        const index = memoryStore.customers.findIndex(item => item.id === Number(req.query.id));
+        if (index < 0) return sendErrorResponse(res, 'NOT_FOUND', 'Customer not found');
+        memoryStore.customers.splice(index, 1);
+        memoryStore.save();
+        return res.status(200).json({ success: true, message: 'Customer deleted successfully' });
+    }
+    return sendErrorResponse(res, 'VALIDATION_ERROR', 'Invalid request');
+}
 /**
  * Customer API Handler
  * Manages customer CRUD operations with pagination and composite queries
@@ -54,6 +95,10 @@ module.exports = async function handler(req, res) {
         return; // Rate limit exceeded, error response already sent
     }
 
+    if (memoryStore.enabled()) {
+        return handleMemoryCustomers(req, res);
+    }
+
     try {
         // Create table if it doesn't exist
         await sql`
@@ -71,10 +116,23 @@ module.exports = async function handler(req, res) {
                 zip VARCHAR(20),
                 notes TEXT,
                 custom_line_items JSONB DEFAULT '[]',
+                retainage_rate DECIMAL(5,2) DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `;
+
+        await sql`ALTER TABLE customers ADD COLUMN IF NOT EXISTS retainage_rate DECIMAL(5,2) DEFAULT 0`;
+
+        const invoicesTable = await sql`SELECT to_regclass('public.invoices') AS table_name`;
+        if (invoicesTable.rows[0]?.table_name) {
+            await sql`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS retainage_rate DECIMAL(5,2) DEFAULT 0`;
+            await sql`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS retainage_amount DECIMAL(10,2) DEFAULT 0`;
+            await sql`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS amount_due DECIMAL(10,2) DEFAULT 0`;
+            await sql`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS retainage_status VARCHAR(20) DEFAULT 'none'`;
+            await sql`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS customer_id BIGINT`;
+            await sql`UPDATE invoices SET retainage_status = 'pending' WHERE COALESCE(retainage_amount, 0) > 0 AND retainage_status = 'none'`;
+        }
         
         // Alter existing table to allow NULL for phone (migration for existing databases)
         await sql`ALTER TABLE customers ALTER COLUMN phone DROP NOT NULL`.catch(() => {
@@ -100,7 +158,7 @@ module.exports = async function handler(req, res) {
             
             // Get paginated results
             const { rows } = await sql`
-                SELECT * FROM customers 
+                SELECT * FROM customers
                 ORDER BY name ASC
                 LIMIT ${limit} OFFSET ${offset}
             `;
@@ -164,9 +222,9 @@ module.exports = async function handler(req, res) {
                 SELECT 
                     id, invoice_number, job_number, customer_name,
                     invoice_date, due_date, status, total, 
-                    subtotal, tax, created_at
+                    subtotal, tax, retainage_rate, retainage_amount, amount_due, created_at
                 FROM invoices 
-                WHERE customer_name = ${customer.name}
+                    WHERE customer_id = ${customer.id} OR (customer_id IS NULL AND customer_name = ${customer.name})
                 ORDER BY invoice_date DESC
             `;
             
@@ -181,6 +239,7 @@ module.exports = async function handler(req, res) {
                 totalInvoiced: invoices.reduce((sum, inv) => sum + parseFloat(inv.total || 0), 0),
                 paidInvoices: invoices.filter(inv => inv.status === 'paid').length,
                 unpaidInvoices: invoices.filter(inv => inv.status !== 'paid').length
+                ,totalRetainage: invoices.reduce((sum, inv) => sum + parseFloat(inv.retainage_amount || 0), 0)
             };
             
             return res.status(200).json({
@@ -205,19 +264,20 @@ module.exports = async function handler(req, res) {
                 state,
                 zip,
                 notes,
-                custom_line_items
+                custom_line_items,
+                retainage_rate
             } = req.body;
 
             const { rows } = await sql`
                 INSERT INTO customers (
                     name, type, contact_person, phone, email, 
                     preferred_contact, address, city, state, zip, 
-                    notes, custom_line_items
+                    notes, custom_line_items, retainage_rate
                 )
                 VALUES (
                     ${name}, ${type}, ${contact_person}, ${phone}, ${email},
                     ${preferred_contact}, ${address}, ${city}, ${state}, ${zip},
-                    ${notes}, ${JSON.stringify(custom_line_items || [])}
+                    ${notes}, ${JSON.stringify(custom_line_items || [])}, ${normalizeRetainageRate(retainage_rate)}
                 )
                 RETURNING *
             `;
@@ -243,8 +303,13 @@ module.exports = async function handler(req, res) {
                 state,
                 zip,
                 notes,
-                custom_line_items
+                custom_line_items,
+                retainage_rate
             } = req.body;
+
+            const normalizedRetainageRate = normalizeRetainageRate(retainage_rate);
+            const previousCustomer = await sql`SELECT name FROM customers WHERE id = ${id}`;
+            const previousCustomerName = previousCustomer.rows[0]?.name;
 
             const { rows } = await sql`
                 UPDATE customers 
@@ -261,6 +326,7 @@ module.exports = async function handler(req, res) {
                     zip = ${zip},
                     notes = ${notes},
                     custom_line_items = ${JSON.stringify(custom_line_items || [])},
+                    retainage_rate = ${normalizedRetainageRate},
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ${id}
                 RETURNING *
@@ -268,6 +334,20 @@ module.exports = async function handler(req, res) {
 
             if (rows.length === 0) {
                 return sendErrorResponse(res, 'NOT_FOUND', 'Customer not found');
+            }
+
+            if (invoicesTable.rows[0]?.table_name) {
+                await sql`
+                    UPDATE invoices
+                    SET
+                        retainage_rate = ${normalizedRetainageRate},
+                        retainage_amount = ROUND((subtotal + tax) * ${normalizedRetainageRate / 100}, 2),
+                        amount_due = (subtotal + tax) - ROUND((subtotal + tax) * ${normalizedRetainageRate / 100}, 2),
+                        retainage_status = CASE WHEN ${normalizedRetainageRate} > 0 THEN 'pending' ELSE 'none' END,
+                        updated_at = CURRENT_TIMESTAMP
+                          WHERE customer_id = ${id}
+                              OR (customer_id IS NULL AND (customer_name = ${previousCustomerName || name} OR customer_name = ${name}))
+                `;
             }
 
             // Log activity

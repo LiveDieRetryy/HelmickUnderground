@@ -184,6 +184,10 @@ function displayCustomer(customer) {
             <div class="stat-value" id="invoicedAmountValue">-</div>
             <div class="stat-label">Invoiced Amount</div>
         </div>
+        <div class="stat-card">
+            <div class="stat-value" id="retainageAmountValue">-</div>
+            <div class="stat-label">Retainage Total</div>
+        </div>
     `;
     
     // Notes section
@@ -216,6 +220,7 @@ function editCustomer() {
 function createInvoice() {
     // Store customer data in sessionStorage
     sessionStorage.setItem('invoiceCustomer', JSON.stringify({
+        id: currentCustomerId,
         name: currentCustomer.name,
         email: currentCustomer.email,
         phone: currentCustomer.phone,
@@ -263,6 +268,7 @@ function updateCustomerStatsFromData(stats) {
     document.getElementById('activeJobsValue').textContent = stats.activeJobs;
     document.getElementById('completedJobsValue').textContent = stats.completedJobs;
     document.getElementById('invoicedAmountValue').textContent = `$${stats.totalInvoiced.toFixed(2)}`;
+    document.getElementById('retainageAmountValue').textContent = `$${(stats.totalRetainage || 0).toFixed(2)}`;
 }
 
 // Display projects with filtering

@@ -1,6 +1,6 @@
 // Check auth
 function checkAuth() {
-    const isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
+    const isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true' || Boolean(localStorage.getItem('auth_token'));
     if (!isLoggedIn) {
         window.location.href = '/admin/index.html';
         return false;
@@ -13,6 +13,21 @@ let currentFilter = 'all';
 let submissionSearch = null; // Fuzzy search instance
 let selectedSubmissions = new Set(); // Track selected submission IDs
 
+async function loadAvailabilityBanner() {
+    try {
+        const response = await fetch('/api/contact-submissions?action=availability');
+        if (!response.ok) return;
+        const settings = await response.json();
+        const banner = document.getElementById('availabilityBanner');
+        if (!banner) return;
+        const labels = { accepting: 'Accepting New Work', busy: 'Limited Availability, Future Projects Welcome', closed: 'Not Accepting New Work' };
+        banner.innerHTML = `<strong>Public availability: ${labels[settings.status] || labels.accepting}</strong><br><span>${settings.message || ''} ${settings.responseTimeframe || ''}</span>`;
+        banner.style.display = 'block';
+    } catch (error) {
+        console.warn('Availability status unavailable:', error);
+    }
+}
+
 /**
  * Load all contact submissions and statistics from database
  * Fetches submissions and stats in parallel, updates UI
@@ -21,6 +36,7 @@ let selectedSubmissions = new Set(); // Track selected submission IDs
  */
 async function loadData() {
     if (!checkAuth()) return;
+    loadAvailabilityBanner();
 
     try {
         console.log('Fetching submissions...');

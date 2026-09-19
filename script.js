@@ -73,6 +73,31 @@ window.addEventListener('scroll', () => {
 document.addEventListener('DOMContentLoaded', () => {
     const contactForm = document.getElementById('contactForm');
 
+    const availabilityBanner = document.getElementById('workAvailabilityBanner');
+    if (availabilityBanner) {
+        fetch('/api/contact-submissions?action=availability')
+            .then(response => response.ok ? response.json() : null)
+            .then(settings => {
+                if (!settings) return;
+                const labels = { accepting: 'Accepting New Work', busy: 'Limited Availability, Future Projects Welcome', closed: 'Currently Booked Out' };
+                availabilityBanner.innerHTML = `<strong>${labels[settings.status] || labels.accepting}</strong><br>${settings.message || ''}<br><small>${settings.responseTimeframe || ''}</small>`;
+                availabilityBanner.style.display = 'block';
+                if (settings.status === 'closed' && contactForm) {
+                    const closedPanel = document.getElementById('workAvailabilityClosed');
+                    const closedMessage = document.getElementById('workAvailabilityClosedMessage');
+                    if (closedPanel) {
+                        closedPanel.style.display = 'block';
+                        if (closedMessage) closedMessage.textContent = settings.message || '';
+                    }
+                    contactForm.style.display = 'none';
+                    availabilityBanner.style.display = 'none';
+                } else if (settings.status === 'busy' && contactForm) {
+                    availabilityBanner.style.borderColor = 'rgba(59,130,246,0.5)';
+                }
+            })
+            .catch(() => {});
+    }
+
     if (contactForm) {
     // Set form load timestamp for spam detection
     const formLoadTime = Date.now();

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Work Request Availability - Helmick Underground</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="sidebar.css">
+    <script src="shared-navbar.js"></script>
+</head>
+<body>
+    <div class="mobile-menu-toggle" id="mobileMenuToggle"><span></span><span></span><span></span></div>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <main class="main-content" style="max-width: 900px; margin-left: 280px; padding: 3rem;">
+        <div class="page-header">
+            <h1>Work Request Availability</h1>
+            <a class="btn-back" href="/admin/inbox.html">Back to Inbox</a>
+        </div>
+        <section class="builder-section" style="max-width: 720px; padding: 2rem;">
+            <p style="color: var(--gray);">Choose how new work requests are presented on the public contact page.</p>
+            <form id="availabilityForm">
+                <label class="form-label" for="availabilityStatus" style="display:block; margin:1.25rem 0 0.5rem; color:var(--white); font-weight:700;">Availability</label>
+                <select id="availabilityStatus" class="form-input" required>
+                    <option value="accepting">Accepting New Work</option>
+                    <option value="busy">Limited Availability, Future Projects Welcome</option>
+                    <option value="closed">Temporarily Not Accepting New Work</option>
+                </select>
+                <label class="form-label" for="availabilityMessage" style="display:block; margin:1.25rem 0 0.5rem; color:var(--white); font-weight:700;">Public Message</label>
+                <textarea id="availabilityMessage" class="form-textarea" rows="4" required></textarea>
+                <label class="form-label" for="responseTimeframe" style="display:block; margin:1.25rem 0 0.5rem; color:var(--white); font-weight:700;">Response Timeframe</label>
+                <input id="responseTimeframe" class="form-input" type="text" placeholder="We typically respond within 24 hours.">
+                <button class="btn btn-primary" type="submit" style="margin-top: 1rem;">Save Availability</button>
+                <p id="availabilityResult" role="status" style="color: var(--gray);"></p>
+            </form>
+        </section>
+    </main>
+    <script src="auth.js"></script>
+    <script src="sidebar.js"></script>
+    <script src="work-request-settings.js"></script>
+</body>
+</html>

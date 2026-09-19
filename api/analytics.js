@@ -1,5 +1,9 @@
 const { sql } = require('@vercel/postgres');
 
+const isTestEnvironment = process.env.APP_ENV === 'preview' ||
+    process.env.VERCEL_ENV === 'preview' ||
+    process.env.NODE_ENV === 'development';
+
 // Helper to parse user agent
 function parseUserAgent(ua) {
     if (!ua) return { deviceType: 'Unknown', browser: 'Unknown' };
@@ -123,6 +127,10 @@ module.exports = async function handler(req, res) {
         if (req.method === 'POST') {
             // Get action from query params or body
             const action = req.query.action || req.body?.action;
+
+            if (isTestEnvironment && ['log', 'event', 'conversion'].includes(action)) {
+                return res.status(200).json({ success: true, testMode: true });
+            }
             
             // Handle event tracking
             if (action === 'event') {

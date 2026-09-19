@@ -204,7 +204,7 @@ function initializeComposer() {
             <div class="form-group">
                 <label>Attachments (Optional):</label>
                 <input type="file" id="emailAttachments" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
-                <div class="form-hint">Attach files like quotes, PDFs, or images (max 10MB per file)</div>
+                <div class="form-hint">Attach files like quotes, PDFs, or images (max 3MB per file, 3MB total)</div>
                 <div id="attachmentsList" style="margin-top: 0.5rem;"></div>
             </div>
         </form>
@@ -571,11 +571,24 @@ window.confirmAndSendEmail = async function(modalId) {
         const attachments = [];
         
         if (fileInput && fileInput.files.length > 0) {
+            // Check total size first (3MB limit due to Vercel payload size)
+            let totalSize = 0;
+            for (const file of fileInput.files) {
+                totalSize += file.size;
+            }
+            
+            if (totalSize > 3 * 1024 * 1024) {
+                showToast('Total attachment size exceeds 3MB limit. Please reduce file size or number of files.', 'error');
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = originalText;
+                return;
+            }
+            
             // Convert files to base64
             for (const file of fileInput.files) {
-                // Check file size (10MB limit)
-                if (file.size > 10 * 1024 * 1024) {
-                    showToast(`File "${file.name}" is too large. Max size is 10MB.`, 'error');
+                // Check individual file size (3MB limit)
+                if (file.size > 3 * 1024 * 1024) {
+                    showToast(`File "${file.name}" is too large. Max size is 3MB per file.`, 'error');
                     sendBtn.disabled = false;
                     sendBtn.innerHTML = originalText;
                     return;

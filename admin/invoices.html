@@ -173,6 +173,31 @@
             box-shadow: 0 0 0 3px rgba(255, 107, 26, 0.2);
         }
 
+        .retainage-status-select {
+            width: 100%;
+            max-width: 150px;
+            margin-top: 0.35rem;
+            padding: 0.35rem 1.6rem 0.35rem 0.5rem;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 107, 26, 0.35);
+            border-radius: 6px;
+            color: var(--white);
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .retainage-status-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(255, 107, 26, 0.18);
+        }
+
+        .retainage-status-select option {
+            background: #1a1a1a;
+            color: var(--white);
+        }
+
         .invoices-table {
             width: 100%;
             border-collapse: collapse;
@@ -350,6 +375,7 @@
             <div class="stat-card">
                 <div class="stat-label">Pending Amount</div>
                 <div class="stat-value" id="pendingAmount">$0</div>
+                <div id="pendingRetainage" style="color: #ef4444; font-size: 0.8rem; font-weight: 600; margin-top: 0.35rem;">Retainage: $0.00</div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">Overdue</div>
@@ -378,13 +404,14 @@
                             <th>Date</th>
                             <th>Due Date</th>
                             <th>Amount</th>
+                            <th>Retainage</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="invoicesTableBody">
                         <tr>
-                            <td colspan="7" style="text-align: center; padding: 2rem; color: var(--gray);">
+                            <td colspan="8" style="text-align: center; padding: 2rem; color: var(--gray);">
                                 Loading invoices...
                             </td>
                         </tr>
@@ -413,6 +440,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="auth.js"></script>
     <script src="sidebar.js"></script>
+    <script src="invoice-template.js"></script>
     <script src="invoices.js"></script>
 </body>
 </html>">

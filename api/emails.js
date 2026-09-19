@@ -7,6 +7,11 @@ const { enforceRateLimit } = require('../lib/rate-limiter');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+const isTestEnvironment = process.env.APP_ENV === 'preview' ||
+    process.env.VERCEL_ENV === 'preview' ||
+    process.env.NODE_ENV === 'development';
+const allowExternalWrites = process.env.ALLOW_EXTERNAL_WRITES === 'true' || !isTestEnvironment;
+
 // Create Gmail transporter for marketing emails
 function createGmailTransporter() {
     if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
@@ -46,6 +51,15 @@ module.exports = async function handler(req, res) {
 
     // For POST requests, check if it's send or log
     const { action } = req.body;
+
+    if (req.method === 'POST' && action !== 'log' && !allowExternalWrites) {
+        return res.status(200).json({
+            success: true,
+            testMode: true,
+            messageId: `test-${Date.now()}`,
+            message: 'Email was simulated because external email delivery is disabled in this test environment.'
+        });
+    }
     
     if (action === 'log') {
         // Log-only request (from send-email after sending)
