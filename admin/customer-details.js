@@ -175,10 +175,6 @@ function displayCustomer(customer) {
             <div class="stat-label">Invoices</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value" id="invoicedProjectsValue">-</div>
-            <div class="stat-label">Projects Invoiced</div>
-        </div>
-        <div class="stat-card">
             <div class="stat-value" id="paidAmountValue">-</div>
             <div class="stat-label">Amount Paid</div>
         </div>
@@ -187,7 +183,7 @@ function displayCustomer(customer) {
             <div class="stat-label">Outstanding</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value" id="retainageAmountValue">-</div>
+            <div class="stat-value" id="retainageAmountValue" style="color: #ef4444;">-</div>
             <div class="stat-label">Retainage Total</div>
         </div>
     `;
@@ -267,7 +263,6 @@ async function updateCustomerStats(customer) {
 // Update customer stats with pre-calculated data from API
 function updateCustomerStatsFromData(stats) {
     document.getElementById('totalInvoicesValue').textContent = stats.totalInvoices || 0;
-    document.getElementById('invoicedProjectsValue').textContent = stats.invoicedProjects || 0;
     document.getElementById('paidAmountValue').textContent = `$${Number(stats.paidAmount || 0).toFixed(2)}`;
     document.getElementById('outstandingAmountValue').textContent = `$${Number(stats.outstandingAmount || 0).toFixed(2)}`;
     document.getElementById('retainageAmountValue').textContent = `$${(stats.totalRetainage || 0).toFixed(2)}`;
