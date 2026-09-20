@@ -290,8 +290,8 @@ function displayInvoices() {
         const invoiceDate = invoice.invoice_date ? new Date(invoice.invoice_date).toLocaleDateString() : '-';
         const amount = Number(invoice.total || 0).toFixed(2);
         return `
-            <tr>
-                <td><button type="button" onclick="viewCustomerInvoice(${invoice.id})" style="background: none; border: 0; padding: 0; color: var(--primary-color); font-weight: 700; cursor: pointer;">${invoice.invoice_number || `#${invoice.id}`}</button></td>
+            <tr onclick="viewCustomerInvoice(${invoice.id})" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); viewCustomerInvoice(${invoice.id}); }" tabindex="0" style="cursor: pointer;">
+                <td><span style="color: var(--primary-color); font-weight: 700;">${invoice.invoice_number || `#${invoice.id}`}</span></td>
                 <td>${invoice.job_number || '-'}</td>
                 <td>${invoiceDate}</td>
                 <td>$${amount}</td>

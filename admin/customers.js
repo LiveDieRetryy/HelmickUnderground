@@ -59,6 +59,21 @@ async function loadCustomers(page = currentPage) {
             ...customer,
             customLineItems: customer.custom_line_items || []
         }));
+
+        const customerSummaries = await Promise.all(customers.map(async customer => {
+            try {
+                const summaryResponse = await fetch(`/api/customers?action=full&id=${customer.id}`, {
+                    credentials: 'include'
+                });
+                if (!summaryResponse.ok) return customer;
+                const summary = await summaryResponse.json();
+                return { ...customer, invoiceStats: summary.stats || {} };
+            } catch (summaryError) {
+                console.warn(`Unable to load invoice summary for customer ${customer.id}:`, summaryError);
+                return customer;
+            }
+        }));
+        customers = customerSummaries;
         
         // Initialize fuzzy search if SearchEnhancer is available
         if (typeof initCustomerSearch !== 'undefined') {
@@ -180,12 +195,12 @@ function displayCustomers(searchTerm = '') {
                 
                 <div class="customer-stats">
                     <div class="stat-box">
-                        <div class="stat-value">-</div>
-                        <div class="stat-label">Jobs</div>
+                        <div class="stat-value">$${Number(customer.invoiceStats?.totalInvoiced || 0).toFixed(2)}</div>
+                        <div class="stat-label">Invoiced Amount</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-value">-</div>
-                        <div class="stat-label">Last Job</div>
+                        <div class="stat-value">$${Number(customer.invoiceStats?.paidAmount || 0).toFixed(2)}</div>
+                        <div class="stat-label">Paid</div>
                     </div>
                 </div>
                 
