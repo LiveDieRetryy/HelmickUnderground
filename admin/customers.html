@@ -20,6 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="sidebar.css">
     <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="shared-navbar.js"></script>
     <script src="utils.js"></script>
     <script src="search-enhancer.js"></script>
@@ -667,6 +668,42 @@
                             <span>💰</span> Custom Line Items (Optional)
                         </label>
                         <p style="color: var(--gray); font-size: 0.9rem; margin: 0 0 1.5rem 0;">Add custom pricing codes for this customer. The code will appear on invoices, description is for your internal reference.</p>
+
+                        <div style="background: rgba(255, 107, 26, 0.05); border: 1px solid rgba(255, 107, 26, 0.2); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+                                <strong style="color: var(--primary-color);">Import Price Sheet Rows</strong>
+                                <span style="color: var(--gray); font-size: 0.85rem;">Format: UNIT | UOM | $PRICE</span>
+                            </div>
+                            <textarea id="priceSheetImportText" rows="6" style="width: 100%; resize: vertical; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 107, 26, 0.25); border-radius: 10px; color: var(--white); padding: 0.9rem 1rem; font-family: monospace; font-size: 0.9rem;" placeholder="BORE 3-4in CABLE-HDPE | FOOT | $10.50&#10;GROUND ROD 5/8in-8ft | EACH | $20.00"></textarea>
+                            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.75rem; flex-wrap: wrap;">
+                                <label style="background: rgba(255, 107, 26, 0.15); border: 1px solid rgba(255, 107, 26, 0.5); color: var(--primary-color); border-radius: 8px; font-weight: 700; padding: 0.7rem 1rem; cursor: pointer;">
+                                    Upload PDF/TXT
+                                    <input id="priceSheetFileInput" type="file" accept=".pdf,.txt,.csv" style="display: none;">
+                                </label>
+                                <button type="button" onclick="importPriceSheetRows()" style="background: rgba(255, 107, 26, 0.15); border: 1px solid rgba(255, 107, 26, 0.5); color: var(--primary-color); border-radius: 8px; font-weight: 700; padding: 0.7rem 1rem; cursor: pointer;">Import Rows</button>
+                            </div>
+                        </div>
+
+                        <div id="priceSheetReview" style="display: none; background: rgba(16, 185, 129, 0.06); border: 2px solid rgba(16, 185, 129, 0.35); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem; overflow-x: auto;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+                                <strong style="color: #10b981;">Review Imported Rows</strong>
+                                <span id="priceSheetReviewCount" style="color: var(--gray); font-size: 0.85rem;"></span>
+                            </div>
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid rgba(16, 185, 129, 0.3);">
+                                        <th style="padding: 0.6rem; text-align: center; width: 40px;"><input type="checkbox" id="selectAllPriceSheetRows" checked aria-label="Select all imported rows"></th>
+                                        <th style="color: var(--white); padding: 0.6rem; text-align: left;">Unit</th>
+                                        <th style="color: var(--white); padding: 0.6rem; text-align: right;">Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="priceSheetReviewTable"></tbody>
+                            </table>
+                            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap;">
+                                <button type="button" onclick="clearPriceSheetReview()" class="btn btn-secondary">Discard</button>
+                                <button type="button" onclick="approvePriceSheetRows()" class="btn" style="background: #10b981;">Approve Selected Rows</button>
+                            </div>
+                        </div>
                         
                         <div style="background: rgba(255, 107, 26, 0.05); border: 2px solid rgba(255, 107, 26, 0.2); border-radius: 12px; padding: 1.5rem; overflow-x: auto;">
                             <table style="width: 100%; border-collapse: collapse;">
@@ -702,6 +739,7 @@
 
     <script src="auth.js"></script>
     <script src="../form-validator.js"></script>
+    <script src="price-sheet-importer.js"></script>
     <script src="customers.js"></script>
 </body>
 </html>

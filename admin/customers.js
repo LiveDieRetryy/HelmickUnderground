@@ -8,6 +8,7 @@ let itemsPerPage = 25;
 let totalPages = 1;
 let totalCustomers = 0;
 let customerSearch = null; // Fuzzy search instance
+let pendingPriceSheetRows = [];
 
 /**
  * Load customers from database with pagination
@@ -218,7 +219,8 @@ function openAddCustomerModal() {
     
     // Clear line items table
     const tableBody = document.getElementById('customLineItemsTable');
-    tableBody.innerHTML = '<tr><td colspan="3" style="padding: 2rem; text-align: center; color: var(--gray);">No custom line items added yet</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="5" style="padding: 2rem; text-align: center; color: var(--gray);">No custom line items added yet</td></tr>';
+    clearPriceSheetReview();
     
     document.getElementById('customerModal').style.display = 'block';
 }
@@ -271,11 +273,13 @@ async function editCustomer(customerId) {
         
         if (customer.custom_line_items && customer.custom_line_items.length > 0) {
             customer.custom_line_items.forEach(item => {
-                addCustomLineItemRow(item.code || '', item.description || '', item.rate);
+                addCustomLineItemRow(item.code || '', item.description || '', item.rate, item.uom || '');
             });
         } else {
-            tableBody.innerHTML = '<tr><td colspan="4" style="padding: 2rem; text-align: center; color: var(--gray);">No custom line items added yet</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="5" style="padding: 2rem; text-align: center; color: var(--gray);">No custom line items added yet</td></tr>';
         }
+
+        clearPriceSheetReview();
         
         document.getElementById('customerModal').style.display = 'block';
     } catch (error) {
@@ -417,7 +421,7 @@ document.getElementById('customerForm').addEventListener('submit', async functio
             const rate = parseFloat(rateInput.value);
             
             if (code && !isNaN(rate) && rate > 0) {
-                customLineItems.push({ code, description, rate });
+                customLineItems.push({ code, description, rate, uom: row.dataset.uom || '' });
             }
         }
     });
@@ -556,16 +560,113 @@ window.addEventListener('click', function(e) {
 });
 
 // Add a new line item row to the table
-function addCustomLineItemRow(code = '', description = '', rate = '') {
+function importPriceSheetRows() {
+    const textarea = document.getElementById('priceSheetImportText');
+    if (!textarea) return;
+
+    const rawText = textarea.value || '';
+    if (!rawText.trim()) {
+        showNotification('Paste price-sheet rows before importing.', 'error');
+        return;
+    }
+
+    const parser = window.PriceSheetImporter || { parsePriceSheetText: null };
+    if (!parser.parsePriceSheetText) {
+        showNotification('Price sheet importer is unavailable.', 'error');
+        return;
+    }
+
+    const rows = parser.parsePriceSheetText(rawText);
+    if (!rows.length) {
+        showNotification('No valid rows were found. Use the format: UNIT | UOM | $PRICE', 'error');
+        return;
+    }
+
+    addImportedPriceSheetRows(rows);
+    textarea.value = '';
+}
+
+function addImportedPriceSheetRows(rows) {
+    if (!Array.isArray(rows) || !rows.length) return;
+
+    pendingPriceSheetRows = rows.map(item => ({
+        code: item.code || item.description || '',
+        description: item.description || item.code || '',
+        uom: item.uom || '',
+        price: Number(item.price) || 0
+    }));
+    renderPriceSheetReview();
+    showNotification(`${pendingPriceSheetRows.length} row${pendingPriceSheetRows.length > 1 ? 's' : ''} ready for review.`, 'success');
+}
+
+function renderPriceSheetReview() {
+    const review = document.getElementById('priceSheetReview');
+    const tableBody = document.getElementById('priceSheetReviewTable');
+    const count = document.getElementById('priceSheetReviewCount');
+    if (!review || !tableBody || !count) return;
+
+    tableBody.innerHTML = pendingPriceSheetRows.map((item, index) => `
+        <tr style="border-bottom: 1px solid rgba(16, 185, 129, 0.15);">
+            <td style="padding: 0.6rem; text-align: center;"><input type="checkbox" class="price-sheet-review-checkbox" data-index="${index}" checked aria-label="Select ${escapeHtml(item.code)}"></td>
+            <td style="padding: 0.6rem; color: var(--white);">${escapeHtml(item.code)}</td>
+            <td style="padding: 0.6rem; color: var(--white); text-align: right;">$${item.price.toFixed(2)}</td>
+        </tr>
+    `).join('');
+
+    count.textContent = `${pendingPriceSheetRows.length} parsed row${pendingPriceSheetRows.length > 1 ? 's' : ''}`;
+    review.style.display = pendingPriceSheetRows.length ? 'block' : 'none';
+    const selectAll = document.getElementById('selectAllPriceSheetRows');
+    if (selectAll) {
+        selectAll.checked = true;
+        selectAll.onchange = () => document.querySelectorAll('.price-sheet-review-checkbox').forEach(checkbox => {
+            checkbox.checked = selectAll.checked;
+        });
+    }
+}
+
+function approvePriceSheetRows() {
+    const selectedIndexes = new Set(Array.from(document.querySelectorAll('.price-sheet-review-checkbox:checked'))
+        .map(checkbox => Number(checkbox.dataset.index)));
+    const approvedRows = pendingPriceSheetRows.filter((item, index) => selectedIndexes.has(index));
+    if (!approvedRows.length) {
+        showNotification('Select at least one imported row to approve.', 'error');
+        return;
+    }
+
+    approvedRows.forEach(item => addCustomLineItemRow(item.code, item.code, item.price));
+    clearPriceSheetReview();
+    showNotification(`Approved ${approvedRows.length} price-sheet row${approvedRows.length > 1 ? 's' : ''}.`, 'success');
+}
+
+function clearPriceSheetReview() {
+    pendingPriceSheetRows = [];
+    const review = document.getElementById('priceSheetReview');
+    if (review) review.style.display = 'none';
+    const tableBody = document.getElementById('priceSheetReviewTable');
+    if (tableBody) tableBody.innerHTML = '';
+}
+
+function escapeHtml(value) {
+    return String(value || '').replace(/[&<>'"]/g, character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+    }[character]));
+}
+
+function addCustomLineItemRow(code = '', description = '', rate = '', uom = '') {
     const tableBody = document.getElementById('customLineItemsTable');
     
     // Remove empty state message if present
-    if (tableBody.querySelector('td[colspan="5"]')) {
+    if (tableBody.querySelector('td[colspan]')) {
         tableBody.innerHTML = '';
     }
     
     const row = document.createElement('tr');
     row.draggable = true;
+    row.dataset.uom = uom;
     row.innerHTML = `
         <td style="padding: 0.75rem; text-align: center;">
             <span class="drag-handle">⋮⋮</span>
@@ -665,7 +766,7 @@ function removeCustomLineItemRow(btn) {
     
     // If no rows left, show empty state
     if (tableBody.querySelectorAll('tr').length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="4" style="padding: 2rem; text-align: center; color: var(--gray);">No custom line items added yet</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="5" style="padding: 2rem; text-align: center; color: var(--gray);">No custom line items added yet</td></tr>';
     }
 }
 
@@ -674,9 +775,102 @@ function viewCustomerDetails(index) {
     window.location.href = `customer-details.html?id=${index}`;
 }
 
+async function readPriceSheetFile(file) {
+    if (!file) return;
+
+    const fileName = file.name || 'price-sheet';
+    const extension = (fileName.split('.').pop() || '').toLowerCase();
+
+    try {
+        if (extension === 'pdf') {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdfjsLib = window['pdfjsLib'];
+            if (!pdfjsLib) {
+                showNotification('PDF parser is not available in this browser.', 'error');
+                return;
+            }
+
+            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+            const pdf = await loadingTask.promise;
+            let text = '';
+
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                const page = await pdf.getPage(pageNum);
+                const content = await page.getTextContent();
+                const lineGroups = [];
+                content.items.forEach(item => {
+                    const text = (item.str || '').trim();
+                    if (!text) return;
+
+                    const y = item.transform ? item.transform[5] : 0;
+                    let line = lineGroups.find(group => Math.abs(group.y - y) < 10);
+                    if (!line) {
+                        line = { y, items: [] };
+                        lineGroups.push(line);
+                    }
+                    line.items.push({ x: item.transform ? item.transform[4] : 0, text });
+                });
+
+                const pageText = lineGroups
+                    .sort((first, second) => second.y - first.y)
+                    .map(line => line.items
+                        .sort((first, second) => first.x - second.x)
+                        .map(item => item.text)
+                        .join(' '))
+                    .join('\n');
+                text += (text ? '\n' : '') + pageText;
+            }
+
+            const parser = window.PriceSheetImporter || { parsePriceSheetText: null };
+            if (!parser.parsePriceSheetText) {
+                showNotification('Price sheet importer is unavailable.', 'error');
+                return;
+            }
+
+            const rows = parser.parsePriceSheetText(text);
+            if (!rows.length) {
+                showNotification('No valid price rows were found in that PDF.', 'error');
+                return;
+            }
+
+            addImportedPriceSheetRows(rows);
+            return;
+        }
+
+        const text = await file.text();
+        const parser = window.PriceSheetImporter || { parsePriceSheetText: null };
+        if (!parser.parsePriceSheetText) {
+            showNotification('Price sheet importer is unavailable.', 'error');
+            return;
+        }
+
+        const rows = parser.parsePriceSheetText(text);
+        if (!rows.length) {
+            showNotification('No valid price rows were found in that file.', 'error');
+            return;
+        }
+
+        addImportedPriceSheetRows(rows);
+    } catch (error) {
+        console.error('Error reading price sheet file:', error);
+        showNotification('Failed to read the uploaded file.', 'error');
+    }
+}
+
 // Initialize on page load
 async function initializePage() {
     await loadCustomers();
+
+    const fileInput = document.getElementById('priceSheetFileInput');
+    if (fileInput) {
+        fileInput.addEventListener('change', async (event) => {
+            const file = event.target.files && event.target.files[0];
+            if (file) {
+                await readPriceSheetFile(file);
+                fileInput.value = '';
+            }
+        });
+    }
     
     // Check if coming from customer details page with edit parameter
     const urlParams = new URLSearchParams(window.location.search);

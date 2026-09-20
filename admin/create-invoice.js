@@ -150,7 +150,9 @@ async function loadProfiles() {
             zip: customer.zip,
             contactPerson: customer.contact_person,
             retainageRate: customer.retainage_rate || 0,
-            lineItems: customer.custom_line_items || []
+            lineItems: Array.isArray(customer.custom_line_items)
+                ? customer.custom_line_items
+                : (Array.isArray(customer.lineItems) ? customer.lineItems : [])
         }));
         
         updateProfileDropdown();
@@ -329,9 +331,13 @@ function loadCompanyProfile() {
     document.getElementById('customerAddress').value = addressParts.join('\n');
     
     // If customer has custom line items, show them in Customer Rates tab
-    if (profile.lineItems && profile.lineItems.length > 0) {
+    const customerLineItems = Array.isArray(profile.lineItems)
+        ? profile.lineItems
+        : (Array.isArray(profile.custom_line_items) ? profile.custom_line_items : []);
+
+    if (customerLineItems.length > 0) {
         // Store custom line items globally
-        window.customerCustomLineItems = profile.lineItems;
+        window.customerCustomLineItems = customerLineItems;
         window.currentCustomerName = profile.name;
         
         // Show and update the Customer Rates tab
@@ -342,7 +348,7 @@ function loadCompanyProfile() {
         // Switch to customer rates tab
         showCategory('customerRates');
         
-        showNotification(`Loaded ${profile.name} with ${profile.lineItems.length} custom rates available`, 'success');
+        showNotification(`Loaded ${profile.name} with ${customerLineItems.length} custom rates available`, 'success');
     } else {
         // Hide customer rates tab if no custom items
         window.customerCustomLineItems = null;
@@ -413,27 +419,48 @@ function renderCustomerLineItems() {
         return;
     }
 
-    document.getElementById('ratesContainer').innerHTML = customItems.map((item, index) => {
-        // Use code for display (what appears on invoice), show description as subtitle if available
+    document.getElementById('ratesContainer').innerHTML = `
+        <div style="grid-column: 1 / -1; display: grid; gap: 1rem;">
+            <input id="customerRateSearch" type="search" placeholder="Search customer codes..." aria-label="Search customer codes"
+                style="width: 100%; box-sizing: border-box; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 107, 26, 0.5); border-radius: 8px; color: var(--white); padding: 0.85rem 1rem; font-size: 1rem;">
+            <div id="customerRateResults" class="rates-grid"></div>
+        </div>
+    `;
+
+    const search = document.getElementById('customerRateSearch');
+    search.addEventListener('input', () => renderCustomerRateResults(search.value));
+    renderCustomerRateResults();
+}
+
+function renderCustomerRateResults(searchText = '') {
+    const results = document.getElementById('customerRateResults');
+    if (!results) return;
+
+    const query = searchText.trim().toLowerCase();
+    const customItems = window.customerCustomLineItems || [];
+    const matchingItems = customItems.filter(item => {
+        const code = item.code || item.description || item.name || '';
+        return !query || code.toLowerCase().includes(query);
+    });
+
+    results.innerHTML = matchingItems.map(item => {
         const displayCode = item.code || item.description || item.name || 'No code';
-        const displayDescription = item.description && item.code ? item.description : '';
-        
-        // Create combined text for invoice line item (code + description)
-        let invoiceLineText = displayCode;
-        if (displayDescription) {
-            invoiceLineText = `${displayCode} - ${displayDescription}`;
-        }
-        
+        const rate = Number(item.rate ?? item.price);
+        const safeCode = displayCode.replace(/[&<>"']/g, character => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[character]));
+
         return `
-            <button type="button" class="rate-button" onclick="addRateAsLineItem('${invoiceLineText.replace(/'/g, "\\'")}', ${item.rate})">
-                <span class="rate-name">
-                    ${displayCode}
-                    ${displayDescription ? `<div style="font-size: 0.8rem; color: var(--gray); margin-top: 0.25rem;">${displayDescription}</div>` : ''}
-                </span>
-                <span class="rate-price">$${item.rate.toFixed(2)}</span>
+            <button type="button" class="rate-button" data-code="${safeCode}" data-rate="${rate}">
+                <span class="rate-name">${safeCode}</span>
+                <span class="rate-price">$${rate.toFixed(2)}</span>
             </button>
         `;
-    }).join('');
+    }).join('') || '<div style="grid-column: 1 / -1; color: var(--gray); padding: 1rem;">No matching customer codes</div>';
+
+    results.querySelectorAll('.rate-button').forEach(button => {
+        button.addEventListener('click', () => addRateAsLineItem(button.dataset.code, Number(button.dataset.rate)));
+    });
 }
 
 // Render rates for current category
