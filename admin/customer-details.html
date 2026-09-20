@@ -247,6 +247,28 @@
             background: rgba(255, 107, 26, 0.05);
         }
 
+        .invoice-status {
+            display: inline-block;
+            padding: 0.35rem 0.65rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: capitalize;
+            background: rgba(148, 163, 184, 0.2);
+            color: #cbd5e1;
+        }
+
+        .invoice-status.status-paid {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+
+        .invoice-status.status-sent,
+        .invoice-status.status-overdue {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
         /* Mobile responsive table */
         @media (max-width: 768px) {
             .line-items-table {
@@ -714,25 +736,24 @@
                 <div class="notes-content" id="notesContent"></div>
             </div>
 
-            <div id="projectsSection" class="section-card">
-                <div class="projects-header">
-                    <h2 class="section-title">🏗️ Projects</h2>
-                    <div class="status-filters">
-                        <button class="filter-btn active" data-status="all" onclick="filterProjects('all')">All</button>
-                        <button class="filter-btn" data-status="accepted" onclick="filterProjects('accepted')">Accepted</button>
-                        <button class="filter-btn" data-status="ongoing" onclick="filterProjects('ongoing')">Ongoing</button>
-                        <button class="filter-btn" data-status="invoiced" onclick="filterProjects('invoiced')">Invoiced</button>
-                        <button class="filter-btn" data-status="completed" onclick="filterProjects('completed')">Completed</button>
-                    </div>
-                    <button class="btn btn-primary" onclick="openCreateProjectModal()">
-                        ➕ New Project
-                    </button>
+            <div id="invoicesSection" class="section-card">
+                <h2 class="section-title">📄 Invoice Tracker</h2>
+                <div style="overflow-x: auto;">
+                    <table class="line-items-table">
+                        <thead>
+                            <tr>
+                                <th>Invoice</th>
+                                <th>Project / Job</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoicesTable"></tbody>
+                    </table>
                 </div>
-                <div class="projects-grid" id="projectsGrid">
-                    <!-- Projects will be populated here -->
-                </div>
-                <div class="empty-state" id="projectsEmptyState" style="display: none;">
-                    <p>No projects found. Create your first project to get started!</p>
+                <div class="empty-state" id="invoicesEmptyState" style="display: none;">
+                    <p>No invoices found for this customer.</p>
                 </div>
             </div>
 

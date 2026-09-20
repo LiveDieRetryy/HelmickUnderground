@@ -37,6 +37,7 @@ async function checkAuth() {
 let currentCustomer = null;
 let currentCustomerId = null;
 let projects = [];
+let invoices = [];
 let currentFilter = 'all';
 
 // Load customer details
@@ -66,12 +67,13 @@ async function loadCustomerDetails() {
         const data = await response.json();
         currentCustomer = data.customer;
         projects = data.projects || [];
+        invoices = data.invoices || [];
         
         // Display customer info
         displayCustomer(currentCustomer);
         
-        // Display projects
-        displayProjects();
+        // Display invoice tracking
+        displayInvoices();
         
         // Update stats with pre-calculated values
         updateCustomerStatsFromData(data.stats);
@@ -169,20 +171,20 @@ function displayCustomer(customer) {
     
     document.getElementById('statsSection').innerHTML = `
         <div class="stat-card">
-            <div class="stat-value" id="totalJobsValue">-</div>
-            <div class="stat-label">Total Jobs</div>
+            <div class="stat-value" id="totalInvoicesValue">-</div>
+            <div class="stat-label">Invoices</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value" id="activeJobsValue">-</div>
-            <div class="stat-label">Active Jobs</div>
+            <div class="stat-value" id="invoicedProjectsValue">-</div>
+            <div class="stat-label">Projects Invoiced</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value" id="completedJobsValue">-</div>
-            <div class="stat-label">Completed Jobs</div>
+            <div class="stat-value" id="paidAmountValue">-</div>
+            <div class="stat-label">Amount Paid</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value" id="invoicedAmountValue">-</div>
-            <div class="stat-label">Invoiced Amount</div>
+            <div class="stat-value" id="outstandingAmountValue">-</div>
+            <div class="stat-label">Outstanding</div>
         </div>
         <div class="stat-card">
             <div class="stat-value" id="retainageAmountValue">-</div>
@@ -264,11 +266,39 @@ async function updateCustomerStats(customer) {
 
 // Update customer stats with pre-calculated data from API
 function updateCustomerStatsFromData(stats) {
-    document.getElementById('totalJobsValue').textContent = stats.totalJobs;
-    document.getElementById('activeJobsValue').textContent = stats.activeJobs;
-    document.getElementById('completedJobsValue').textContent = stats.completedJobs;
-    document.getElementById('invoicedAmountValue').textContent = `$${stats.totalInvoiced.toFixed(2)}`;
+    document.getElementById('totalInvoicesValue').textContent = stats.totalInvoices || 0;
+    document.getElementById('invoicedProjectsValue').textContent = stats.invoicedProjects || 0;
+    document.getElementById('paidAmountValue').textContent = `$${Number(stats.paidAmount || 0).toFixed(2)}`;
+    document.getElementById('outstandingAmountValue').textContent = `$${Number(stats.outstandingAmount || 0).toFixed(2)}`;
     document.getElementById('retainageAmountValue').textContent = `$${(stats.totalRetainage || 0).toFixed(2)}`;
+}
+
+function displayInvoices() {
+    const tableBody = document.getElementById('invoicesTable');
+    const emptyState = document.getElementById('invoicesEmptyState');
+    if (!tableBody || !emptyState) return;
+
+    if (!invoices.length) {
+        tableBody.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+    }
+
+    emptyState.style.display = 'none';
+    tableBody.innerHTML = invoices.map(invoice => {
+        const status = String(invoice.status || 'draft').toLowerCase();
+        const invoiceDate = invoice.invoice_date ? new Date(invoice.invoice_date).toLocaleDateString() : '-';
+        const amount = Number(invoice.total || 0).toFixed(2);
+        return `
+            <tr>
+                <td><a href="invoices.html?id=${encodeURIComponent(invoice.id)}" style="color: var(--primary-color); font-weight: 700;">${invoice.invoice_number || `#${invoice.id}`}</a></td>
+                <td>${invoice.job_number || '-'}</td>
+                <td>${invoiceDate}</td>
+                <td>$${amount}</td>
+                <td><span class="invoice-status status-${status}">${status}</span></td>
+            </tr>
+        `;
+    }).join('');
 }
 
 // Display projects with filtering

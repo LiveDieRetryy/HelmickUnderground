@@ -18,7 +18,10 @@ function handleMemoryCustomers(req, res) {
         if (!customer) return sendErrorResponse(res, 'NOT_FOUND', 'Customer not found');
         if (action === 'full') {
             const relatedInvoices = memoryStore.invoices.filter(invoice => invoice.customer_id === customer.id || invoice.customer_name === customer.name);
-            return res.status(200).json({ customer: memoryStore.clone(customer), projects: [], invoices: memoryStore.clone(relatedInvoices), stats: { totalJobs: 0, activeJobs: 0, completedJobs: 0, totalInvoiced: relatedInvoices.reduce((sum, invoice) => sum + invoice.total, 0), totalRetainage: relatedInvoices.reduce((sum, invoice) => sum + invoice.retainage_amount, 0), paidInvoices: relatedInvoices.filter(invoice => invoice.status === 'paid').length, unpaidInvoices: relatedInvoices.filter(invoice => invoice.status !== 'paid').length } });
+            const invoicedProjects = new Set(relatedInvoices.map(invoice => invoice.job_number || invoice.id).filter(Boolean));
+            const paidAmount = relatedInvoices.filter(invoice => invoice.status === 'paid')
+                .reduce((sum, invoice) => sum + Number(invoice.amount_due || invoice.total || 0) + (invoice.retainage_status === 'paid' ? Number(invoice.retainage_amount || 0) : 0), 0);
+            return res.status(200).json({ customer: memoryStore.clone(customer), projects: [], invoices: memoryStore.clone(relatedInvoices), stats: { totalInvoices: relatedInvoices.length, invoicedProjects: invoicedProjects.size, totalInvoiced: relatedInvoices.reduce((sum, invoice) => sum + Number(invoice.total || 0), 0), paidAmount, outstandingAmount: relatedInvoices.filter(invoice => invoice.status !== 'paid').reduce((sum, invoice) => sum + Number(invoice.amount_due || invoice.total || 0), 0), totalRetainage: relatedInvoices.reduce((sum, invoice) => sum + Number(invoice.retainage_amount || 0), 0), paidInvoices: relatedInvoices.filter(invoice => invoice.status === 'paid').length, unpaidInvoices: relatedInvoices.filter(invoice => invoice.status !== 'paid').length } });
         }
         return res.status(200).json(memoryStore.clone(customer));
     }
@@ -233,10 +236,11 @@ module.exports = async function handler(req, res) {
             const invoices = invoicesResult.rows;
             
             const stats = {
-                totalJobs: projects.length,
-                activeJobs: projects.filter(p => ['accepted', 'in-progress'].includes(p.status)).length,
-                completedJobs: projects.filter(p => p.status === 'completed').length,
+                totalInvoices: invoices.length,
+                invoicedProjects: new Set(invoices.map(inv => inv.job_number || inv.id).filter(Boolean)).size,
                 totalInvoiced: invoices.reduce((sum, inv) => sum + parseFloat(inv.total || 0), 0),
+                paidAmount: invoices.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + parseFloat(inv.amount_due || inv.total || 0) + (inv.retainage_status === 'paid' ? parseFloat(inv.retainage_amount || 0) : 0), 0),
+                outstandingAmount: invoices.filter(inv => inv.status !== 'paid').reduce((sum, inv) => sum + parseFloat(inv.amount_due || inv.total || 0), 0),
                 paidInvoices: invoices.filter(inv => inv.status === 'paid').length,
                 unpaidInvoices: invoices.filter(inv => inv.status !== 'paid').length
                 ,totalRetainage: invoices.reduce((sum, inv) => sum + parseFloat(inv.retainage_amount || 0), 0)
