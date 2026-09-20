@@ -289,12 +289,15 @@ function displayInvoices() {
         const status = String(invoice.status || 'draft').toLowerCase();
         const invoiceDate = invoice.invoice_date ? new Date(invoice.invoice_date).toLocaleDateString() : '-';
         const amount = Number(invoice.total || 0).toFixed(2);
+        const retainageRate = Number(invoice.retainage_rate || 0);
+        const retainageAmount = Number(invoice.retainage_amount || 0);
         return `
             <tr onclick="viewCustomerInvoice(${invoice.id})" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); viewCustomerInvoice(${invoice.id}); }" tabindex="0" style="cursor: pointer;">
                 <td><span style="color: var(--primary-color); font-weight: 700;">${invoice.invoice_number || `#${invoice.id}`}</span></td>
                 <td>${invoice.job_number || '-'}</td>
                 <td>${invoiceDate}</td>
                 <td>$${amount}</td>
+                <td style="color: #ef4444; font-weight: 700;">${retainageAmount > 0 ? `${retainageRate.toFixed(2)}% / $${retainageAmount.toFixed(2)}` : '-'}</td>
                 <td><span class="invoice-status status-${status}">${status}</span></td>
             </tr>
         `;
