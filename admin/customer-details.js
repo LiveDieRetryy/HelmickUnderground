@@ -291,7 +291,7 @@ function displayInvoices() {
         const amount = Number(invoice.total || 0).toFixed(2);
         return `
             <tr>
-                <td><a href="invoices.html?id=${encodeURIComponent(invoice.id)}" style="color: var(--primary-color); font-weight: 700;">${invoice.invoice_number || `#${invoice.id}`}</a></td>
+                <td><button type="button" onclick="viewCustomerInvoice(${invoice.id})" style="background: none; border: 0; padding: 0; color: var(--primary-color); font-weight: 700; cursor: pointer;">${invoice.invoice_number || `#${invoice.id}`}</button></td>
                 <td>${invoice.job_number || '-'}</td>
                 <td>${invoiceDate}</td>
                 <td>$${amount}</td>
@@ -299,6 +299,22 @@ function displayInvoices() {
             </tr>
         `;
     }).join('');
+}
+
+async function viewCustomerInvoice(invoiceId) {
+    try {
+        const response = await fetch(`/api/invoices?action=get&id=${encodeURIComponent(invoiceId)}`, {
+            credentials: 'include'
+        });
+        if (!response.ok) throw new Error('Failed to load invoice');
+
+        const invoice = await response.json();
+        if (!window.invoiceTemplate) throw new Error('Invoice preview is unavailable');
+        window.invoiceTemplate.showPreview(invoice);
+    } catch (error) {
+        console.error('Error opening invoice preview:', error);
+        alert('Unable to load invoice preview.');
+    }
 }
 
 // Display projects with filtering
