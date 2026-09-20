@@ -790,6 +790,10 @@ async function readPriceSheetFile(file) {
                 return;
             }
 
+            if (pdfjsLib.GlobalWorkerOptions) {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+            }
+
             const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
             const pdf = await loadingTask.promise;
             let text = '';
@@ -853,14 +857,12 @@ async function readPriceSheetFile(file) {
         addImportedPriceSheetRows(rows);
     } catch (error) {
         console.error('Error reading price sheet file:', error);
-        showNotification('Failed to read the uploaded file.', 'error');
+        showNotification(`Failed to read the uploaded file: ${error.message || 'unknown error'}`, 'error');
     }
 }
 
 // Initialize on page load
 async function initializePage() {
-    await loadCustomers();
-
     const fileInput = document.getElementById('priceSheetFileInput');
     if (fileInput) {
         fileInput.addEventListener('change', async (event) => {
@@ -871,6 +873,8 @@ async function initializePage() {
             }
         });
     }
+
+    await loadCustomers();
     
     // Check if coming from customer details page with edit parameter
     const urlParams = new URLSearchParams(window.location.search);
