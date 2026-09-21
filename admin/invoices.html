@@ -327,6 +327,10 @@
             color: #f87171;
         }
 
+        .invoice-card-summary {
+            display: none;
+        }
+
         .empty-state {
             text-align: center;
             padding: 4rem 2rem;
@@ -338,8 +342,8 @@
             margin-bottom: 1rem;
         }
 
-        /* Mobile responsive table - card layout */
-        @media (max-width: 768px) {
+        /* Use cards before the sidebar makes the desktop table too narrow. */
+        @media (max-width: 1500px) {
             .invoices-table {
                 display: block;
             }
@@ -353,48 +357,155 @@
             }
             
             .invoices-table tr {
-                display: block;
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 0.85rem 1.5rem;
                 background: rgba(255, 107, 26, 0.05);
                 border: 1px solid rgba(255, 107, 26, 0.3);
                 border-radius: 12px;
-                padding: 0.85rem 1rem;
+                padding: 1.15rem 1.25rem;
                 margin-bottom: 1rem;
             }
             
             .invoices-table td {
-                display: grid;
-                grid-template-columns: 6.5rem minmax(0, 1fr);
-                align-items: start;
-                gap: 0.75rem;
-                padding: 0.6rem 0;
+                display: block;
+                padding: 0;
                 border: none;
             }
             
             .invoices-table td::before {
                 content: attr(data-label);
+                display: block;
+                margin-bottom: 0.35rem;
                 font-weight: 700;
                 color: var(--primary-color);
-                min-width: 0;
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
             }
 
             .invoice-cell-value {
                 min-width: 0;
                 overflow-wrap: anywhere;
-                text-align: right;
+                color: var(--white);
+                font-size: 0.95rem;
+                font-weight: 600;
+                text-align: left;
             }
 
             .retainage-status-select {
-                width: 100%;
                 max-width: 150px;
+            }
+
+            .invoice-cell-identity {
+                grid-column: 1 / -1;
+                padding-bottom: 0.85rem !important;
+                border-bottom: 1px solid rgba(255, 107, 26, 0.2) !important;
+            }
+
+            .invoice-cell-identity::before {
+                display: none !important;
+            }
+
+            .invoice-cell-identity .invoice-cell-value {
+                color: var(--primary-color);
+                font-size: 1.05rem;
+                font-weight: 800;
+            }
+
+            .invoice-card-collapsed {
+                display: block;
+                cursor: pointer;
+                padding: 0.9rem 1.1rem;
+            }
+
+            .invoice-card-collapsed > td:not(.invoice-cell-identity) {
+                display: none;
+            }
+
+            .invoice-card-collapsed .invoice-cell-identity {
+                position: relative;
+                padding-right: 2rem !important;
+            }
+
+            .invoice-card-collapsed .invoice-cell-identity::after {
+                content: '⌄';
+                position: absolute;
+                top: 50%;
+                right: 0;
+                color: var(--primary-color);
+                font-size: 1.5rem;
+                transform: translateY(-50%);
+            }
+
+            .invoice-card-collapsed .invoice-card-summary {
+                display: block;
+                margin-top: 0.35rem;
+                color: var(--gray);
+                font-size: 0.82rem;
+                font-weight: 500;
+                overflow-wrap: anywhere;
+            }
+
+            .invoices-table tr:not(.invoice-card-collapsed) .invoice-cell-identity::after {
+                content: '⌃';
+                position: absolute;
+                top: 1rem;
+                right: 0;
+                color: var(--primary-color);
+                font-size: 1.5rem;
+            }
+
+            .invoices-table tr:not(.invoice-card-collapsed) .invoice-cell-identity {
+                position: relative;
+                padding-right: 2rem !important;
+            }
+
+            .invoice-cell-amount .invoice-cell-value,
+            .invoice-cell-retainage .invoice-cell-value {
+                font-size: 1.05rem;
+            }
+
+            .invoice-cell-retainage .invoice-cell-value {
+                color: #fca5a5;
             }
             
             .invoices-table tr:hover {
                 background: rgba(255, 107, 26, 0.1);
             }
             
-            .invoices-table td[data-label="Actions"] .invoice-cell-value {
+            .invoice-cell-status .invoice-cell-value,
+            .invoice-cell-actions .invoice-cell-value {
                 display: flex;
-                justify-content: flex-end;
+                align-items: center;
+            }
+
+            .invoice-cell-status .status-select {
+                min-width: 140px;
+            }
+
+            @media (max-width: 650px) {
+                .invoices-table tr {
+                    grid-template-columns: 1fr;
+                    gap: 0.9rem;
+                    padding: 1.1rem;
+                }
+
+                .invoice-cell-status,
+                .invoice-cell-actions {
+                    padding-top: 0.75rem !important;
+                    border-top: 1px solid rgba(255, 107, 26, 0.16) !important;
+                }
+
+                .invoice-cell-status .status-select,
+                .retainage-status-select {
+                    width: 100%;
+                    max-width: none;
+                }
+
+                .invoice-cell-actions .invoice-cell-value {
+                    justify-content: flex-start;
+                }
             }
         }
     </style>

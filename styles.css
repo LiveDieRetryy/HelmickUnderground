@@ -428,7 +428,7 @@ body {
 
 .hero-logo {
     max-width: 320px;
-    width: 100%;
+    width: min(100%, 42vh);
     height: auto;
     margin-bottom: 0.75rem;
     animation: fadeInDown 1s cubic-bezier(0.4, 0, 0.2, 1);
@@ -436,7 +436,7 @@ body {
 }
 
 .hero h1 {
-    font-size: 3rem;
+    font-size: clamp(2rem, 4.5vh, 3rem);
     font-weight: 900;
     margin-bottom: 0.6rem;
     animation: fadeInUp 1s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;

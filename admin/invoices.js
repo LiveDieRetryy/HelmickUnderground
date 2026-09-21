@@ -63,21 +63,23 @@ function displayInvoices(invoices) {
         const invoiceDate = new Date(invoice.invoice_date).toLocaleDateString();
         const dueDate = new Date(invoice.due_date).toLocaleDateString();
         
+        const invoiceTotal = parseFloat(invoice.total).toFixed(2);
+
         // Build invoice number display with job number if available
         const invoiceDisplay = invoice.job_number 
             ? `${invoice.invoice_number}<br><span style="color: var(--gray); font-size: 0.85rem;">Job: ${invoice.job_number}</span>`
             : invoice.invoice_number;
         
         return `
-            <tr data-invoice-id="${invoice.id}">
-                <td data-label="Invoice #"><div class="invoice-cell-value">${invoiceDisplay}</div></td>
+            <tr class="invoice-card-collapsed" data-invoice-id="${invoice.id}" onclick="toggleInvoiceCard(this)" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleInvoiceCard(this); }" tabindex="0" aria-expanded="false">
+                <td class="invoice-cell-identity" data-label="Invoice #"><div class="invoice-cell-value">${invoiceDisplay}<span class="invoice-card-summary">${invoice.customer_name} · $${invoiceTotal} · ${invoice.status || 'draft'}</span></div></td>
                 <td data-label="Customer"><div class="invoice-cell-value">${invoice.customer_name}</div></td>
                 <td data-label="Date"><div class="invoice-cell-value">${invoiceDate}</div></td>
                 <td data-label="Due Date"><div class="invoice-cell-value">${dueDate}</div></td>
-                <td data-label="Amount"><div class="invoice-cell-value">$${parseFloat(invoice.total).toFixed(2)}<br><small>Due: $${parseFloat(invoice.amount_due ?? invoice.total).toFixed(2)}</small></div></td>
-                <td data-label="Retainage"><div class="invoice-cell-value"><strong>${parseFloat(invoice.retainage_rate || 0).toFixed(2)}%</strong><br><small>$${parseFloat(invoice.retainage_amount || 0).toFixed(2)}</small><br><select class="retainage-status-select" aria-label="Retainage status" onchange="updateRetainageStatus(${invoice.id}, this.value)"><option value="none" ${invoice.retainage_status === 'none' ? 'selected' : ''}>No retainage</option><option value="pending" ${invoice.retainage_status === 'pending' ? 'selected' : ''}>Retainage pending</option><option value="paid" ${invoice.retainage_status === 'paid' ? 'selected' : ''}>Retainage paid</option></select></div></td>
-                <td data-label="Status">
-                    <div class="invoice-cell-value"><select onchange="updateInvoiceStatus(${invoice.id}, this.value)" class="status-select" style="background: ${getStatusColor(invoice.status)}; color: white; padding: 0.5rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer;">
+                <td class="invoice-cell-amount" data-label="Amount"><div class="invoice-cell-value">$${invoiceTotal}<br><small>Due: $${parseFloat(invoice.amount_due ?? invoice.total).toFixed(2)}</small></div></td>
+                <td class="invoice-cell-retainage" data-label="Retainage"><div class="invoice-cell-value"><strong>${parseFloat(invoice.retainage_rate || 0).toFixed(2)}%</strong><br><small>$${parseFloat(invoice.retainage_amount || 0).toFixed(2)}</small><br><select class="retainage-status-select" aria-label="Retainage status" onclick="event.stopPropagation()" onchange="updateRetainageStatus(${invoice.id}, this.value)"><option value="none" ${invoice.retainage_status === 'none' ? 'selected' : ''}>No retainage</option><option value="pending" ${invoice.retainage_status === 'pending' ? 'selected' : ''}>Retainage pending</option><option value="paid" ${invoice.retainage_status === 'paid' ? 'selected' : ''}>Retainage paid</option></select></div></td>
+                <td class="invoice-cell-status" data-label="Status">
+                    <div class="invoice-cell-value"><select onclick="event.stopPropagation()" onchange="updateInvoiceStatus(${invoice.id}, this.value)" class="status-select" style="background: ${getStatusColor(invoice.status)}; color: white; padding: 0.5rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer;">
                         <option value="draft" ${invoice.status === 'draft' ? 'selected' : ''}>Draft</option>
                         <option value="sent" ${invoice.status === 'sent' ? 'selected' : ''}>Sent</option>
                         <option value="paid" ${invoice.status === 'paid' ? 'selected' : ''}>Paid</option>
@@ -85,12 +87,18 @@ function displayInvoices(invoices) {
                         <option value="cancelled" ${invoice.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
                     </select></div>
                 </td>
-                <td data-label="Actions">
+                <td class="invoice-cell-actions" data-label="Actions">
                     <div class="invoice-cell-value"><button type="button" class="invoice-actions-toggle" onclick="toggleInvoiceActions(${invoice.id}, event)" aria-label="Invoice actions" title="Invoice actions">⋮</button></div>
                 </td>
             </tr>
         `;
     }).join('');
+}
+
+function toggleInvoiceCard(row) {
+    if (!window.matchMedia('(max-width: 1500px)').matches) return;
+    const isCollapsed = row.classList.toggle('invoice-card-collapsed');
+    row.setAttribute('aria-expanded', String(!isCollapsed));
 }
 
 function closeInvoiceActions() {
