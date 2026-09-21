@@ -685,47 +685,47 @@
                 font-size: 0.8rem;
             }
 
-            /* Card layout for very small screens */
-            @media (max-width: 600px) {
-                .rates-table {
-                    display: block;
-                }
-                
-                .rates-table thead {
-                    display: none;
-                }
-                
-                .rates-table tbody {
-                    display: block;
-                }
-                
-                .rates-table tr {
-                    display: block;
-                    background: rgba(255, 107, 26, 0.05);
-                    border: 1px solid rgba(255, 107, 26, 0.3);
-                    border-radius: 12px;
-                    padding: 1rem;
-                    margin-bottom: 1rem;
-                }
-                
-                .rates-table td {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 0.75rem 0;
-                    border: none;
-                }
-                
-                .rates-table td::before {
-                    content: attr(data-label);
-                    font-weight: 700;
-                    color: var(--primary-color);
-                    margin-right: 1rem;
-                }
-                
-                .rates-table tr:hover {
-                    background: rgba(255, 107, 26, 0.1);
-                }
+        }
+
+        @media (max-width: 600px) {
+            .rates-table {
+                display: block;
+            }
+
+            .rates-table thead {
+                display: none;
+            }
+
+            .rates-table tbody {
+                display: block;
+            }
+
+            .rates-table tr {
+                display: block;
+                background: rgba(255, 107, 26, 0.05);
+                border: 1px solid rgba(255, 107, 26, 0.3);
+                border-radius: 12px;
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+
+            .rates-table td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.75rem 0;
+                border: none;
+            }
+
+            .rates-table td::before {
+                content: attr(data-label);
+                font-weight: 700;
+                color: var(--primary-color);
+                margin-right: 1rem;
+            }
+
+            .rates-table tr:hover {
+                background: rgba(255, 107, 26, 0.1);
             }
         }
 
@@ -904,20 +904,20 @@
             try {
                 // Try API first
                 let response = await fetch('/api/rates');
-                
+
                 // If API fails, try direct GitHub raw URL as fallback
                 if (!response.ok) {
                     console.log('API failed, trying direct GitHub URL...');
                     response = await fetch('https://raw.githubusercontent.com/LiveDieRetryy/HelmickUnderground/main/rates-data.json');
                 }
-                
+
                 if (!response.ok) {
                     throw new Error('Failed to load rates from all sources');
                 }
-                
+
                 currentRates = await response.json();
                 displayRates();
-                
+
                 document.getElementById('loadingMessage').style.display = 'none';
                 document.getElementById('ratesContent').style.display = 'block';
             } catch (error) {
@@ -933,19 +933,19 @@
             baseRatesTable.innerHTML = currentRates.baseRates.map(item => `
                 <tr>
                     <td>
-                        <input type="text" 
-                               class="name-input" 
-                               value="${item.name}" 
-                               data-section="baseRates" 
+                        <input type="text"
+                               class="name-input"
+                               value="${item.name}"
+                               data-section="baseRates"
                                data-id="${item.id}"
                                data-type="name">
                     </td>
                     <td>
-                        <input type="number" 
-                               class="rate-input" 
-                               value="${item.rate.toFixed(2)}" 
-                               step="0.01" 
-                               data-section="baseRates" 
+                        <input type="number"
+                               class="rate-input"
+                               value="${item.rate.toFixed(2)}"
+                               step="0.01"
+                               data-section="baseRates"
                                data-id="${item.id}"
                                data-type="rate">
                     </td>
@@ -960,19 +960,19 @@
             customWorkTable.innerHTML = currentRates.customWork.map(item => `
                 <tr>
                     <td>
-                        <input type="text" 
-                               class="name-input" 
-                               value="${item.name}" 
-                               data-section="customWork" 
+                        <input type="text"
+                               class="name-input"
+                               value="${item.name}"
+                               data-section="customWork"
                                data-id="${item.id}"
                                data-type="name">
                     </td>
                     <td>
-                        <input type="number" 
-                               class="rate-input" 
-                               value="${item.rate.toFixed(2)}" 
-                               step="0.01" 
-                               data-section="customWork" 
+                        <input type="number"
+                               class="rate-input"
+                               value="${item.rate.toFixed(2)}"
+                               step="0.01"
+                               data-section="customWork"
                                data-id="${item.id}"
                                data-type="rate">
                     </td>
@@ -987,19 +987,19 @@
             additionalItemsTable.innerHTML = currentRates.additionalItems.map(item => `
                 <tr>
                     <td>
-                        <input type="text" 
-                               class="name-input" 
-                               value="${item.name}" 
-                               data-section="additionalItems" 
+                        <input type="text"
+                               class="name-input"
+                               value="${item.name}"
+                               data-section="additionalItems"
                                data-id="${item.id}"
                                data-type="name">
                     </td>
                     <td>
-                        <input type="number" 
-                               class="rate-input" 
-                               value="${item.rate.toFixed(2)}" 
-                               step="0.01" 
-                               data-section="additionalItems" 
+                        <input type="number"
+                               class="rate-input"
+                               value="${item.rate.toFixed(2)}"
+                               step="0.01"
+                               data-section="additionalItems"
                                data-id="${item.id}"
                                data-type="rate">
                     </td>
@@ -1022,7 +1022,7 @@
                     const section = input.dataset.section;
                     const id = input.dataset.id;
                     const type = input.dataset.type;
-                    
+
                     const item = currentRates[section].find(i => i.id === id);
                     if (item) {
                         if (type === 'rate') {
@@ -1083,7 +1083,7 @@
                 name: 'New Item',
                 rate: 0.00
             };
-            
+
             currentRates[section].push(newItem);
             displayRates();
             showSuccess('New item added! Don\'t forget to save changes.');
@@ -1103,10 +1103,10 @@
                 return;
             }
 
-            const today = new Date().toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+            const today = new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
             });
 
             let html = `
@@ -1204,7 +1204,7 @@
 
         async function sendEmailDirect() {
             const recipientEmail = document.getElementById('recipientEmail').value.trim();
-            
+
             if (!recipientEmail) {
                 showError('Please enter a recipient email address');
                 return;
@@ -1249,12 +1249,12 @@
                     });
 
                     await navigator.clipboard.write([textItem]);
-                    
+
                     // Open Gmail compose
                     const subject = encodeURIComponent('Helmick Underground - Service Rates & Pricing');
                     const gmailLink = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&to=${encodeURIComponent(recipientEmail)}`;
                     window.open(gmailLink, '_blank');
-                    
+
                     showSuccess('Email service not configured. HTML copied to clipboard - paste it into Gmail!');
                     closeEmailModal();
                 } else {
@@ -1268,7 +1268,7 @@
             } catch (error) {
                 console.error('Error sending email:', error);
                 showError('Failed to send email. Please try again.');
-                
+
                 // Reset button
                 const sendBtn = document.querySelector('.email-send-btn');
                 sendBtn.textContent = 'Send Email';
@@ -1282,10 +1282,10 @@
                 return;
             }
 
-            const today = new Date().toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+            const today = new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
             });
 
             // Build HTML email with inline styles
@@ -1373,7 +1373,7 @@
                 const subject = encodeURIComponent('Helmick Underground - Service Rates & Pricing');
                 const gmailLink = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}`;
                 window.open(gmailLink, '_blank');
-                
+
                 // Show success message
                 showSuccess('Formatted rate sheet copied! Paste it into the email body (Ctrl+V)');
             }).catch(err => {

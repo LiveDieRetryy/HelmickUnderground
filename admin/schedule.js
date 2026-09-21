@@ -130,6 +130,7 @@ function createDayElement(day, isOtherMonth, year, month, isToday = false) {
     if (isToday) dayDiv.classList.add('today');
     
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const weekday = new Date(`${dateStr}T00:00:00`).toLocaleDateString('en-US', { weekday: 'short' });
     
     // Find appointments for this day
     const dayAppointments = scheduledAppointments.filter(apt => {
@@ -139,7 +140,7 @@ function createDayElement(day, isOtherMonth, year, month, isToday = false) {
     });
     
     dayDiv.innerHTML = `
-        <div class="calendar-day-number">${day}</div>
+        <div class="calendar-day-number">${day}<span class="calendar-day-weekday">${weekday}</span></div>
         <div class="calendar-day-appointments">
             ${dayAppointments.map(apt => {
                 const time = new Date(apt.scheduled_date).toLocaleTimeString('en-US', { 

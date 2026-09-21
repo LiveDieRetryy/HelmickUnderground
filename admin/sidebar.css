@@ -311,7 +311,11 @@ select {
     border-color: #dc143c;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
+    body {
+        margin-left: 0 !important;
+    }
+
     .mobile-menu-toggle {
         display: block;
     }
@@ -332,9 +336,9 @@ select {
     }
 
     .main-content {
-        margin-left: 0;
+        margin-left: 0 !important;
         padding: 4rem 1rem 2rem;
-        max-width: 100vw;
+        max-width: 100% !important;
         overflow-x: auto;
     }
 }

@@ -680,6 +680,7 @@ function addCustomLineItemRow(code = '', description = '', rate = '', uom = '') 
     }
     
     const row = document.createElement('tr');
+    row.className = 'custom-line-item-row';
     row.draggable = true;
     row.dataset.uom = uom;
     row.innerHTML = `

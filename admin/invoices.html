@@ -281,6 +281,52 @@
             color: var(--white);
         }
 
+        .invoice-actions-toggle {
+            width: 44px;
+            padding: 0;
+            background: rgba(255, 107, 26, 0.1);
+            border: 1px solid rgba(255, 107, 26, 0.4);
+            border-radius: 8px;
+            color: var(--primary-color);
+            font-size: 1.4rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .invoice-actions-menu {
+            position: fixed;
+            z-index: 11000;
+            min-width: 150px;
+            padding: 0.4rem;
+            background: #1b1b1b;
+            border: 1px solid rgba(255, 107, 26, 0.45);
+            border-radius: 8px;
+            box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45);
+        }
+
+        .invoice-actions-menu button {
+            display: block;
+            width: 100%;
+            min-height: 38px;
+            padding: 0.55rem 0.75rem;
+            background: transparent;
+            border: 0;
+            border-radius: 6px;
+            color: var(--white);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        .invoice-actions-menu button:hover {
+            background: rgba(255, 107, 26, 0.16);
+        }
+
+        .invoice-actions-menu .invoice-delete-action {
+            color: #f87171;
+        }
+
         .empty-state {
             text-align: center;
             padding: 4rem 2rem;
@@ -311,15 +357,16 @@
                 background: rgba(255, 107, 26, 0.05);
                 border: 1px solid rgba(255, 107, 26, 0.3);
                 border-radius: 12px;
-                padding: 1rem;
+                padding: 0.85rem 1rem;
                 margin-bottom: 1rem;
             }
             
             .invoices-table td {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 0.75rem 0;
+                display: grid;
+                grid-template-columns: 6.5rem minmax(0, 1fr);
+                align-items: start;
+                gap: 0.75rem;
+                padding: 0.6rem 0;
                 border: none;
             }
             
@@ -327,16 +374,26 @@
                 content: attr(data-label);
                 font-weight: 700;
                 color: var(--primary-color);
-                margin-right: 1rem;
-                min-width: 100px;
+                min-width: 0;
+            }
+
+            .invoice-cell-value {
+                min-width: 0;
+                overflow-wrap: anywhere;
+                text-align: right;
+            }
+
+            .retainage-status-select {
+                width: 100%;
+                max-width: 150px;
             }
             
             .invoices-table tr:hover {
                 background: rgba(255, 107, 26, 0.1);
             }
             
-            .invoices-table td > div {
-                flex-wrap: wrap;
+            .invoices-table td[data-label="Actions"] .invoice-cell-value {
+                display: flex;
                 justify-content: flex-end;
             }
         }

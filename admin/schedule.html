@@ -194,6 +194,52 @@
             box-shadow: 0 2px 8px rgba(255, 107, 26, 0.4);
         }
 
+        .calendar-day-weekday {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .calendar-weekdays {
+                display: none;
+            }
+
+            .calendar-days {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+
+            .calendar-day {
+                aspect-ratio: auto;
+                min-height: 58px;
+                display: grid;
+                grid-template-columns: 5.5rem minmax(0, 1fr);
+                gap: 0.75rem;
+                align-items: start;
+            }
+
+            .calendar-day.other-month {
+                display: none;
+            }
+
+            .calendar-day-number {
+                display: flex;
+                align-items: center;
+                gap: 0.4rem;
+                margin: 0;
+            }
+
+            .calendar-day-weekday {
+                display: inline;
+                color: var(--gray);
+                font-size: 0.75rem;
+                font-weight: 600;
+            }
+
+            .calendar-day-appointments {
+                min-height: 26px;
+            }
+        }
+
         .appointments-list {
             margin-top: 2rem;
             padding-top: 2rem;

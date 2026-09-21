@@ -70,40 +70,57 @@ function displayInvoices(invoices) {
         
         return `
             <tr data-invoice-id="${invoice.id}">
-                <td data-label="Invoice #">${invoiceDisplay}</td>
-                <td data-label="Customer">${invoice.customer_name}</td>
-                <td data-label="Date">${invoiceDate}</td>
-                <td data-label="Due Date">${dueDate}</td>
-                <td data-label="Amount">$${parseFloat(invoice.total).toFixed(2)}<br><small>Due: $${parseFloat(invoice.amount_due ?? invoice.total).toFixed(2)}</small></td>
-                <td data-label="Retainage"><strong>${parseFloat(invoice.retainage_rate || 0).toFixed(2)}%</strong><br><small>$${parseFloat(invoice.retainage_amount || 0).toFixed(2)}</small><br><select class="retainage-status-select" aria-label="Retainage status" onchange="updateRetainageStatus(${invoice.id}, this.value)"><option value="none" ${invoice.retainage_status === 'none' ? 'selected' : ''}>No retainage</option><option value="pending" ${invoice.retainage_status === 'pending' ? 'selected' : ''}>Retainage pending</option><option value="paid" ${invoice.retainage_status === 'paid' ? 'selected' : ''}>Retainage paid</option></select></td>
+                <td data-label="Invoice #"><div class="invoice-cell-value">${invoiceDisplay}</div></td>
+                <td data-label="Customer"><div class="invoice-cell-value">${invoice.customer_name}</div></td>
+                <td data-label="Date"><div class="invoice-cell-value">${invoiceDate}</div></td>
+                <td data-label="Due Date"><div class="invoice-cell-value">${dueDate}</div></td>
+                <td data-label="Amount"><div class="invoice-cell-value">$${parseFloat(invoice.total).toFixed(2)}<br><small>Due: $${parseFloat(invoice.amount_due ?? invoice.total).toFixed(2)}</small></div></td>
+                <td data-label="Retainage"><div class="invoice-cell-value"><strong>${parseFloat(invoice.retainage_rate || 0).toFixed(2)}%</strong><br><small>$${parseFloat(invoice.retainage_amount || 0).toFixed(2)}</small><br><select class="retainage-status-select" aria-label="Retainage status" onchange="updateRetainageStatus(${invoice.id}, this.value)"><option value="none" ${invoice.retainage_status === 'none' ? 'selected' : ''}>No retainage</option><option value="pending" ${invoice.retainage_status === 'pending' ? 'selected' : ''}>Retainage pending</option><option value="paid" ${invoice.retainage_status === 'paid' ? 'selected' : ''}>Retainage paid</option></select></div></td>
                 <td data-label="Status">
-                    <select onchange="updateInvoiceStatus(${invoice.id}, this.value)" class="status-select" style="background: ${getStatusColor(invoice.status)}; color: white; padding: 0.5rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer;">
+                    <div class="invoice-cell-value"><select onchange="updateInvoiceStatus(${invoice.id}, this.value)" class="status-select" style="background: ${getStatusColor(invoice.status)}; color: white; padding: 0.5rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer;">
                         <option value="draft" ${invoice.status === 'draft' ? 'selected' : ''}>Draft</option>
                         <option value="sent" ${invoice.status === 'sent' ? 'selected' : ''}>Sent</option>
                         <option value="paid" ${invoice.status === 'paid' ? 'selected' : ''}>Paid</option>
                         <option value="overdue" ${invoice.status === 'overdue' ? 'selected' : ''}>Overdue</option>
                         <option value="cancelled" ${invoice.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
-                    </select>
+                    </select></div>
                 </td>
                 <td data-label="Actions">
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button onclick="viewInvoice(${invoice.id})" class="btn-action" title="View">
-                            👁️
-                        </button>
-                        <button onclick="editInvoice(${invoice.id})" class="btn-action" title="Edit">
-                            ✏️
-                        </button>
-                        <button onclick="openSendInvoiceModal(${invoice.id})" class="btn-action" title="Send Invoice" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
-                            📧
-                        </button>
-                        <button onclick="deleteInvoice(${invoice.id})" class="btn-action btn-danger" title="Delete">
-                            🗑️
-                        </button>
-                    </div>
+                    <div class="invoice-cell-value"><button type="button" class="invoice-actions-toggle" onclick="toggleInvoiceActions(${invoice.id}, event)" aria-label="Invoice actions" title="Invoice actions">⋮</button></div>
                 </td>
             </tr>
         `;
     }).join('');
+}
+
+function closeInvoiceActions() {
+    document.getElementById('invoiceActionsMenu')?.remove();
+}
+
+function toggleInvoiceActions(invoiceId, event) {
+    event.stopPropagation();
+    const existingMenu = document.getElementById('invoiceActionsMenu');
+    if (existingMenu) {
+        existingMenu.remove();
+        return;
+    }
+
+    const button = event.currentTarget;
+    const bounds = button.getBoundingClientRect();
+    const menu = document.createElement('div');
+    menu.id = 'invoiceActionsMenu';
+    menu.className = 'invoice-actions-menu';
+    menu.innerHTML = `
+        <button type="button" onclick="viewInvoice(${invoiceId}); closeInvoiceActions()">View invoice</button>
+        <button type="button" onclick="editInvoice(${invoiceId}); closeInvoiceActions()">Edit invoice</button>
+        <button type="button" onclick="openSendInvoiceModal(${invoiceId}); closeInvoiceActions()">Send invoice</button>
+        <button type="button" class="invoice-delete-action" onclick="deleteInvoice(${invoiceId}); closeInvoiceActions()">Delete invoice</button>
+    `;
+    menu.style.top = `${Math.min(bounds.bottom + 6, window.innerHeight - 190)}px`;
+    menu.style.left = `${Math.max(8, bounds.right - 150)}px`;
+    document.body.appendChild(menu);
+
+    setTimeout(() => document.addEventListener('click', closeInvoiceActions, { once: true }), 0);
 }
 
 /**
