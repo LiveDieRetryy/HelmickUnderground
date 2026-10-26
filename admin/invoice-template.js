@@ -17,6 +17,11 @@
         return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleDateString();
     }
 
+    function fmtMoney(value) {
+        const num = parseFloat(value);
+        return (Number.isFinite(num) ? num : 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
     function normalizeInvoice(invoice) {
         const sourceItems = typeof invoice.items === 'string' ? JSON.parse(invoice.items) : (invoice.items || []);
         const items = sourceItems.map(item => {
@@ -96,8 +101,8 @@
             <tr>
                 <td style="padding:0.5rem;border-bottom:1px solid #eee;color:#333;font-size:0.85rem;">${escapeHtml(item.description)}</td>
                 <td style="padding:0.5rem;text-align:center;border-bottom:1px solid #eee;color:#666;font-size:0.85rem;">${item.quantity}</td>
-                <td style="padding:0.5rem;text-align:right;border-bottom:1px solid #eee;color:#666;font-size:0.85rem;">$${item.rate.toFixed(2)}</td>
-                <td style="padding:0.5rem;text-align:right;border-bottom:1px solid #eee;color:#333;font-weight:600;font-size:0.85rem;">$${item.amount.toFixed(2)}</td>
+                <td style="padding:0.5rem;text-align:right;border-bottom:1px solid #eee;color:#666;font-size:0.85rem;">$${fmtMoney(item.rate)}</td>
+                <td style="padding:0.5rem;text-align:right;border-bottom:1px solid #eee;color:#333;font-weight:600;font-size:0.85rem;">$${fmtMoney(item.amount)}</td>
             </tr>
         `).join('');
 
@@ -141,10 +146,10 @@
                     </tr></thead>
                     <tbody>${itemRows}</tbody>
                     <tfoot>
-                        <tr style="border-top:2px solid #ff6b1a;"><td colspan="3" style="padding:0.6rem 0.5rem;text-align:right;font-weight:600;color:#666;">Subtotal:</td><td style="padding:0.6rem 0.5rem;text-align:right;color:#333;font-weight:600;">$${data.subtotal.toFixed(2)}</td></tr>
-                        ${data.tax_rate > 0 ? `<tr><td colspan="3" style="padding:0.6rem 0.5rem;text-align:right;font-weight:600;color:#666;">Tax (${data.tax_rate}%):</td><td style="padding:0.6rem 0.5rem;text-align:right;color:#ff6b1a;font-weight:600;">$${data.tax.toFixed(2)}</td></tr>` : ''}
-                        <tr style="background:#fff3e6;font-size:1.1rem;font-weight:700;"><td colspan="3" style="padding:0.8rem 0.5rem;text-align:right;color:#333;border-top:3px solid #ff6b1a;">Total Due:</td><td style="padding:0.8rem 0.5rem;text-align:right;color:#ff6b1a;border-top:3px solid #ff6b1a;">$${data.amount_due.toFixed(2)}</td></tr>
-                        ${data.retainage_amount > 0 ? `<tr><td colspan="3" style="padding:0.45rem 0.5rem;text-align:right;font-weight:700;color:#dc2626;">Retainage (${data.retainage_rate}%):</td><td style="padding:0.45rem 0.5rem;text-align:right;color:#dc2626;font-weight:700;">$${data.retainage_amount.toFixed(2)}</td></tr>` : ''}
+                        <tr style="border-top:2px solid #ff6b1a;"><td colspan="3" style="padding:0.6rem 0.5rem;text-align:right;font-weight:600;color:#666;">Subtotal:</td><td style="padding:0.6rem 0.5rem;text-align:right;color:#333;font-weight:600;">$${fmtMoney(data.subtotal)}</td></tr>
+                        ${data.tax_rate > 0 ? `<tr><td colspan="3" style="padding:0.6rem 0.5rem;text-align:right;font-weight:600;color:#666;">Tax (${data.tax_rate}%):</td><td style="padding:0.6rem 0.5rem;text-align:right;color:#ff6b1a;font-weight:600;">$${fmtMoney(data.tax)}</td></tr>` : ''}
+                        <tr style="background:#fff3e6;font-size:1.1rem;font-weight:700;"><td colspan="3" style="padding:0.8rem 0.5rem;text-align:right;color:#333;border-top:3px solid #ff6b1a;">Total Due:</td><td style="padding:0.8rem 0.5rem;text-align:right;color:#ff6b1a;border-top:3px solid #ff6b1a;">$${fmtMoney(data.amount_due)}</td></tr>
+                        ${data.retainage_amount > 0 ? `<tr><td colspan="3" style="padding:0.45rem 0.5rem;text-align:right;font-weight:700;color:#dc2626;">Retainage (${data.retainage_rate}%):</td><td style="padding:0.45rem 0.5rem;text-align:right;color:#dc2626;font-weight:700;">$${fmtMoney(data.retainage_amount)}</td></tr>` : ''}
                     </tfoot>
                 </table>
                 ${data.notes ? `<div style="background:#f9f9f9;padding:1rem;border-radius:8px;margin-bottom:1rem;border-left:4px solid #ff6b1a;"><h3 style="color:#333;font-size:0.95rem;margin:0 0 0.5rem;">Notes</h3><div style="color:#666;white-space:pre-wrap;line-height:1.5;font-size:0.85rem;">${escapeHtml(data.notes)}</div></div>` : ''}

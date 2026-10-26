@@ -190,16 +190,16 @@ function displayCustomers(searchTerm = '') {
                         </div>
                     ` : ''}
                     ${customer.preferred_contact ? `<div class="customer-info-row"><span class="customer-info-label">Prefer:</span> ${customer.preferred_contact}</div>` : ''}
-                    <div class="customer-info-row"><span class="customer-info-label">Retainage:</span> ${parseFloat(customer.retainage_rate || 0).toFixed(2)}% held${customer.total_retainage !== undefined ? ` ($${parseFloat(customer.total_retainage || 0).toFixed(2)})` : ''}</div>
+                    <div class="customer-info-row"><span class="customer-info-label">Retainage:</span> ${parseFloat(customer.retainage_rate || 0).toFixed(2)}% held${customer.total_retainage !== undefined ? ` (${fmtMoney(customer.total_retainage)})` : ''}</div>
                 </div>
                 
                 <div class="customer-stats">
                     <div class="stat-box">
-                        <div class="stat-value">$${Number(customer.invoiceStats?.totalInvoiced || 0).toFixed(2)}</div>
+                        <div class="stat-value">$${fmtMoney(customer.invoiceStats?.totalInvoiced)}</div>
                         <div class="stat-label">Invoiced Amount</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-value">$${Number(customer.invoiceStats?.paidAmount || 0).toFixed(2)}</div>
+                        <div class="stat-value">$${fmtMoney(customer.invoiceStats?.paidAmount)}</div>
                         <div class="stat-label">Paid</div>
                     </div>
                 </div>
@@ -624,7 +624,7 @@ function renderPriceSheetReview() {
         <tr style="border-bottom: 1px solid rgba(16, 185, 129, 0.15);">
             <td style="padding: 0.6rem; text-align: center;"><input type="checkbox" class="price-sheet-review-checkbox" data-index="${index}" checked aria-label="Select ${escapeHtml(item.code)}"></td>
             <td style="padding: 0.6rem; color: var(--white);">${escapeHtml(item.code)}</td>
-            <td style="padding: 0.6rem; color: var(--white); text-align: right;">$${item.price.toFixed(2)}</td>
+            <td style="padding: 0.6rem; color: var(--white); text-align: right;">$${fmtMoney(item.price)}</td>
         </tr>
     `).join('');
 
@@ -669,6 +669,12 @@ function escapeHtml(value) {
         "'": '&#39;',
         '"': '&quot;'
     }[character]));
+}
+
+// Format a number as currency with thousands separators (e.g. 39,508.80)
+function fmtMoney(value) {
+    const num = parseFloat(value);
+    return (Number.isFinite(num) ? num : 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function addCustomLineItemRow(code = '', description = '', rate = '', uom = '') {

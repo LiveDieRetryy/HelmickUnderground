@@ -1,3 +1,9 @@
+// Format a number as currency with thousands separators (e.g. 39,508.80)
+function fmtMoney(value) {
+    const num = parseFloat(value);
+    return (Number.isFinite(num) ? num : 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 // Check auth with JWT token
 async function checkAuth() {
     const token = localStorage.getItem('auth_token');
@@ -201,7 +207,7 @@ function displayCustomer(customer) {
         const lineItemsHtml = customer.custom_line_items.map(item => `
             <tr>
                 <td data-label="Description" style="color: var(--white); font-weight: 500;">${item.description}</td>
-                <td data-label="Rate" style="color: var(--primary-color); font-weight: 700;">$${item.rate.toFixed(2)}</td>
+                <td data-label="Rate" style="color: var(--primary-color); font-weight: 700;">$${fmtMoney(item.rate)}</td>
             </tr>
         `).join('');
         
@@ -263,9 +269,9 @@ async function updateCustomerStats(customer) {
 // Update customer stats with pre-calculated data from API
 function updateCustomerStatsFromData(stats) {
     document.getElementById('totalInvoicesValue').textContent = stats.totalInvoices || 0;
-    document.getElementById('paidAmountValue').textContent = `$${Number(stats.paidAmount || 0).toFixed(2)}`;
-    document.getElementById('outstandingAmountValue').textContent = `$${Number(stats.outstandingAmount || 0).toFixed(2)}`;
-    document.getElementById('retainageAmountValue').textContent = `$${(stats.totalRetainage || 0).toFixed(2)}`;
+    document.getElementById('paidAmountValue').textContent = `$${fmtMoney(stats.paidAmount)}`;
+    document.getElementById('outstandingAmountValue').textContent = `$${fmtMoney(stats.outstandingAmount)}`;
+    document.getElementById('retainageAmountValue').textContent = `$${fmtMoney(stats.totalRetainage)}`;
 }
 
 function displayInvoices() {
@@ -292,7 +298,7 @@ function displayInvoices() {
                 <td>${invoice.job_number || '-'}</td>
                 <td>${invoiceDate}</td>
                 <td>$${amount}</td>
-                <td style="color: #ef4444; font-weight: 700;">${retainageAmount > 0 ? `${retainageRate.toFixed(2)}% / $${retainageAmount.toFixed(2)}` : '-'}</td>
+                <td style="color: #ef4444; font-weight: 700;">${retainageAmount > 0 ? `${retainageRate.toFixed(2)}% / ${fmtMoney(retainageAmount)}` : '-'}</td>
                 <td><span class="invoice-status status-${status}">${status}</span></td>
             </tr>
         `;

@@ -44,6 +44,12 @@ async function loadInvoices() {
  * @param {number} invoices[].total - Invoice total amount
  * @returns {void}
  */
+// Format a number as currency with thousands separators (e.g. 39,508.80)
+function fmtMoney(value) {
+    const num = parseFloat(value);
+    return (Number.isFinite(num) ? num : 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 function displayInvoices(invoices) {
     const tbody = document.getElementById('invoicesTableBody');
     
@@ -63,7 +69,7 @@ function displayInvoices(invoices) {
         const invoiceDate = new Date(invoice.invoice_date).toLocaleDateString();
         const dueDate = new Date(invoice.due_date).toLocaleDateString();
         
-        const invoiceTotal = parseFloat(invoice.total).toFixed(2);
+        const invoiceTotal = fmtMoney(invoice.total);
 
         // Build invoice number display with job number if available
         const invoiceDisplay = invoice.job_number 
@@ -82,9 +88,9 @@ function displayInvoices(invoices) {
                 const sign = diff > 0 ? '+' : '-';
                 const color = diff > 0 ? '#10b981' : '#ef4444';
                 const label = diff > 0 ? 'overpaid' : 'underpaid';
-                diffHtml = `<br><small style="color: ${color}; font-weight: 700;">${sign}$${Math.abs(diff).toFixed(2)} ${label}</small>`;
+                diffHtml = `<br><small style="color: ${color}; font-weight: 700;">${sign}$${fmtMoney(Math.abs(diff))} ${label}</small>`;
             }
-            paymentDiffDisplay = `<br><small style="color: #10b981; font-weight: 700;">Paid: $${paid.toFixed(2)}</small>${diffHtml}`;
+            paymentDiffDisplay = `<br><small style="color: #10b981; font-weight: 700;">Paid: $${fmtMoney(paid)}</small>${diffHtml}`;
         }
         
         return `
@@ -93,8 +99,8 @@ function displayInvoices(invoices) {
                 <td data-label="Customer"><div class="invoice-cell-value">${invoice.customer_name}</div></td>
                 <td data-label="Date"><div class="invoice-cell-value">${invoiceDate}</div></td>
                 <td data-label="Due Date"><div class="invoice-cell-value">${dueDate}</div></td>
-                <td class="invoice-cell-amount" data-label="Amount"><div class="invoice-cell-value">$${invoiceTotal}<br><small>Due: $${parseFloat(invoice.amount_due ?? invoice.total).toFixed(2)}</small>${paymentDiffDisplay}</div></td>
-                <td class="invoice-cell-retainage" data-label="Retainage"><div class="invoice-cell-value"><strong>${parseFloat(invoice.retainage_rate || 0).toFixed(2)}%</strong><br><small>$${parseFloat(invoice.retainage_amount || 0).toFixed(2)}</small><br><select class="retainage-status-select" aria-label="Retainage status" onclick="event.stopPropagation()" onchange="updateRetainageStatus(${invoice.id}, this.value)"><option value="none" ${invoice.retainage_status === 'none' ? 'selected' : ''}>No retainage</option><option value="pending" ${invoice.retainage_status === 'pending' ? 'selected' : ''}>Retainage pending</option><option value="paid" ${invoice.retainage_status === 'paid' ? 'selected' : ''}>Retainage paid</option></select></div></td>
+                <td class="invoice-cell-amount" data-label="Amount"><div class="invoice-cell-value">$${invoiceTotal}<br><small>Due: $${fmtMoney(invoice.amount_due ?? invoice.total)}</small>${paymentDiffDisplay}</div></td>
+                <td class="invoice-cell-retainage" data-label="Retainage"><div class="invoice-cell-value"><strong>${parseFloat(invoice.retainage_rate || 0).toFixed(2)}%</strong><br><small>$${fmtMoney(invoice.retainage_amount)}</small><br><select class="retainage-status-select" aria-label="Retainage status" onclick="event.stopPropagation()" onchange="updateRetainageStatus(${invoice.id}, this.value)"><option value="none" ${invoice.retainage_status === 'none' ? 'selected' : ''}>No retainage</option><option value="pending" ${invoice.retainage_status === 'pending' ? 'selected' : ''}>Retainage pending</option><option value="paid" ${invoice.retainage_status === 'paid' ? 'selected' : ''}>Retainage paid</option></select></div></td>
                 <td class="invoice-cell-status" data-label="Status">
                     <div class="invoice-cell-value"><select onclick="event.stopPropagation()" onchange="handleStatusChange(${invoice.id}, this)" class="status-select" style="background: ${getStatusColor(invoice.status)}; color: white; padding: 0.5rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer;">
                         <option value="draft" ${invoice.status === 'draft' ? 'selected' : ''}>Draft</option>
@@ -261,10 +267,10 @@ async function loadStats() {
         const overdueCountEl = document.getElementById('overdueCount');
         
         if (totalInvoicesEl) totalInvoicesEl.textContent = stats.total || 0;
-        if (totalRevenueEl) totalRevenueEl.textContent = `$${(stats.paidAmount || 0).toFixed(2)}`;
-        if (pendingAmountEl) pendingAmountEl.textContent = `$${(stats.pendingAmount || 0).toFixed(2)}`;
+        if (totalRevenueEl) totalRevenueEl.textContent = `$${fmtMoney(stats.paidAmount)}`;
+        if (pendingAmountEl) pendingAmountEl.textContent = `$${fmtMoney(stats.pendingAmount)}`;
         const pendingRetainageEl = document.getElementById('pendingRetainage');
-        if (pendingRetainageEl) pendingRetainageEl.textContent = `Retainage: $${(stats.pendingRetainageAmount || 0).toFixed(2)}`;
+        if (pendingRetainageEl) pendingRetainageEl.textContent = `Retainage: $${fmtMoney(stats.pendingRetainageAmount)}`;
         if (overdueCountEl) overdueCountEl.textContent = stats.overdue || 0;
     } catch (error) {
         console.error('Error loading stats:', error);
@@ -323,7 +329,7 @@ function promptAmountPaid(id, statusSelect) {
 
     const amountDue = parseFloat(invoice.amount_due ?? invoice.total ?? 0);
     document.getElementById('amountPaidInvoiceNumber').textContent = invoice.invoice_number;
-    document.getElementById('amountPaidHint').textContent = `Invoice total: $${parseFloat(invoice.total || 0).toFixed(2)} · Amount due: $${amountDue.toFixed(2)}`;
+    document.getElementById('amountPaidHint').textContent = `Invoice total: $${fmtMoney(invoice.total)} · Amount due: $${fmtMoney(amountDue)}`;
     const input = document.getElementById('amountPaidInput');
     input.value = amountDue.toFixed(2);
 
@@ -570,25 +576,25 @@ async function viewInvoice(id) {
                                 <tr style="border-bottom: 1px solid #404040;">
                                     <td style="padding: 1rem; color: #e5e7eb;">${item.description}</td>
                                     <td style="padding: 1rem; text-align: center; color: #b0b0b0;">${item.quantity}</td>
-                                    <td style="padding: 1rem; text-align: right; color: #b0b0b0;">$${item.rate.toFixed(2)}</td>
-                                    <td style="padding: 1rem; text-align: right; color: #ffffff; font-weight: 600;">$${(item.quantity * item.rate).toFixed(2)}</td>
+                                    <td style="padding: 1rem; text-align: right; color: #b0b0b0;">$${fmtMoney(item.rate)}</td>
+                                    <td style="padding: 1rem; text-align: right; color: #ffffff; font-weight: 600;">$${fmtMoney(item.quantity * item.rate)}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
                         <tfoot>
                             <tr style="border-top: 2px solid #ff6b1a;">
                                 <td colspan="3" style="padding: 1rem; text-align: right; font-weight: 600; color: #b0b0b0;">Subtotal:</td>
-                                <td style="padding: 1rem; text-align: right; font-weight: 600; color: #ffffff;">$${parseFloat(invoice.subtotal || 0).toFixed(2)}</td>
+                                <td style="padding: 1rem; text-align: right; font-weight: 600; color: #ffffff;">$${fmtMoney(invoice.subtotal)}</td>
                             </tr>
                             ${invoice.tax_rate > 0 ? `
                             <tr>
                                 <td colspan="3" style="padding: 0.5rem 1rem; text-align: right; color: #b0b0b0;">Tax (${invoice.tax_rate}%):</td>
-                                <td style="padding: 0.5rem 1rem; text-align: right; color: #ffffff;">$${parseFloat(invoice.tax || 0).toFixed(2)}</td>
+                                <td style="padding: 0.5rem 1rem; text-align: right; color: #ffffff;">$${fmtMoney(invoice.tax)}</td>
                             </tr>
                             ` : ''}
                             <tr style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); color: white;">
                                 <td colspan="3" style="padding: 1.25rem 1rem; text-align: right; font-weight: 700; font-size: 1.3rem;">Total Due:</td>
-                                <td style="padding: 1.25rem 1rem; text-align: right; font-weight: 700; font-size: 1.3rem;">$${parseFloat(invoice.total).toFixed(2)}</td>
+                                <td style="padding: 1.25rem 1rem; text-align: right; font-weight: 700; font-size: 1.3rem;">$${fmtMoney(invoice.total)}</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -784,25 +790,25 @@ async function openSendInvoiceModal(id) {
                                 <tr style="border-bottom: 1px solid #404040;">
                                     <td style="padding: 1rem; color: #e5e7eb;">${item.description}</td>
                                     <td style="padding: 1rem; text-align: center; color: #b0b0b0;">${item.quantity}</td>
-                                    <td style="padding: 1rem; text-align: right; color: #b0b0b0;">$${item.rate.toFixed(2)}</td>
-                                    <td style="padding: 1rem; text-align: right; color: #ffffff; font-weight: 600;">$${(item.quantity * item.rate).toFixed(2)}</td>
+                                    <td style="padding: 1rem; text-align: right; color: #b0b0b0;">$${fmtMoney(item.rate)}</td>
+                                    <td style="padding: 1rem; text-align: right; color: #ffffff; font-weight: 600;">$${fmtMoney(item.quantity * item.rate)}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
                         <tfoot>
                             <tr style="border-top: 2px solid #ff6b1a;">
                                 <td colspan="3" style="padding: 1rem; text-align: right; font-weight: 600; color: #b0b0b0;">Subtotal:</td>
-                                <td style="padding: 1rem; text-align: right; font-weight: 600; color: #ffffff;">$${parseFloat(invoice.subtotal || 0).toFixed(2)}</td>
+                                <td style="padding: 1rem; text-align: right; font-weight: 600; color: #ffffff;">$${fmtMoney(invoice.subtotal)}</td>
                             </tr>
                             ${invoice.tax_rate > 0 ? `
                             <tr>
                                 <td colspan="3" style="padding: 0.5rem 1rem; text-align: right; color: #b0b0b0;">Tax (${invoice.tax_rate}%):</td>
-                                <td style="padding: 0.5rem 1rem; text-align: right; color: #ffffff;">$${parseFloat(invoice.tax || 0).toFixed(2)}</td>
+                                <td style="padding: 0.5rem 1rem; text-align: right; color: #ffffff;">$${fmtMoney(invoice.tax)}</td>
                             </tr>
                             ` : ''}
                             <tr style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); color: white;">
                                 <td colspan="3" style="padding: 1.25rem 1rem; text-align: right; font-weight: 700; font-size: 1.3rem;">Total Due:</td>
-                                <td style="padding: 1.25rem 1rem; text-align: right; font-weight: 700; font-size: 1.3rem;">$${parseFloat(invoice.total).toFixed(2)}</td>
+                                <td style="padding: 1.25rem 1rem; text-align: right; font-weight: 700; font-size: 1.3rem;">$${fmtMoney(invoice.total)}</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -1221,11 +1227,11 @@ async function downloadInvoicePDF(id) {
             
             doc.setTextColor(80, 80, 80);
             doc.text(String(item.quantity || 0), pageWidth - margin - 220, yPos + 16, { align: 'center' });
-            doc.text(`$${item.rate.toFixed(2)}`, pageWidth - margin - 140, yPos + 16, { align: 'right' });
+            doc.text(`$${fmtMoney(item.rate)}`, pageWidth - margin - 140, yPos + 16, { align: 'right' });
             
             doc.setTextColor(0, 0, 0);
             doc.setFont('helvetica', 'bold');
-            doc.text(`$${(item.quantity * item.rate).toFixed(2)}`, pageWidth - margin - 10, yPos + 16, { align: 'right' });
+            doc.text(`$${fmtMoney(item.quantity * item.rate)}`, pageWidth - margin - 10, yPos + 16, { align: 'right' });
             doc.setFont('helvetica', 'normal');
             
             yPos += 25;
@@ -1244,7 +1250,7 @@ async function downloadInvoicePDF(id) {
         doc.setFont('helvetica', 'bold');
         doc.text('Subtotal:', pageWidth - margin - 150, yPos, { align: 'right' });
         doc.setTextColor(0, 0, 0);
-        doc.text(`$${parseFloat(invoice.subtotal || 0).toFixed(2)}`, pageWidth - margin - 10, yPos, { align: 'right' });
+        doc.text(`$${fmtMoney(invoice.subtotal)}`, pageWidth - margin - 10, yPos, { align: 'right' });
         
         yPos += 20;
         
@@ -1254,7 +1260,7 @@ async function downloadInvoicePDF(id) {
             doc.setFont('helvetica', 'normal');
             doc.text(`Tax (${invoice.tax_rate}%):`, pageWidth - margin - 150, yPos, { align: 'right' });
             doc.setTextColor(0, 0, 0);
-            doc.text(`$${parseFloat(invoice.tax || 0).toFixed(2)}`, pageWidth - margin - 10, yPos, { align: 'right' });
+            doc.text(`$${fmtMoney(invoice.tax)}`, pageWidth - margin - 10, yPos, { align: 'right' });
             yPos += 20;
         }
         
@@ -1266,7 +1272,7 @@ async function downloadInvoicePDF(id) {
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         doc.text('Total Due:', pageWidth - margin - 150, yPos + 13, { align: 'right' });
-        doc.text(`$${parseFloat(invoice.total).toFixed(2)}`, pageWidth - margin - 10, yPos + 13, { align: 'right' });
+        doc.text(`$${fmtMoney(invoice.total)}`, pageWidth - margin - 10, yPos + 13, { align: 'right' });
         
         // Save the PDF
         doc.save(`Invoice-${invoice.invoice_number || 'Unknown'}.pdf`);
@@ -1456,10 +1462,10 @@ async function generateInvoicePDFBase64(id) {
             doc.text(String(item.description || ''), margin + 10, yPos + 16);
             doc.setTextColor(80, 80, 80);
             doc.text(String(item.quantity || 0), pageWidth - margin - 220, yPos + 16, { align: 'center' });
-            doc.text(`$${item.rate.toFixed(2)}`, pageWidth - margin - 140, yPos + 16, { align: 'right' });
+            doc.text(`$${fmtMoney(item.rate)}`, pageWidth - margin - 140, yPos + 16, { align: 'right' });
             doc.setTextColor(0, 0, 0);
             doc.setFont('helvetica', 'bold');
-            doc.text(`$${(item.quantity * item.rate).toFixed(2)}`, pageWidth - margin - 10, yPos + 16, { align: 'right' });
+            doc.text(`$${fmtMoney(item.quantity * item.rate)}`, pageWidth - margin - 10, yPos + 16, { align: 'right' });
             doc.setFont('helvetica', 'normal');
             yPos += 25;
         });
@@ -1476,7 +1482,7 @@ async function generateInvoicePDFBase64(id) {
         doc.setFont('helvetica', 'bold');
         doc.text('Subtotal:', pageWidth - margin - 150, yPos, { align: 'right' });
         doc.setTextColor(0, 0, 0);
-        doc.text(`$${parseFloat(invoice.subtotal || 0).toFixed(2)}`, pageWidth - margin - 10, yPos, { align: 'right' });
+        doc.text(`$${fmtMoney(invoice.subtotal)}`, pageWidth - margin - 10, yPos, { align: 'right' });
         yPos += 20;
         
         // Tax
@@ -1485,7 +1491,7 @@ async function generateInvoicePDFBase64(id) {
             doc.setFont('helvetica', 'normal');
             doc.text(`Tax (${invoice.tax_rate}%):`, pageWidth - margin - 150, yPos, { align: 'right' });
             doc.setTextColor(0, 0, 0);
-            doc.text(`$${parseFloat(invoice.tax || 0).toFixed(2)}`, pageWidth - margin - 10, yPos, { align: 'right' });
+            doc.text(`$${fmtMoney(invoice.tax)}`, pageWidth - margin - 10, yPos, { align: 'right' });
             yPos += 20;
         }
         
@@ -1496,7 +1502,7 @@ async function generateInvoicePDFBase64(id) {
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         doc.text('Total Due:', pageWidth - margin - 150, yPos + 13, { align: 'right' });
-        doc.text(`$${parseFloat(invoice.total).toFixed(2)}`, pageWidth - margin - 10, yPos + 13, { align: 'right' });
+        doc.text(`$${fmtMoney(invoice.total)}`, pageWidth - margin - 10, yPos + 13, { align: 'right' });
         
         // Return PDF as base64 string (without data:application/pdf;base64, prefix)
         const pdfBase64 = doc.output('datauristring').split(',')[1];
@@ -1638,25 +1644,25 @@ async function printInvoice(id) {
                     <tr style="border-bottom: 1px solid #404040;">
                         <td style="padding: 0.4rem; color: #e5e7eb; font-size: 0.85rem;">${item.description}</td>
                         <td style="padding: 0.4rem; text-align: center; color: #b0b0b0; font-size: 0.85rem;">${item.quantity}</td>
-                        <td style="padding: 0.4rem; text-align: right; color: #b0b0b0; font-size: 0.85rem;">$${item.rate.toFixed(2)}</td>
-                        <td style="padding: 0.4rem; text-align: right; color: #ffffff; font-weight: 600; font-size: 0.85rem;">$${(item.quantity * item.rate).toFixed(2)}</td>
+                        <td style="padding: 0.4rem; text-align: right; color: #b0b0b0; font-size: 0.85rem;">$${fmtMoney(item.rate)}</td>
+                        <td style="padding: 0.4rem; text-align: right; color: #ffffff; font-weight: 600; font-size: 0.85rem;">$${fmtMoney(item.quantity * item.rate)}</td>
                     </tr>
                 `).join('')}
             </tbody>
             <tfoot>
                 <tr style="border-top: 2px solid #ff6b1a;">
                     <td colspan="3" style="padding: 0.5rem; text-align: right; font-weight: 600; color: #b0b0b0; font-size: 0.85rem;">Subtotal:</td>
-                    <td style="padding: 0.5rem; text-align: right; font-weight: 600; color: #ffffff; font-size: 0.85rem;">$${parseFloat(invoice.subtotal || 0).toFixed(2)}</td>
+                    <td style="padding: 0.5rem; text-align: right; font-weight: 600; color: #ffffff; font-size: 0.85rem;">$${fmtMoney(invoice.subtotal)}</td>
                 </tr>
                 ${invoice.tax_rate > 0 ? `
                 <tr>
                     <td colspan="3" style="padding: 0.3rem 0.5rem; text-align: right; color: #b0b0b0; font-size: 0.85rem;">Tax (${invoice.tax_rate}%):</td>
-                    <td style="padding: 0.3rem 0.5rem; text-align: right; color: #ffffff; font-size: 0.85rem;">$${parseFloat(invoice.tax || 0).toFixed(2)}</td>
+                    <td style="padding: 0.3rem 0.5rem; text-align: right; color: #ffffff; font-size: 0.85rem;">$${fmtMoney(invoice.tax)}</td>
                 </tr>
                 ` : ''}
                 <tr style="background: linear-gradient(135deg, #ff6b1a 0%, #ff8c42 100%); color: white;">
                     <td colspan="3" style="padding: 0.6rem 0.5rem; text-align: right; font-weight: 700; font-size: 1.1rem;">Total Due:</td>
-                    <td style="padding: 0.6rem 0.5rem; text-align: right; font-weight: 700; font-size: 1.1rem;">$${parseFloat(invoice.total).toFixed(2)}</td>
+                    <td style="padding: 0.6rem 0.5rem; text-align: right; font-weight: 700; font-size: 1.1rem;">$${fmtMoney(invoice.total)}</td>
                 </tr>
             </tfoot>
         </table>

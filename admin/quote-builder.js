@@ -3,6 +3,12 @@ if (!sessionStorage.getItem('adminLoggedIn') && !localStorage.getItem('auth_toke
     window.location.href = '/admin/index.html';
 }
 
+// Format a number as currency with thousands separators (e.g. 39,508.80)
+function fmtMoney(value) {
+    const num = parseFloat(value);
+    return (Number.isFinite(num) ? num : 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 // Notification system
 function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
@@ -191,7 +197,7 @@ function renderRates() {
     document.getElementById('ratesContainer').innerHTML = rates.map(rate => `
         <button class="rate-button" onclick="addLineItem('${rate.id}', '${rate.name}', ${rate.rate})">
             <span class="rate-name">${rate.name}</span>
-            <span class="rate-price">$${rate.rate.toFixed(2)}</span>
+            <span class="rate-price">$${fmtMoney(rate.rate)}</span>
         </button>
     `).join('');
 }
@@ -366,7 +372,7 @@ function renderLineItems() {
                         <input 
                             type="text" 
                             class="line-item-input" 
-                            value="$${total.toFixed(2)}" 
+                            value="${fmtMoney(total)}" 
                             readonly
                             style="background: rgba(255, 107, 26, 0.1); border-color: var(--primary-color);"
                         >
@@ -398,14 +404,14 @@ function updateSummary() {
     const total = subtotal + tax;
     
     document.getElementById('totalItems').textContent = lineItems.length;
-    document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
-    document.getElementById('grandTotal').textContent = `$${total.toFixed(2)}`;
+    document.getElementById('subtotal').textContent = `$${fmtMoney(subtotal)}`;
+    document.getElementById('grandTotal').textContent = `$${fmtMoney(total)}`;
     
     // Show/hide tax row
     const taxRow = document.getElementById('taxRow');
     if (iowaWork && tax > 0) {
         taxRow.style.display = 'flex';
-        document.getElementById('taxAmount').textContent = `$${tax.toFixed(2)}`;
+        document.getElementById('taxAmount').textContent = `$${fmtMoney(tax)}`;
     } else {
         taxRow.style.display = 'none';
     }
@@ -519,25 +525,25 @@ function previewQuote() {
                                 ${item.description ? `<br><span style="color: #666; font-size: 0.9rem;">${item.description}</span>` : ''}
                             </td>
                             <td style="padding: 1rem 0.75rem; text-align: center; color: #666;">${item.quantity}</td>
-                            <td style="padding: 1rem 0.75rem; text-align: right; color: #666;">$${item.rate.toFixed(2)}</td>
-                            <td style="padding: 1rem 0.75rem; text-align: right; color: #333; font-weight: 600;">$${(item.quantity * item.rate).toFixed(2)}</td>
+                            <td style="padding: 1rem 0.75rem; text-align: right; color: #666;">$${fmtMoney(item.rate)}</td>
+                            <td style="padding: 1rem 0.75rem; text-align: right; color: #333; font-weight: 600;">$${fmtMoney(item.quantity * item.rate)}</td>
                         </tr>
                     `).join('')}
                 </tbody>
                 <tfoot>
                     <tr style="border-top: 2px solid #ff6b1a;">
                         <td colspan="3" style="padding: 1rem 0.75rem; text-align: right; font-weight: 600; color: #666;">Subtotal:</td>
-                        <td style="padding: 1rem 0.75rem; text-align: right; color: #333; font-weight: 600;">$${subtotal.toFixed(2)}</td>
+                        <td style="padding: 1rem 0.75rem; text-align: right; color: #333; font-weight: 600;">$${fmtMoney(subtotal)}</td>
                     </tr>
                     ${iowaWork && tax > 0 ? `
                     <tr>
                         <td colspan="3" style="padding: 1rem 0.75rem; text-align: right; font-weight: 600; color: #666;">Tax (7% - Iowa):</td>
-                        <td style="padding: 1rem 0.75rem; text-align: right; color: #ff6b1a; font-weight: 600;">$${tax.toFixed(2)}</td>
+                        <td style="padding: 1rem 0.75rem; text-align: right; color: #ff6b1a; font-weight: 600;">$${fmtMoney(tax)}</td>
                     </tr>
                     ` : ''}
                     <tr style="background: #fff3e6; font-size: 1.3rem; font-weight: 700;">
                         <td colspan="3" style="padding: 1.25rem 0.75rem; text-align: right; color: #333; border-top: 3px solid #ff6b1a;">Total:</td>
-                        <td style="padding: 1.25rem 0.75rem; text-align: right; color: #ff6b1a; border-top: 3px solid #ff6b1a;">$${total.toFixed(2)}</td>
+                        <td style="padding: 1.25rem 0.75rem; text-align: right; color: #ff6b1a; border-top: 3px solid #ff6b1a;">$${fmtMoney(total)}</td>
                     </tr>
                 </tfoot>
             </table>
@@ -856,10 +862,10 @@ async function downloadQuotePDF() {
             doc.text(item.name, margin + 10, yPos + 16);
             doc.setTextColor(80, 80, 80);
             doc.text(item.quantity.toString(), pageWidth - margin - 220, yPos + 16, { align: 'center' });
-            doc.text(`$${item.rate.toFixed(2)}`, pageWidth - margin - 140, yPos + 16, { align: 'right' });
+            doc.text(`$${fmtMoney(item.rate)}`, pageWidth - margin - 140, yPos + 16, { align: 'right' });
             doc.setTextColor(0, 0, 0);
             doc.setFont('helvetica', 'bold');
-            doc.text(`$${(item.quantity * item.rate).toFixed(2)}`, pageWidth - margin - 10, yPos + 16, { align: 'right' });
+            doc.text(`$${fmtMoney(item.quantity * item.rate)}`, pageWidth - margin - 10, yPos + 16, { align: 'right' });
             doc.setFont('helvetica', 'normal');
             
             yPos += 25;
@@ -884,7 +890,7 @@ async function downloadQuotePDF() {
         doc.setFont('helvetica', 'bold');
         doc.text('Subtotal:', pageWidth - margin - 150, yPos, { align: 'right' });
         doc.setTextColor(0, 0, 0);
-        doc.text(`$${subtotal.toFixed(2)}`, pageWidth - margin - 10, yPos, { align: 'right' });
+        doc.text(`$${fmtMoney(subtotal)}`, pageWidth - margin - 10, yPos, { align: 'right' });
         yPos += 20;
         
         // Tax
@@ -893,7 +899,7 @@ async function downloadQuotePDF() {
             doc.setFont('helvetica', 'normal');
             doc.text(`Tax (${(taxRate * 100).toFixed(0)}%):`, pageWidth - margin - 150, yPos, { align: 'right' });
             doc.setTextColor(0, 0, 0);
-            doc.text(`$${tax.toFixed(2)}`, pageWidth - margin - 10, yPos, { align: 'right' });
+            doc.text(`$${fmtMoney(tax)}`, pageWidth - margin - 10, yPos, { align: 'right' });
             yPos += 20;
         }
         
@@ -904,7 +910,7 @@ async function downloadQuotePDF() {
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         doc.text('Total:', pageWidth - margin - 150, yPos + 13, { align: 'right' });
-        doc.text(`$${total.toFixed(2)}`, pageWidth - margin - 10, yPos + 13, { align: 'right' });
+        doc.text(`$${fmtMoney(total)}`, pageWidth - margin - 10, yPos + 13, { align: 'right' });
         
         yPos += 50;
         
