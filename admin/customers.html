@@ -298,13 +298,13 @@
 
         .stat-value {
             color: var(--primary-color);
-            font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 0.25rem;
-            white-space: nowrap;
-            /* Shrink long currency values so they fit inside the box */
-            font-size: clamp(1rem, 1.6vw, 1.5rem);
+            /* Fit long currency values without truncating: shrink then wrap */
+            font-size: clamp(0.9rem, 1.6vw, 1.5rem);
             line-height: 1.2;
+            overflow-wrap: break-word;
+            word-break: break-word;
         }
 
         .stat-label {

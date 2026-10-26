@@ -334,13 +334,13 @@
 
         .stat-value {
             color: var(--primary-color);
-            font-size: 2.5rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
-            white-space: nowrap;
-            /* Shrink long currency values so they fit inside the card */
-            font-size: clamp(1.4rem, 2.2vw, 2.5rem);
+            /* Fit long currency values without truncating: shrink then wrap */
+            font-size: clamp(1.1rem, 2.2vw, 2.5rem);
             line-height: 1.1;
+            overflow-wrap: break-word;
+            word-break: break-word;
         }
 
         .stat-label {
