@@ -60,9 +60,15 @@ function applyFilters() {
     const status = document.getElementById('statusFilter')?.value || 'all';
 
     const filtered = allInvoices.filter(inv => {
-        // Search
-        if (query && !(inv.invoice_number.toLowerCase().includes(query) || inv.customer_name.toLowerCase().includes(query))) {
-            return false;
+        // Search: match customer name or invoice number, but ignore the embedded
+        // date segment (e.g. the "20261024" in "INV-20261024-029")
+        if (query) {
+            const numberWithoutDate = String(inv.invoice_number || '')
+                .replace(/-\d{8}-/g, '-')   // strip -YYYYMMDD- -> keep the rest
+                .toLowerCase();
+            const matchesNumber = numberWithoutDate.includes(query);
+            const matchesCustomer = String(inv.customer_name || '').toLowerCase().includes(query);
+            if (!matchesNumber && !matchesCustomer) return false;
         }
         // Status
         if (status !== 'all' && (inv.status || 'draft').toLowerCase() !== status) {
