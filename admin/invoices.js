@@ -5,9 +5,13 @@ if (!sessionStorage.getItem('adminLoggedIn') && !localStorage.getItem('auth_toke
 
 let allInvoices = [];
 
+// Active filter state (year defaults to current year for "year to date")
+let activeYear = new Date().getFullYear();
+let activeMonth = 'all';
+
 /**
  * Load all invoices from database
- * Fetches invoices and statistics, updates UI
+ * Fetches invoices, populates year filter, applies filters, updates UI
  * @returns {Promise<void>}
  * @throws {Error} If API request fails
  */
@@ -20,8 +24,8 @@ async function loadInvoices() {
         
         const data = await response.json();
         allInvoices = data.invoices || [];
-        displayInvoices(allInvoices);
-        loadStats();
+        populateYearFilter();
+        applyFilters();
     } catch (error) {
         console.error('Error loading invoices:', error);
         document.getElementById('invoicesTableBody').innerHTML = `
@@ -32,6 +36,81 @@ async function loadInvoices() {
             </tr>
         `;
     }
+}
+
+// Build the year dropdown from the years present in the invoices
+function populateYearFilter() {
+    const yearSelect = document.getElementById('yearFilter');
+    if (!yearSelect) return;
+
+    const years = new Set([new Date().getFullYear()]);
+    allInvoices.forEach(inv => {
+        const d = new Date(inv.invoice_date);
+        if (!Number.isNaN(d.getTime())) years.add(d.getFullYear());
+    });
+
+    const sorted = Array.from(years).sort((a, b) => b - a);
+    yearSelect.innerHTML = `<option value="all">All Years</option>` +
+        sorted.map(y => `<option value="${y}" ${y === activeYear ? 'selected' : ''}>${y}</option>`).join('');
+}
+
+// Apply search, status, year, and month filters, then refresh table + stats
+function applyFilters() {
+    const query = (document.getElementById('searchInput')?.value || '').toLowerCase();
+    const status = document.getElementById('statusFilter')?.value || 'all';
+
+    const filtered = allInvoices.filter(inv => {
+        // Search
+        if (query && !(inv.invoice_number.toLowerCase().includes(query) || inv.customer_name.toLowerCase().includes(query))) {
+            return false;
+        }
+        // Status
+        if (status !== 'all' && (inv.status || 'draft').toLowerCase() !== status) {
+            return false;
+        }
+        // Year / Month
+        const d = new Date(inv.invoice_date);
+        if (!Number.isNaN(d.getTime())) {
+            if (activeYear !== 'all' && d.getFullYear() !== Number(activeYear)) return false;
+            if (activeMonth !== 'all' && d.getMonth() !== Number(activeMonth)) return false;
+        }
+        return true;
+    });
+
+    displayInvoices(filtered);
+    updateStatsForFiltered(filtered);
+}
+
+// Compute the stat cards from the currently-filtered invoices
+function updateStatsForFiltered(invoices) {
+    const paid = invoices.filter(i => i.status === 'paid');
+    const revenue = paid.reduce((sum, i) => {
+        const val = i.amount_paid !== null && i.amount_paid !== undefined && i.amount_paid !== ''
+            ? parseFloat(i.amount_paid)
+            : parseFloat(i.amount_due ?? i.total ?? 0) + (i.retainage_status === 'paid' ? parseFloat(i.retainage_amount || 0) : 0);
+        return sum + val;
+    }, 0);
+
+    const pending = invoices
+        .filter(i => i.status === 'sent')
+        .reduce((sum, i) => sum + parseFloat(i.amount_due ?? i.total ?? 0), 0)
+        + invoices
+        .filter(i => (i.status === 'sent' || i.status === 'paid') && i.retainage_status === 'pending')
+        .reduce((sum, i) => sum + parseFloat(i.retainage_amount || 0), 0);
+
+    const pendingRetainage = invoices
+        .filter(i => (i.status === 'sent' || i.status === 'paid') && i.retainage_status === 'pending')
+        .reduce((sum, i) => sum + parseFloat(i.retainage_amount || 0), 0);
+
+    const overdue = invoices.filter(i => i.status === 'overdue').length;
+
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('totalInvoices', invoices.length);
+    set('totalRevenue', `$${fmtMoney(revenue)}`);
+    set('pendingAmount', `$${fmtMoney(pending)}`);
+    set('overdueCount', overdue);
+    const pr = document.getElementById('pendingRetainage');
+    if (pr) pr.textContent = `Retainage: $${fmtMoney(pendingRetainage)}`;
 }
 
 /**
@@ -277,25 +356,9 @@ async function loadStats() {
     }
 }
 
-// Filter invoices
-function filterInvoices(status) {
-    if (status === 'all') {
-        displayInvoices(allInvoices);
-    } else {
-        const filtered = allInvoices.filter(inv => inv.status.toLowerCase() === status.toLowerCase());
-        displayInvoices(filtered);
-    }
-}
-
-// Search invoices
-function searchInvoices(query) {
-    query = query.toLowerCase();
-    const filtered = allInvoices.filter(inv => 
-        inv.invoice_number.toLowerCase().includes(query) ||
-        inv.customer_name.toLowerCase().includes(query)
-    );
-    displayInvoices(filtered);
-}
+// Legacy helpers now route through the unified applyFilters()
+function filterInvoices() { applyFilters(); }
+function searchInvoices() { applyFilters(); }
 
 // Intercept status dropdown changes; prompt for amount when transitioning into "paid"
 function handleStatusChange(id, select) {
@@ -1694,5 +1757,20 @@ async function printInvoice(id) {
     }
 }
 
+// Wire up filter listeners
+function initFilters() {
+    document.getElementById('searchInput')?.addEventListener('input', applyFilters);
+    document.getElementById('statusFilter')?.addEventListener('change', applyFilters);
+    document.getElementById('yearFilter')?.addEventListener('change', e => {
+        activeYear = e.target.value === 'all' ? 'all' : e.target.value;
+        applyFilters();
+    });
+    document.getElementById('monthFilter')?.addEventListener('change', e => {
+        activeMonth = e.target.value;
+        applyFilters();
+    });
+}
+
 // Initialize
+initFilters();
 loadInvoices();
