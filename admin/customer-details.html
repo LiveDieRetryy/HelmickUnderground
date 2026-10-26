@@ -330,17 +330,18 @@
             border-radius: 12px;
             padding: 1.5rem;
             text-align: center;
+            container-type: inline-size;
         }
 
         .stat-value {
             color: var(--primary-color);
             font-weight: 700;
             margin-bottom: 0.5rem;
-            /* Fit long currency values without truncating: shrink then wrap */
-            font-size: clamp(1.1rem, 2.2vw, 2.5rem);
+            /* Scale to the card's own width so it always fits on one line */
+            white-space: nowrap;
+            font-size: clamp(1rem, 11cqw, 2rem);
             line-height: 1.1;
-            overflow-wrap: break-word;
-            word-break: break-word;
+            letter-spacing: -0.02em;
         }
 
         .stat-label {

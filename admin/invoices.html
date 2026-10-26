@@ -92,6 +92,7 @@
             padding: 2rem;
             border: 2px solid rgba(255, 107, 26, 0.3);
             transition: all 0.3s ease;
+            container-type: inline-size;
         }
 
         .stat-card:hover {
@@ -111,11 +112,11 @@
         .stat-value {
             color: var(--primary-color);
             font-weight: 900;
-            /* Fit long currency values without truncating: shrink then wrap */
-            font-size: clamp(1.1rem, 2.2vw, 2.5rem);
+            /* Scale to the card's own width so it always fits on one line */
+            white-space: nowrap;
+            font-size: clamp(1rem, 11cqw, 2rem);
             line-height: 1.1;
-            overflow-wrap: break-word;
-            word-break: break-word;
+            letter-spacing: -0.02em;
         }
 
         .invoices-container {

@@ -294,17 +294,18 @@
             border-radius: 12px;
             padding: 1rem;
             text-align: center;
+            container-type: inline-size;
         }
 
         .stat-value {
             color: var(--primary-color);
             font-weight: 700;
             margin-bottom: 0.25rem;
-            /* Fit long currency values without truncating: shrink then wrap */
-            font-size: clamp(0.9rem, 1.6vw, 1.5rem);
+            /* Scale to the box's own width so it always fits on one line */
+            white-space: nowrap;
+            font-size: clamp(0.75rem, 9cqw, 1.1rem);
             line-height: 1.2;
-            overflow-wrap: break-word;
-            word-break: break-word;
+            letter-spacing: -0.02em;
         }
 
         .stat-label {

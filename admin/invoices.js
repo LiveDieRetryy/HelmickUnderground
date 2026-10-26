@@ -102,7 +102,7 @@ function displayInvoices(invoices) {
                 <td class="invoice-cell-amount" data-label="Amount"><div class="invoice-cell-value">$${invoiceTotal}<br><small>Due: $${fmtMoney(invoice.amount_due ?? invoice.total)}</small>${paymentDiffDisplay}</div></td>
                 <td class="invoice-cell-retainage" data-label="Retainage"><div class="invoice-cell-value"><strong>${parseFloat(invoice.retainage_rate || 0).toFixed(2)}%</strong><br><small>$${fmtMoney(invoice.retainage_amount)}</small><br><select class="retainage-status-select" aria-label="Retainage status" onclick="event.stopPropagation()" onchange="updateRetainageStatus(${invoice.id}, this.value)"><option value="none" ${invoice.retainage_status === 'none' ? 'selected' : ''}>No retainage</option><option value="pending" ${invoice.retainage_status === 'pending' ? 'selected' : ''}>Retainage pending</option><option value="paid" ${invoice.retainage_status === 'paid' ? 'selected' : ''}>Retainage paid</option></select></div></td>
                 <td class="invoice-cell-status" data-label="Status">
-                    <div class="invoice-cell-value"><select onclick="event.stopPropagation()" onchange="handleStatusChange(${invoice.id}, this)" class="status-select" style="background: ${getStatusColor(invoice.status)}; color: white; padding: 0.5rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer;">
+                    <div class="invoice-cell-value"><select onclick="event.stopPropagation()" onchange="handleStatusChange(${invoice.id}, this)" data-current-status="${invoice.status || 'draft'}" class="status-select" style="background: ${getStatusColor(invoice.status)}; color: white; padding: 0.5rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer;">
                         <option value="draft" ${invoice.status === 'draft' ? 'selected' : ''}>Draft</option>
                         <option value="sent" ${invoice.status === 'sent' ? 'selected' : ''}>Sent</option>
                         <option value="paid" ${invoice.status === 'paid' ? 'selected' : ''}>Paid</option>
@@ -297,18 +297,20 @@ function searchInvoices(query) {
     displayInvoices(filtered);
 }
 
-// Intercept status dropdown changes; prompt for amount when marking paid
+// Intercept status dropdown changes; prompt for amount when transitioning into "paid"
 function handleStatusChange(id, select) {
-    const status = select.value;
-    if (status === 'paid') {
-        const invoice = allInvoices.find(inv => String(inv.id) === String(id));
-        // Only prompt when transitioning into paid, not when re-saving
-        if (invoice && invoice.status !== 'paid') {
-            promptAmountPaid(id, select);
-            return;
-        }
+    const newStatus = select.value;
+    const previousStatus = select.dataset.currentStatus;
+
+    // Prompt whenever the user transitions INTO paid from a different status
+    if (newStatus === 'paid' && previousStatus !== 'paid') {
+        promptAmountPaid(id, select);
+        return;
     }
-    updateInvoiceStatus(id, status);
+
+    // Update the tracked status and save
+    select.dataset.currentStatus = newStatus;
+    updateInvoiceStatus(id, newStatus);
 }
 
 // Track the invoice pending a "paid" confirmation via the amount modal
@@ -325,7 +327,7 @@ function promptAmountPaid(id, statusSelect) {
     }
 
     pendingPaidInvoiceId = id;
-    pendingPaidOriginalStatus = invoice.status;
+    pendingPaidOriginalStatus = statusSelect ? statusSelect.dataset.currentStatus : invoice.status;
 
     const amountDue = parseFloat(invoice.amount_due ?? invoice.total ?? 0);
     document.getElementById('amountPaidInvoiceNumber').textContent = invoice.invoice_number;
@@ -334,7 +336,7 @@ function promptAmountPaid(id, statusSelect) {
     input.value = amountDue.toFixed(2);
 
     // Revert the select visually until confirmed
-    if (statusSelect) statusSelect.value = invoice.status;
+    if (statusSelect) statusSelect.value = pendingPaidOriginalStatus;
 
     document.getElementById('amountPaidModal').style.display = 'flex';
     setTimeout(() => input.focus(), 50);
@@ -356,6 +358,10 @@ function confirmAmountPaid() {
     const id = pendingPaidInvoiceId;
     cancelAmountPaidModal();
     if (id !== null) {
+        // Mark the select as paid so the tracker reflects the transition
+        const row = document.querySelector(`tr[data-invoice-id="${id}"]`);
+        const select = row?.querySelector('.status-select');
+        if (select) select.dataset.currentStatus = 'paid';
         updateInvoiceStatus(id, 'paid', amount);
     }
 }
