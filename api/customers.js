@@ -222,11 +222,12 @@ module.exports = async function handler(req, res) {
             
             // Get invoices for this customer (by customer_name)
             const invoicesResult = await sql`
-                SELECT 
+                SELECT
                     id, invoice_number, job_number, customer_name,
-                    invoice_date, due_date, status, total, 
-                    subtotal, tax, retainage_rate, retainage_amount, amount_due, created_at
-                FROM invoices 
+                    invoice_date, due_date, status, total,
+                    subtotal, tax, retainage_rate, retainage_amount, amount_due,
+                    amount_paid, payment_difference, created_at
+                FROM invoices
                     WHERE customer_id = ${customer.id} OR (customer_id IS NULL AND customer_name = ${customer.name})
                 ORDER BY invoice_date DESC
             `;
@@ -239,7 +240,7 @@ module.exports = async function handler(req, res) {
                 totalInvoices: invoices.length,
                 invoicedProjects: new Set(invoices.map(inv => inv.job_number || inv.id).filter(Boolean)).size,
                 totalInvoiced: invoices.reduce((sum, inv) => sum + parseFloat(inv.total || 0), 0),
-                paidAmount: invoices.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + parseFloat(inv.amount_due || inv.total || 0) + (inv.retainage_status === 'paid' ? parseFloat(inv.retainage_amount || 0) : 0), 0),
+                paidAmount: invoices.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + parseFloat(inv.amount_paid ?? (parseFloat(inv.amount_due || inv.total || 0) + (inv.retainage_status === 'paid' ? parseFloat(inv.retainage_amount || 0) : 0)), 0), 0),
                 outstandingAmount: invoices.filter(inv => inv.status !== 'paid').reduce((sum, inv) => sum + parseFloat(inv.amount_due || inv.total || 0), 0),
                 paidInvoices: invoices.filter(inv => inv.status === 'paid').length,
                 unpaidInvoices: invoices.filter(inv => inv.status !== 'paid').length

@@ -5,6 +5,7 @@ const { requireCsrfToken } = require('../lib/csrf-middleware');
 const { enforceRateLimit } = require('../lib/rate-limiter');
 const memoryStore = require('../lib/dev-memory-store');
 const { normalizeRetainageRate, calculateRetainage } = require('../lib/retainage');
+const { logActivity } = require('./activity-log');
 
 function normalizeInvoiceItems(items) {
     if (!Array.isArray(items) || items.length === 0) {
@@ -92,6 +93,15 @@ function handleMemoryInvoices(req, res) {
         const invoice = memoryStore.invoices.find(item => item.id === Number(req.query.id));
         if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
         invoice.status = req.body.status;
+        const parsedAmountPaid = req.body.amountPaid === undefined || req.body.amountPaid === null || req.body.amountPaid === ''
+            ? null
+            : Number(req.body.amountPaid);
+        if (invoice.status === 'paid' && Number.isFinite(parsedAmountPaid)) {
+            invoice.amount_paid = parsedAmountPaid;
+            const expected = parseFloat(invoice.amount_due ?? invoice.total ?? 0)
+                + (invoice.retainage_status === 'paid' ? parseFloat(invoice.retainage_amount || 0) : 0);
+            invoice.payment_difference = parsedAmountPaid - expected;
+        }
         memoryStore.save();
         return res.status(200).json({ success: true });
     }
@@ -201,6 +211,8 @@ module.exports = async function handler(req, res) {
         `;
 
         await sql`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS retainage_rate DECIMAL(5,2) DEFAULT 0`;
+        await sql`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS amount_paid DECIMAL(10,2)`;
+        await sql`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS payment_difference DECIMAL(10,2)`;
         await sql`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS customer_id BIGINT`;
         await sql`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS retainage_amount DECIMAL(10,2) DEFAULT 0`;
         await sql`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS amount_due DECIMAL(10,2) DEFAULT 0`;
@@ -387,7 +399,7 @@ module.exports = async function handler(req, res) {
                         SUM(total) as total_amount,
                         SUM(retainage_amount) as retainage_amount,
                         SUM(amount_due) as amount_due,
-                        SUM(CASE WHEN status = 'paid' THEN amount_due + CASE WHEN retainage_status = 'paid' THEN retainage_amount ELSE 0 END ELSE 0 END) as paid_amount,
+                        SUM(CASE WHEN status = 'paid' THEN COALESCE(amount_paid, amount_due + CASE WHEN retainage_status = 'paid' THEN retainage_amount ELSE 0 END) ELSE 0 END) as paid_amount,
                         SUM(CASE WHEN status = 'sent' THEN amount_due ELSE 0 END) + SUM(CASE WHEN status IN ('sent', 'paid') AND retainage_status = 'pending' THEN retainage_amount ELSE 0 END) as pending_amount,
                         SUM(CASE WHEN status IN ('sent', 'paid') AND retainage_status = 'pending' THEN retainage_amount ELSE 0 END) as pending_retainage_amount,
                         SUM(CASE WHEN status != 'paid' THEN total ELSE 0 END) as outstanding_amount
@@ -423,25 +435,38 @@ module.exports = async function handler(req, res) {
                 
                 return res.status(200).json(result.rows[0]);
             }
+
+            if (action === 'editLog' && id) {
+                // Get edit history for an invoice
+                const result = await sql`
+                    SELECT id, action, admin_email, details, timestamp
+                    FROM activity_log
+                    WHERE resource = 'invoice' AND resource_id = ${id}
+                    ORDER BY timestamp DESC
+                `;
+
+                return res.status(200).json({ edits: result.rows });
+            }
         }
 
         if (req.method === 'PUT') {
             const { action, id } = req.query;
             
             if (action === 'update' && id) {
-                const { 
-                    invoiceNumber, 
-                    invoiceDate, 
-                    dueDate, 
+                const {
+                    invoiceNumber,
+                    invoiceDate,
+                    dueDate,
                     customer,
                     jobInfo,
-                    items, 
-                    taxRate, 
-                    subtotal, 
-                    tax, 
+                    items,
+                    taxRate,
+                    subtotal,
+                    tax,
                     total,
                     status,
-                    retainageRate
+                    retainageRate,
+                    editReason
                 } = req.body;
 
                 const normalized = normalizeInvoiceItems(items);
@@ -451,9 +476,10 @@ module.exports = async function handler(req, res) {
                 const calculated = calculateInvoiceTotals(normalized.items, taxRate);
                 const retainage = calculateRetainage(calculated.total, retainageRate);
                 const requestedRetainageStatus = ['none', 'pending', 'paid'].includes(req.body.retainageStatus) ? req.body.retainageStatus : null;
-                const existingInvoice = await sql`SELECT retainage_amount, retainage_status FROM invoices WHERE id = ${id}`;
-                const existingRetainageAmount = Number(existingInvoice.rows[0]?.retainage_amount || 0);
-                const retainageStatus = requestedRetainageStatus || (existingRetainageAmount !== retainage.amount ? retainage.status : (existingInvoice.rows[0]?.retainage_status || retainage.status));
+                const existingInvoice = await sql`SELECT * FROM invoices WHERE id = ${id}`;
+                const existing = existingInvoice.rows[0];
+                const existingRetainageAmount = Number(existing?.retainage_amount || 0);
+                const retainageStatus = requestedRetainageStatus || (existingRetainageAmount !== retainage.amount ? retainage.status : (existing?.retainage_status || retainage.status));
                 
                 await sql`
                     UPDATE invoices 
@@ -484,7 +510,41 @@ module.exports = async function handler(req, res) {
                     WHERE id = ${id}
                 `;
                 
-                return res.status(200).json({ 
+                // Log the edit with a diff of changed fields and the reason
+                if (existing) {
+                    const changes = {};
+                    const comparisons = [
+                        ['invoice_number', invoiceNumber],
+                        ['invoice_date', invoiceDate],
+                        ['due_date', dueDate],
+                        ['customer_name', customer.name],
+                        ['total', calculated.total],
+                        ['subtotal', calculated.subtotal],
+                        ['tax_rate', calculated.taxRate],
+                        ['retainage_rate', retainage.rate],
+                        ['status', status || 'draft']
+                    ];
+                    comparisons.forEach(([field, newValue]) => {
+                        const oldValue = existing[field];
+                        const oldNormalized = oldValue instanceof Date ? oldValue.toISOString().split('T')[0] : oldValue;
+                        const oldNum = parseFloat(oldNormalized);
+                        const newNum = parseFloat(newValue);
+                        const differs = (Number.isFinite(oldNum) && Number.isFinite(newNum))
+                            ? Math.abs(oldNum - newNum) > 0.0001
+                            : String(oldNormalized ?? '') !== String(newValue ?? '');
+                        if (differs) {
+                            changes[field] = { from: oldNormalized, to: newValue };
+                        }
+                    });
+
+                    await logActivity('update', 'invoice', parseInt(id), req.user?.email || 'unknown', {
+                        invoiceNumber,
+                        reason: editReason || '(no reason provided)',
+                        changes
+                    });
+                }
+
+                return res.status(200).json({
                     success: true,
                     invoiceId: id,
                     message: 'Invoice updated successfully'
@@ -492,16 +552,30 @@ module.exports = async function handler(req, res) {
             }
             
             if (action === 'updateStatus' && id) {
-                const { status } = req.body;
+                const { status, amountPaid } = req.body;
                 const validStatuses = ['draft', 'sent', 'paid', 'overdue', 'cancelled'];
                 
                 if (!validStatuses.includes(status)) {
                     return sendErrorResponse(res, 'VALIDATION_ERROR', `Invalid status. Must be one of: ${validStatuses.join(', ')}`);
                 }
+
+                const parsedAmountPaid = amountPaid === undefined || amountPaid === null || amountPaid === ''
+                    ? null
+                    : Number(amountPaid);
+                if (parsedAmountPaid !== null && (!Number.isFinite(parsedAmountPaid) || parsedAmountPaid < 0)) {
+                    return sendErrorResponse(res, 'VALIDATION_ERROR', 'Amount paid must be a non-negative number');
+                }
                 
                 await sql`
-                    UPDATE invoices 
-                    SET status = ${status}, updated_at = CURRENT_TIMESTAMP
+                    UPDATE invoices
+                    SET status = ${status},
+                        amount_paid = CASE WHEN ${status} = 'paid' THEN COALESCE(${parsedAmountPaid}, amount_paid) ELSE amount_paid END,
+                        payment_difference = CASE
+                            WHEN ${status} = 'paid' AND ${parsedAmountPaid} IS NOT NULL
+                                THEN ${parsedAmountPaid} - (amount_due + CASE WHEN retainage_status = 'paid' THEN retainage_amount ELSE 0 END)
+                            ELSE payment_difference
+                        END,
+                        updated_at = CURRENT_TIMESTAMP
                     WHERE id = ${id}
                 `;
                 

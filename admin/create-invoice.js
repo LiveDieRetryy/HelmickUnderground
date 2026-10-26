@@ -701,25 +701,37 @@ function setDefaultDates() {
 // Generate unique invoice number
 async function generateInvoiceNumber() {
     try {
-        // Try to get existing invoices to determine next number
-        const response = await fetch('/api/invoices?action=all', {
-            credentials: 'include'
-        });
-        let invoiceCount = 0;
-        
-        if (response.ok) {
-            const data = await response.json();
-            invoiceCount = data.invoices ? data.invoices.length : 0;
-        }
-        
         // Format: INV-YYYYMMDD-XXX
         const today = new Date();
         const dateStr = today.getFullYear().toString() + 
                        (today.getMonth() + 1).toString().padStart(2, '0') + 
                        today.getDate().toString().padStart(2, '0');
-        const sequentialNum = (invoiceCount + 1).toString().padStart(3, '0');
+        const prefix = `INV-${dateStr}-`;
+
+        // The trailing number is a global running counter across all dates
+        // (e.g. INV-20261024-029, INV-20261015-027). Find the highest suffix
+        // ever used and add 1, so deleted invoices never cause a collision.
+        const response = await fetch('/api/invoices?action=all', {
+            credentials: 'include'
+        });
+        let maxSequential = 0;
         
-        const invoiceNumber = `INV-${dateStr}-${sequentialNum}`;
+        if (response.ok) {
+            const data = await response.json();
+            const invoices = data.invoices || [];
+            invoices.forEach(invoice => {
+                const number = String(invoice.invoice_number || '');
+                const match = number.match(/-(\d+)$/);
+                if (!match) return;
+                const sequential = parseInt(match[1], 10);
+                if (Number.isFinite(sequential) && sequential > maxSequential) {
+                    maxSequential = sequential;
+                }
+            });
+        }
+        
+        const sequentialNum = (maxSequential + 1).toString().padStart(3, '0');
+        const invoiceNumber = `${prefix}${sequentialNum}`;
         document.getElementById('invoiceNumber').value = invoiceNumber;
         
     } catch (error) {
@@ -727,6 +739,48 @@ async function generateInvoiceNumber() {
         const timestamp = Date.now().toString().slice(-8);
         document.getElementById('invoiceNumber').value = `INV-${timestamp}`;
     }
+}
+
+// Prompt for an edit reason after saving changes to an existing invoice.
+// Returns a Promise resolving to the reason string ('' if skipped).
+function promptEditReason() {
+    return new Promise(resolve => {
+        const modal = document.getElementById('editReasonModal');
+        const input = document.getElementById('editReasonInput');
+        const confirmBtn = document.getElementById('editReasonConfirm');
+        const skipBtn = document.getElementById('editReasonSkip');
+
+        // Fallback to a simple prompt if the modal markup is unavailable
+        if (!modal || !input || !confirmBtn || !skipBtn) {
+            const reason = window.prompt('Reason for editing this invoice? (optional)') || '';
+            resolve(reason.trim());
+            return;
+        }
+
+        input.value = '';
+        modal.style.display = 'flex';
+        setTimeout(() => input.focus(), 50);
+
+        const cleanup = reason => {
+            modal.style.display = 'none';
+            confirmBtn.removeEventListener('click', onConfirm);
+            skipBtn.removeEventListener('click', onSkip);
+            input.removeEventListener('keydown', onKeydown);
+            resolve(reason);
+        };
+        const onConfirm = () => cleanup(input.value.trim());
+        const onSkip = () => cleanup('');
+        const onKeydown = event => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                onConfirm();
+            }
+        };
+
+        confirmBtn.addEventListener('click', onConfirm);
+        skipBtn.addEventListener('click', onSkip);
+        input.addEventListener('keydown', onKeydown);
+    });
 }
 
 // Preview PDF (placeholder for now)
@@ -925,7 +979,8 @@ document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
         const csrfToken = window.adminAuth?.getCsrfToken();
         
         if (invoiceId) {
-            // Update existing invoice
+            // Update existing invoice — ask why it's being edited
+            invoiceData.editReason = await promptEditReason();
             response = await fetch(`/api/invoices?action=update&id=${invoiceId}`, {
                 method: 'PUT',
                 credentials: 'include',
@@ -1119,6 +1174,44 @@ async function loadInvoiceForEdit(id) {
         }
         calculateTotals();
         
+        // Re-select the customer in the dropdown and restore their custom
+        // rates tab. loadProfiles() runs in parallel with this function, so
+        // retry until the profiles are available before selecting.
+        const restoreCustomerSelection = () => {
+            if (!companyProfiles.length) return false;
+            const profileIndex = companyProfiles.findIndex(profile =>
+                (currentCustomerId && profile.id === Number(currentCustomerId)) ||
+                (!currentCustomerId && profile.name === currentInvoiceCustomerName)
+            );
+            if (profileIndex < 0) return false;
+
+            const select = document.getElementById('companyProfile');
+            if (select) select.value = String(profileIndex);
+
+            // Restore the customer's custom rates tab if they have any
+            const profile = companyProfiles[profileIndex];
+            if (profile.lineItems && profile.lineItems.length > 0) {
+                window.customerCustomLineItems = profile.lineItems;
+                window.currentCustomerName = profile.name;
+                const customerTab = document.getElementById('customerRatesTab');
+                if (customerTab) {
+                    customerTab.style.display = 'block';
+                    customerTab.textContent = `${profile.name.split(' ')[0]}'s Rates`;
+                }
+            }
+            return true;
+        };
+
+        if (!restoreCustomerSelection()) {
+            let attempts = 0;
+            const retryInterval = setInterval(() => {
+                attempts += 1;
+                if (restoreCustomerSelection() || attempts >= 20) {
+                    clearInterval(retryInterval);
+                }
+            }, 250);
+        }
+        
         // Update page title
         const titleEl = document.querySelector('.page-header h1');
         if (titleEl) {
@@ -1237,7 +1330,10 @@ async function previewInvoice() {
         const action = isUpdate ? 'update' : 'create';
         const url = isUpdate ? `/api/invoices?action=update&id=${window.currentInvoiceId}` : '/api/invoices?action=create';
         const method = isUpdate ? 'PUT' : 'POST';
-        
+
+        // Ask why the invoice is being edited
+        const editReason = isUpdate ? await promptEditReason() : '';
+
         const response = await fetch(url, {
             method,
             credentials: 'include',
@@ -1267,7 +1363,8 @@ async function previewInvoice() {
                 tax,
                 total,
                 status: currentInvoiceStatus,
-                submissionId
+                submissionId,
+                editReason
             })
         });
         

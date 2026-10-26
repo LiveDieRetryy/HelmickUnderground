@@ -69,6 +69,23 @@ function displayInvoices(invoices) {
         const invoiceDisplay = invoice.job_number 
             ? `${invoice.invoice_number}<br><span style="color: var(--gray); font-size: 0.85rem;">Job: ${invoice.job_number}</span>`
             : invoice.invoice_number;
+
+        // Build payment-difference badge for paid invoices with a recorded payment
+        let paymentDiffDisplay = '';
+        if (invoice.status === 'paid' && invoice.amount_paid !== null && invoice.amount_paid !== undefined && invoice.amount_paid !== '') {
+            const paid = parseFloat(invoice.amount_paid);
+            const diff = invoice.payment_difference !== null && invoice.payment_difference !== undefined
+                ? parseFloat(invoice.payment_difference)
+                : null;
+            let diffHtml = '';
+            if (diff !== null && Number.isFinite(diff) && Math.abs(diff) >= 0.005) {
+                const sign = diff > 0 ? '+' : '-';
+                const color = diff > 0 ? '#10b981' : '#ef4444';
+                const label = diff > 0 ? 'overpaid' : 'underpaid';
+                diffHtml = `<br><small style="color: ${color}; font-weight: 700;">${sign}$${Math.abs(diff).toFixed(2)} ${label}</small>`;
+            }
+            paymentDiffDisplay = `<br><small style="color: #10b981; font-weight: 700;">Paid: $${paid.toFixed(2)}</small>${diffHtml}`;
+        }
         
         return `
             <tr class="invoice-card-collapsed" data-invoice-id="${invoice.id}" onclick="toggleInvoiceCard(this)" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleInvoiceCard(this); }" tabindex="0" aria-expanded="false">
@@ -76,10 +93,10 @@ function displayInvoices(invoices) {
                 <td data-label="Customer"><div class="invoice-cell-value">${invoice.customer_name}</div></td>
                 <td data-label="Date"><div class="invoice-cell-value">${invoiceDate}</div></td>
                 <td data-label="Due Date"><div class="invoice-cell-value">${dueDate}</div></td>
-                <td class="invoice-cell-amount" data-label="Amount"><div class="invoice-cell-value">$${invoiceTotal}<br><small>Due: $${parseFloat(invoice.amount_due ?? invoice.total).toFixed(2)}</small></div></td>
+                <td class="invoice-cell-amount" data-label="Amount"><div class="invoice-cell-value">$${invoiceTotal}<br><small>Due: $${parseFloat(invoice.amount_due ?? invoice.total).toFixed(2)}</small>${paymentDiffDisplay}</div></td>
                 <td class="invoice-cell-retainage" data-label="Retainage"><div class="invoice-cell-value"><strong>${parseFloat(invoice.retainage_rate || 0).toFixed(2)}%</strong><br><small>$${parseFloat(invoice.retainage_amount || 0).toFixed(2)}</small><br><select class="retainage-status-select" aria-label="Retainage status" onclick="event.stopPropagation()" onchange="updateRetainageStatus(${invoice.id}, this.value)"><option value="none" ${invoice.retainage_status === 'none' ? 'selected' : ''}>No retainage</option><option value="pending" ${invoice.retainage_status === 'pending' ? 'selected' : ''}>Retainage pending</option><option value="paid" ${invoice.retainage_status === 'paid' ? 'selected' : ''}>Retainage paid</option></select></div></td>
                 <td class="invoice-cell-status" data-label="Status">
-                    <div class="invoice-cell-value"><select onclick="event.stopPropagation()" onchange="updateInvoiceStatus(${invoice.id}, this.value)" class="status-select" style="background: ${getStatusColor(invoice.status)}; color: white; padding: 0.5rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer;">
+                    <div class="invoice-cell-value"><select onclick="event.stopPropagation()" onchange="handleStatusChange(${invoice.id}, this)" class="status-select" style="background: ${getStatusColor(invoice.status)}; color: white; padding: 0.5rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer;">
                         <option value="draft" ${invoice.status === 'draft' ? 'selected' : ''}>Draft</option>
                         <option value="sent" ${invoice.status === 'sent' ? 'selected' : ''}>Sent</option>
                         <option value="paid" ${invoice.status === 'paid' ? 'selected' : ''}>Paid</option>
@@ -122,6 +139,7 @@ function toggleInvoiceActions(invoiceId, event) {
         <button type="button" onclick="viewInvoice(${invoiceId}); closeInvoiceActions()">View invoice</button>
         <button type="button" onclick="editInvoice(${invoiceId}); closeInvoiceActions()">Edit invoice</button>
         <button type="button" onclick="openSendInvoiceModal(${invoiceId}); closeInvoiceActions()">Send invoice</button>
+        <button type="button" onclick="showInvoiceEditHistory(${invoiceId}); closeInvoiceActions()">Edit history</button>
         <button type="button" class="invoice-delete-action" onclick="deleteInvoice(${invoiceId}); closeInvoiceActions()">Delete invoice</button>
     `;
     menu.style.top = `${Math.min(bounds.bottom + 6, window.innerHeight - 190)}px`;
@@ -129,6 +147,72 @@ function toggleInvoiceActions(invoiceId, event) {
     document.body.appendChild(menu);
 
     setTimeout(() => document.addEventListener('click', closeInvoiceActions, { once: true }), 0);
+}
+
+// Fetch and display the edit history for an invoice
+async function showInvoiceEditHistory(invoiceId) {
+    const invoice = allInvoices.find(inv => String(inv.id) === String(invoiceId));
+    const numberEl = document.getElementById('editHistoryInvoiceNumber');
+    const contentEl = document.getElementById('editHistoryContent');
+    if (numberEl) numberEl.textContent = invoice ? invoice.invoice_number : `#${invoiceId}`;
+    if (contentEl) contentEl.innerHTML = '<p style="color: var(--gray);">Loading edit history...</p>';
+    document.getElementById('editHistoryModal').style.display = 'flex';
+
+    try {
+        const response = await fetch(`/api/invoices?action=editLog&id=${invoiceId}`, {
+            credentials: 'include'
+        });
+        if (!response.ok) throw new Error('Failed to load edit history');
+
+        const data = await response.json();
+        const edits = data.edits || [];
+
+        if (!edits.length) {
+            contentEl.innerHTML = '<p style="color: var(--gray);">No edits recorded for this invoice yet.</p>';
+            return;
+        }
+
+        contentEl.innerHTML = edits.map(edit => {
+            const details = typeof edit.details === 'string' ? JSON.parse(edit.details) : (edit.details || {});
+            const changes = details.changes || {};
+            const changeEntries = Object.entries(changes);
+            const when = edit.timestamp ? new Date(edit.timestamp).toLocaleString() : '';
+            const reason = details.reason || '(no reason provided)';
+
+            const changesHtml = changeEntries.length
+                ? `<table style="width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.9rem;">
+                    ${changeEntries.map(([field, change]) => `
+                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                            <td style="padding: 0.4rem 0.5rem; color: var(--gray); width: 35%;">${field.replace(/_/g, ' ')}</td>
+                            <td style="padding: 0.4rem 0.5rem;"><span style="color: #ef4444; text-decoration: line-through;">${escapeHistoryValue(change.from)}</span> <span style="color: var(--gray);">→</span> <span style="color: #10b981;">${escapeHistoryValue(change.to)}</span></td>
+                        </tr>
+                    `).join('')}
+                   </table>`
+                : '<p style="color: var(--gray); margin: 0.5rem 0 0 0; font-size: 0.9rem;">Saved with no field changes.</p>';
+
+            return `
+                <div style="background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 107, 26, 0.2); border-radius: 10px; padding: 1rem; margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                        <strong style="color: var(--primary-color);">${edit.action || 'update'}</strong>
+                        <span style="color: var(--gray); font-size: 0.85rem;">${when} · ${edit.admin_email || 'unknown'}</span>
+                    </div>
+                    <p style="margin: 0; color: var(--white); font-style: italic;">"${reason}"</p>
+                    ${changesHtml}
+                </div>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('Error loading edit history:', error);
+        contentEl.innerHTML = '<p style="color: #ef4444;">Failed to load edit history.</p>';
+    }
+}
+
+function escapeHistoryValue(value) {
+    return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function closeEditHistoryModal() {
+    document.getElementById('editHistoryModal').style.display = 'none';
 }
 
 /**
@@ -207,8 +291,71 @@ function searchInvoices(query) {
     displayInvoices(filtered);
 }
 
+// Intercept status dropdown changes; prompt for amount when marking paid
+function handleStatusChange(id, select) {
+    const status = select.value;
+    if (status === 'paid') {
+        const invoice = allInvoices.find(inv => String(inv.id) === String(id));
+        // Only prompt when transitioning into paid, not when re-saving
+        if (invoice && invoice.status !== 'paid') {
+            promptAmountPaid(id, select);
+            return;
+        }
+    }
+    updateInvoiceStatus(id, status);
+}
+
+// Track the invoice pending a "paid" confirmation via the amount modal
+let pendingPaidInvoiceId = null;
+let pendingPaidOriginalStatus = null;
+
+// Open the amount-paid modal when a status is switched to "paid"
+function promptAmountPaid(id, statusSelect) {
+    const invoice = allInvoices.find(inv => String(inv.id) === String(id));
+    if (!invoice) {
+        // Couldn't find the invoice; proceed without asking
+        updateInvoiceStatus(id, 'paid');
+        return;
+    }
+
+    pendingPaidInvoiceId = id;
+    pendingPaidOriginalStatus = invoice.status;
+
+    const amountDue = parseFloat(invoice.amount_due ?? invoice.total ?? 0);
+    document.getElementById('amountPaidInvoiceNumber').textContent = invoice.invoice_number;
+    document.getElementById('amountPaidHint').textContent = `Invoice total: $${parseFloat(invoice.total || 0).toFixed(2)} · Amount due: $${amountDue.toFixed(2)}`;
+    const input = document.getElementById('amountPaidInput');
+    input.value = amountDue.toFixed(2);
+
+    // Revert the select visually until confirmed
+    if (statusSelect) statusSelect.value = invoice.status;
+
+    document.getElementById('amountPaidModal').style.display = 'flex';
+    setTimeout(() => input.focus(), 50);
+}
+
+function cancelAmountPaidModal() {
+    pendingPaidInvoiceId = null;
+    document.getElementById('amountPaidModal').style.display = 'none';
+}
+
+function confirmAmountPaid() {
+    const rawValue = document.getElementById('amountPaidInput').value;
+    const amount = parseFloat(rawValue);
+    if (!Number.isFinite(amount) || amount < 0) {
+        showNotification('Enter a valid amount paid (0 or more).', 'error');
+        return;
+    }
+
+    const id = pendingPaidInvoiceId;
+    cancelAmountPaidModal();
+    if (id !== null) {
+        updateInvoiceStatus(id, 'paid', amount);
+    }
+}
+
 // Update invoice status
-async function updateInvoiceStatus(id, status) {
+async function updateInvoiceStatus(id, status, amountPaid) {
     const invoiceRow = document.querySelector(`tr[data-invoice-id="${id}"]`);
     const statusSelect = invoiceRow?.querySelector('.status-select');
     const originalStatus = statusSelect?.value;
@@ -230,7 +377,7 @@ async function updateInvoiceStatus(id, status) {
                         'Content-Type': 'application/json',
                         ...(csrfToken && { 'x-csrf-token': csrfToken })
                     },
-                    body: JSON.stringify({ status })
+                    body: JSON.stringify({ status, amountPaid })
                 });
                 
                 if (!response.ok) throw new Error('Failed to update status');
@@ -283,7 +430,7 @@ async function updateInvoiceStatus(id, status) {
                 method: 'PUT',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status })
+                body: JSON.stringify({ status, amountPaid })
             });
             
             if (!response.ok) throw new Error('Failed to update status');
