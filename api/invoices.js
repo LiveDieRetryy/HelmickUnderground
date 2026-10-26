@@ -400,7 +400,7 @@ module.exports = async function handler(req, res) {
                         SUM(retainage_amount) as retainage_amount,
                         SUM(amount_due) as amount_due,
                         SUM(CASE WHEN status = 'paid' THEN COALESCE(amount_paid, amount_due + CASE WHEN retainage_status = 'paid' THEN retainage_amount ELSE 0 END) ELSE 0 END) as paid_amount,
-                        SUM(CASE WHEN status = 'sent' THEN amount_due ELSE 0 END) + SUM(CASE WHEN status IN ('sent', 'paid') AND retainage_status = 'pending' THEN retainage_amount ELSE 0 END) as pending_amount,
+                        SUM(CASE WHEN status IN ('sent', 'overdue') THEN amount_due ELSE 0 END) + SUM(CASE WHEN status IN ('sent', 'paid') AND retainage_status = 'pending' THEN retainage_amount ELSE 0 END) as pending_amount,
                         SUM(CASE WHEN status IN ('sent', 'paid') AND retainage_status = 'pending' THEN retainage_amount ELSE 0 END) as pending_retainage_amount,
                         SUM(CASE WHEN status != 'paid' THEN total ELSE 0 END) as outstanding_amount
                     FROM invoices

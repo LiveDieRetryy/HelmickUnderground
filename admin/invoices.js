@@ -91,8 +91,9 @@ function updateStatsForFiltered(invoices) {
         return sum + val;
     }, 0);
 
+    // Pending = money still owed: sent + overdue invoices (plus pending retainage)
     const pending = invoices
-        .filter(i => i.status === 'sent')
+        .filter(i => i.status === 'sent' || i.status === 'overdue')
         .reduce((sum, i) => sum + parseFloat(i.amount_due ?? i.total ?? 0), 0)
         + invoices
         .filter(i => (i.status === 'sent' || i.status === 'paid') && i.retainage_status === 'pending')
@@ -102,7 +103,9 @@ function updateStatsForFiltered(invoices) {
         .filter(i => (i.status === 'sent' || i.status === 'paid') && i.retainage_status === 'pending')
         .reduce((sum, i) => sum + parseFloat(i.retainage_amount || 0), 0);
 
-    const overdue = invoices.filter(i => i.status === 'overdue').length;
+    const overdueInvoices = invoices.filter(i => i.status === 'overdue');
+    const overdue = overdueInvoices.length;
+    const overdueTotal = overdueInvoices.reduce((sum, i) => sum + parseFloat(i.amount_due ?? i.total ?? 0), 0);
 
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
     set('totalInvoices', invoices.length);
@@ -111,6 +114,8 @@ function updateStatsForFiltered(invoices) {
     set('overdueCount', overdue);
     const pr = document.getElementById('pendingRetainage');
     if (pr) pr.textContent = `Retainage: $${fmtMoney(pendingRetainage)}`;
+    const oa = document.getElementById('overdueAmount');
+    if (oa) oa.textContent = `$${fmtMoney(overdueTotal)}`;
 }
 
 /**
