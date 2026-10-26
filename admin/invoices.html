@@ -112,6 +112,12 @@
             color: var(--primary-color);
             font-size: 2.5rem;
             font-weight: 900;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            /* Shrink long currency values so they stay inside the card */
+            font-size: clamp(1.4rem, 2.2vw, 2.5rem);
+            line-height: 1.1;
         }
 
         .invoices-container {
