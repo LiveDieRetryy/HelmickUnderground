@@ -565,20 +565,33 @@ module.exports = async function handler(req, res) {
                 if (parsedAmountPaid !== null && (!Number.isFinite(parsedAmountPaid) || parsedAmountPaid < 0)) {
                     return sendErrorResponse(res, 'VALIDATION_ERROR', 'Amount paid must be a non-negative number');
                 }
-                
+
+                // Fetch current amounts so we can compute the difference in JS
+                const current = await sql`SELECT amount_due, retainage_amount, retainage_status, amount_paid, payment_difference FROM invoices WHERE id = ${id}`;
+                if (current.rows.length === 0) {
+                    return sendErrorResponse(res, 'NOT_FOUND', 'Invoice not found');
+                }
+                const row = current.rows[0];
+
+                // Preserve existing values unless we have a new paid amount to record
+                let newAmountPaid = row.amount_paid;
+                let newPaymentDifference = row.payment_difference;
+                if (status === 'paid' && parsedAmountPaid !== null) {
+                    newAmountPaid = parsedAmountPaid;
+                    const expected = parseFloat(row.amount_due ?? 0)
+                        + (row.retainage_status === 'paid' ? parseFloat(row.retainage_amount || 0) : 0);
+                    newPaymentDifference = parsedAmountPaid - expected;
+                }
+
                 await sql`
                     UPDATE invoices
                     SET status = ${status},
-                        amount_paid = CASE WHEN ${status} = 'paid' THEN COALESCE(${parsedAmountPaid}, amount_paid) ELSE amount_paid END,
-                        payment_difference = CASE
-                            WHEN ${status} = 'paid' AND ${parsedAmountPaid} IS NOT NULL
-                                THEN ${parsedAmountPaid} - (amount_due + CASE WHEN retainage_status = 'paid' THEN retainage_amount ELSE 0 END)
-                            ELSE payment_difference
-                        END,
+                        amount_paid = ${newAmountPaid},
+                        payment_difference = ${newPaymentDifference},
                         updated_at = CURRENT_TIMESTAMP
                     WHERE id = ${id}
                 `;
-                
+
                 return res.status(200).json({ success: true });
             }
 
